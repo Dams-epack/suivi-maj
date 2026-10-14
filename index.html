@@ -227,6 +227,19 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .xclose:hover{background:var(--hov);color:var(--hov-fg);border-color:var(--hov)}
 .xclose:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tophead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.modal.xml input[type=search]{border-color:var(--cta)}
+.cathead{font:inherit;font-weight:600;font-size:1rem;flex:1;display:flex;align-items:center;gap:8px;text-align:left;background:none;border:0;padding:8px 6px;color:var(--fg);cursor:pointer;border-radius:6px}
+.cathead:hover{background:var(--accent-soft)}
+.cathead:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cathead .catcar{display:inline-block;transition:transform .15s;font-size:1rem;color:var(--accent)}
+.cathead[aria-expanded="false"] .catcar{transform:rotate(-90deg)}
+.catcnt{font-weight:500;font-size:.8rem;color:var(--muted);font-family:var(--mono);padding:2px 8px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.catcnt.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
+.cat{border:1px solid var(--cta);border-radius:10px;padding:2px 10px 8px;gap:2px}
+.cat.shut{padding-bottom:2px}
+.cathd{display:flex;align-items:center;gap:8px}
+.cathd .chip{padding:3px 12px;font-size:.8rem;font-weight:400;white-space:nowrap}
+.cat:not(.shut) .cathd{border-bottom:1px solid var(--line);margin-bottom:4px;padding-bottom:2px}
 .presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 .preset{font:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer}
 .preset strong{font-size:1rem}
@@ -1642,13 +1655,12 @@ function closeCustom(){if(cdlg){cdlg.bg.remove();document.removeEventListener("k
 function openCustom(){
   if(cdlg)closeCustom();
   const known=[...new Set(Object.values(majs).map(groupOf).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr"));
-  const st={group:"",mods:new Set(),regs:new Set(["FR"]),extra:[],filter:"",concepts:[],csel:new Set()};
+  const st={group:"",mods:new Set(),regs:new Set(["FR"]),extra:[],filter:"",concepts:[],csel:new Set(),closed:new Set(CATALOG.map(c=>c[0]))};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","ct");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeCustom()};document.addEventListener("keydown",key);
   cdlg={bg,key};
   {const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer sans créer de suivi");x.title="Fermer";x.onclick=closeCustom;hd.append(Object.assign($("h2",null,"Suivi personnalisé"),{id:"ct"}),x);md.appendChild(hd)}
-  md.appendChild($("p",null,"Choisis le groupement, puis les modules à suivre et les régions."));
   // groupement : liste deroulante avec saisie intelligente
   const gb=$("div","fld");gb.appendChild($("span",null,"Groupement"));
   const cw=$("div","combo");
@@ -1753,8 +1765,12 @@ function openCustom(){
     }
   }
   // modules
-  const ml=$("div","fld");ml.appendChild($("span",null,"Modules à suivre"));
-  const fi=$("input");fi.type="search";fi.placeholder="Filtrer les modules";fi.setAttribute("aria-label","Filtrer les modules");ml.appendChild(fi);
+  const ml=$("div","fld");
+  const mh=$("div","rhead");mh.appendChild($("span",null,"Modules à suivre"));
+  const mex=$("button","rlink","Tout déplier");mex.type="button";
+  const mco=$("button","rlink","Tout réduire");mco.type="button";
+  mh.append(mex,mco);ml.appendChild(mh);
+  const fi=$("input");fi.type="search";fi.placeholder="Rechercher un module";fi.setAttribute("aria-label","Rechercher un module");ml.appendChild(fi);
   const list=$("div","mlist");ml.appendChild(list);md.appendChild(ml);
   const ac=$("div","actions");
   const ok=$("button","btn","Créer le suivi");const no=$("button","btn ghost","Annuler");
@@ -1788,13 +1804,21 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
     const f=fold(st.filter);let any=false;
     CATALOG.forEach(([cat,names])=>{
       const vis=names.filter(n=>!f||fold(n).includes(f)||fold(cat).includes(f));if(!vis.length)return;any=true;
-      const fs=$("fieldset","cat");const lg=$("legend");
+      const fs=$("div","cat");const lg=$("div","cathd");
       const allOn=vis.every(n=>st.mods.has(n));
       const tg=$("button","chip",allOn?"Tout décocher":"Tout cocher");tg.type="button";tg.onclick=()=>{vis.forEach(n=>allOn?st.mods.delete(n):st.mods.add(n));paintMods();check()};
-      lg.append(cat+" ",tg);fs.appendChild(lg);
-      vis.forEach(n=>{
+      const isOpen=!!f||!st.closed.has(cat);
+      const hd=$("button","cathead");hd.type="button";hd.setAttribute("aria-expanded",String(isOpen));
+      hd.append($("span","catcar","▾"),$("span",null,cat));
+      hd.onclick=()=>{if(f)return;st.closed.has(cat)?st.closed.delete(cat):st.closed.add(cat);paintMods()};
+      if(f)hd.style.cursor="default";
+      const ct=$("span","catcnt");
+      const upd=()=>{const s=names.filter(n=>st.mods.has(n)).length;ct.textContent=s+" / "+names.length;ct.classList.toggle("on",s>0)};upd();
+      lg.append(hd,ct,tg);fs.appendChild(lg);
+      if(!isOpen)fs.classList.add("shut");
+      if(isOpen)vis.forEach(n=>{
         const l=$("label","chk");const c=$("input");c.type="checkbox";c.checked=st.mods.has(n);
-        c.onchange=()=>{c.checked?st.mods.add(n):st.mods.delete(n);check()};
+        c.onchange=()=>{c.checked?st.mods.add(n):st.mods.delete(n);check();upd()};
         l.append(c,$("span",null,n));fs.appendChild(l);
       });
       list.appendChild(fs);
@@ -1811,6 +1835,8 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
     ccnt.textContent=c?c+" sélectionné"+(c>1?"s":""):"";
   }
   fi.oninput=()=>{st.filter=fi.value;paintMods()};
+  mex.onclick=()=>{st.closed.clear();paintMods()};
+  mco.onclick=()=>{CATALOG.forEach(([c])=>st.closed.add(c));paintMods()};
   rall.onclick=()=>{[...REGIONS,...st.extra].forEach(r=>st.regs.add(r));paintRegs();check()};
   rnone.onclick=()=>{st.regs.clear();paintRegs();check()};
   no.onclick=closeCustom;
