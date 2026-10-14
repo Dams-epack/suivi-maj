@@ -227,6 +227,14 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .xclose:hover{background:var(--hov);color:var(--hov-fg);border-color:var(--hov)}
 .xclose:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tophead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.preset{font:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer}
+.preset strong{font-size:1rem}
+.preset span{color:var(--muted);font-size:.85rem;font-weight:400}
+.preset span.auto{color:var(--ok);font-weight:600;font-size:.78rem}
+.preset:hover{border-color:var(--accent)}
+.preset[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.preset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 <div class="brandbar"><i></i><b>ePackPro</b><span>Outils support</span></div>
 <div class="wrap" id="app"></div>
@@ -1126,7 +1134,8 @@ let xmlDlg=null;
 function closeXml(){if(xmlDlg){xmlDlg.bg.remove();document.removeEventListener("keydown",xmlDlg.key);xmlDlg=null}}
 function openXml(m,k,id){
   if(xmlDlg)closeXml();
-  const st={done:false,m,file:null,bytes:null,info:null,ref:null,refName:"",dl:"",ange:/boulangerie\s+ange/i.test(m.group||m.title||"")?"oui":"non",dd:"",res:null,err:"",msg:""};
+  const isAnge=/boulangerie\s+ange/i.test(m.group||m.title||"");
+  const st={done:false,m,file:null,bytes:null,info:null,ref:null,refName:"",dl:"0",dd:isAnge?"ange":"false",auto:isAnge,adv:false,res:null,err:"",msg:""};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","xt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const dismiss=()=>{closeXml();const cm=majs[id];if(!st.done&&k&&cm){const q=cm.prog[k];if(q&&q.s[1]){const ns=q.s.slice();ns[1]=false;cm.prog[k]={s:ns,note:q.note||""};render();persist(id,k)}}};
@@ -1154,7 +1163,7 @@ function openXml(m,k,id){
     const i=st.info,o={};
     if(i.has_dltype)o.dltype=parseInt(st.dl,10);
     if(i.forced_tag){
-      if(st.ange==="oui"){o.isddm="false";o.excCat="DDM SECONDAIRE";o.excVal=true}else o.isddm=st.dd;
+      if(st.dd==="ange"){o.isddm="false";o.excCat="DDM SECONDAIRE";o.excVal=true}else o.isddm=st.dd;
     }
     const r=XMLC.run(st.bytes,o,st.ref||undefined);
     if(!r.ok){st.err=r.error;st.res=null}else{
@@ -1215,12 +1224,28 @@ function openXml(m,k,id){
       const i=st.info;
       const top=$("p",null);top.append("Fichier : ",$("b",null,st.file)," · type détecté : ",$("b",null,i.element));md.appendChild(top);
       if(!st.res){
-        if(i.has_dltype){
-          md.appendChild(field("DLType",sel([["","Choisir…"],["-1","En fonction de l'interface"],["0","Jours"],["1","Services"],["2","Heures"],["3","Minutes"]],st.dl,v=>{st.dl=v;paint()})));
-        }
-        if(i.forced_tag){
-          md.appendChild(field("Fichier du groupe Boulangerie Ange ?",sel([["oui","Oui (IsDDM false, sauf catégorie DDM SECONDAIRE)"],["non","Non"]],st.ange,v=>{st.ange=v;paint()})));
-          if(st.ange==="non")md.appendChild(field("Valeur de IsDDM pour tous les produits",sel([["","Choisir…"],["true","true"],["false","false"]],st.dd,v=>{st.dd=v;paint()})));
+        if(i.has_dltype||i.forced_tag){
+          const cur=st.dl==="0"&&st.dd==="false"?"standard":st.dl==="0"&&st.dd==="ange"?"ange":"custom";
+          const UNIT={"-1":"selon l'interface","0":"en jours","1":"en services","2":"en heures","3":"en minutes"};
+          md.appendChild($("p",null,"Quel réglage appliquer à ce fichier ?"));
+          const pw=$("div","presets");
+          const preset=(key,title,desc,dl,dd,note)=>{
+            const b=$("button","preset");b.type="button";b.setAttribute("aria-pressed",String(cur===key));
+            b.append($("strong",null,(cur===key?"✓ ":"")+title),$("span",null,desc));
+            if(note)b.appendChild($("span","auto",note));
+            b.onclick=()=>{st.dl=dl;st.dd=dd;paint()};
+            pw.appendChild(b);
+          };
+          preset("standard","Standard","Durée de vie en jours, aucun produit en DDM.","0","false","");
+          preset("ange","Boulangerie Ange","En jours, aucun produit en DDM sauf la catégorie DDM SECONDAIRE.","0","ange",st.auto?"Détecté d'après le groupement du suivi":"");
+          md.appendChild(pw);
+          const ddTxt=st.dd==="false"?"aucun produit en DDM":st.dd==="true"?"tous les produits en DDM":"aucun produit en DDM sauf la catégorie DDM SECONDAIRE";
+          md.appendChild($("p","msg","Réglage retenu : durée de vie "+(UNIT[st.dl]||"")+", "+ddTxt+"."));
+          const av=$("button","chip",st.adv?"Masquer les réglages avancés":"Réglages avancés");av.type="button";av.style.alignSelf="flex-start";av.setAttribute("aria-expanded",String(st.adv));av.onclick=()=>{st.adv=!st.adv;paint()};md.appendChild(av);
+          if(st.adv){
+            md.appendChild(field("Unité de la durée de vie (DLType)",sel([["-1","Selon l'interface"],["0","Jours"],["1","Services"],["2","Heures"],["3","Minutes"]],st.dl,v=>{st.dl=v;paint()})));
+            md.appendChild(field("Produits en DDM (IsDDM)",sel([["false","Aucun (false pour tous)"],["true","Tous (true pour tous)"],["ange","Aucun, sauf la catégorie DDM SECONDAIRE"]],st.dd,v=>{st.dd=v;paint()})));
+          }
         }
         if(i.needsRef){
           md.appendChild($("p",null,"NextDate n'existe pas dans l'export : elle est reprise d'un fichier de référence validé (appariement sur Id)."));
@@ -1229,7 +1254,7 @@ function openXml(m,k,id){
         if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
         const ac=$("div","actions");
         const ok=$("button","btn","Lancer la complétion");
-        ok.disabled=(i.has_dltype&&st.dl==="")||(i.forced_tag&&st.ange==="non"&&st.dd==="");
+        ok.disabled=(i.has_dltype&&st.dl==="")||(i.forced_tag&&st.dd==="");
         ok.onclick=go;
         const ch=$("button","btn ghost","Changer de fichier");ch.onclick=()=>{st.bytes=null;st.info=null;st.file=null;st.ref=null;paint()};
         const no=$("button","btn ghost","Fermer");no.onclick=dismiss;
