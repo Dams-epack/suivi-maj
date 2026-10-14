@@ -1479,7 +1479,6 @@ app.appendChild(tl);
   const pr=Object.entries(p).sort((a,b)=>b[1]-a[1]).slice(0,7);
   grid.appendChild(card("MAJ préparées par collègue","Créateur du suivi (ou, à défaut, personne ayant archivé).",pr.length?barList(pr.map(([k,v])=>({label:k==="?"?"Non renseigné":(who(k)||"Un collègue"),v,text:String(v)})),{}):empty("Aucune MAJ.")));
   app.appendChild(grid);
-  app.appendChild(backupCard());
   app.querySelectorAll(".kpi,.card").forEach(e=>e.classList.add("acc"));
 }
 /*HUB-END*/
