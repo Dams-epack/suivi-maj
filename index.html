@@ -1172,16 +1172,17 @@ function openXml(m,k,id){
   async function dl(){
     const r=st.res;const name=r.outName||st.file;
     const zname=name.replace(/\.xml$/i,"")+".zip";
-    const zip=makeZip(name,r.bytes);
     st.msg="";
     try{
+      const zip=makeZip(name,r.bytes);
+      if(!window.claude||typeof window.claude.use!=="function"){st.fb=true;st.msg="Cette page n'est pas ouverte dans un environnement qui autorise le téléchargement (window.claude absent) : recharge la page ou utilise une des solutions ci-dessous.";paint();return}
       const d=await window.claude.use("downloads");
       if(!d){st.fb=true;st.msg="Le téléchargement direct n'est pas disponible dans ta vue : utilise une des solutions ci-dessous.";paint();return}
       await d.save({filename:zname,data:zip});st.done=true;
       st.msg="Fichier téléchargé : "+zname+" (contient "+name+")."+tickDone();
     }catch(e){
       if(e&&e.code==="declined")st.msg="Téléchargement annulé.";
-      else{st.fb=true;st.msg="Téléchargement impossible ("+((e&&e.code)||"erreur")+") : utilise une des solutions ci-dessous."}
+      else{st.fb=true;st.msg="Téléchargement impossible ("+((e&&e.code)||(e&&e.name)||"erreur")+(e&&e.message?" : "+String(e.message).slice(0,160):"")+"). Utilise une des solutions ci-dessous."}
     }
     paint();
   }
