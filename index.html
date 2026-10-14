@@ -1,217 +1,5 @@
-<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Suivi de préparation des majs.</title>
-<style>html{scroll-padding-top:0}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-<style>
-.fsbar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:8px 16px;background:#1d3331;color:#fff;font:13px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif}
-.fsbar[data-s="ok"]{background:#305754}.fsbar[data-s="error"]{background:#8a1c1c}.fsbar[data-s="reconnect"],.fsbar[data-s="nofile"],.fsbar[data-s="unsupported"]{background:#7a4a00}
-.fsmsg{flex:1 1 280px}.fsact,.fsname{display:inline-flex;gap:6px;align-items:center}
-.fsb{font:inherit;border:1px solid rgba(255,255,255,.55);background:transparent;color:#fff;padding:4px 12px;border-radius:999px;cursor:pointer}
-.fsb:hover{background:rgba(255,255,255,.15)}.fsb.p{background:#9bff52;color:#1d3331;border-color:#9bff52;font-weight:700}
-.fsname input{font:inherit;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);color:#fff;width:150px}
-.fsname input::placeholder{color:rgba(255,255,255,.65)}
-</style>
-<script>
-/* Version autonome : remplace les fonctions de Claude (base partagée, utilisateur, téléchargement)
-   par un fichier JSON partagé (dossier SharePoint synchronisé) lu et écrit avec l'API File System Access (Edge / Chrome). */
-(function(){
-"use strict";
-var NAME_KEY="suivi-maj-nom",IDB_NAME="suivi-maj-fs",POLL_MS=4000;
-var supported=typeof window.showOpenFilePicker==="function"&&typeof window.showSaveFilePicker==="function";
-var handle=null,state={majs:{},groupes:{}},lastMod=0,lastSize=-1,loaded=false;
-var listeners={majs:[],groupes:[]};
-var pending=[],flushing=false,again=false,timer=null,status="init",statusMsg="",lastSync=0;
-var dbResolve,dbReady=new Promise(function(r){dbResolve=r});
-window.__STANDALONE=true;
-
-/* ---------- IndexedDB : mémorise le fichier choisi ---------- */
-function idb(){return new Promise(function(res,rej){var q=indexedDB.open(IDB_NAME,1);q.onupgradeneeded=function(){q.result.createObjectStore("kv")};q.onsuccess=function(){res(q.result)};q.onerror=function(){rej(q.error)}})}
-function idbGet(k){return idb().then(function(d){return new Promise(function(res,rej){var r=d.transaction("kv").objectStore("kv").get(k);r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})})}
-function idbSet(k,v){return idb().then(function(d){return new Promise(function(res,rej){var t=d.transaction("kv","readwrite");t.objectStore("kv").put(v,k);t.oncomplete=function(){res()};t.onerror=function(){rej(t.error)}})})}
-
-/* ---------- lecture / ecriture du fichier ---------- */
-function clean(o){return o&&typeof o==="object"&&!Array.isArray(o)?o:{}}
-async function readFile(){
-  var f=await handle.getFile();var txt=await f.text();var j={};
-  if(txt.trim()){try{j=JSON.parse(txt)}catch(e){throw new Error("Le fichier de données n'est pas un JSON valide.")}}
-  state={majs:clean(j.majs),groupes:clean(j.groupes)};lastMod=f.lastModified;lastSize=f.size;loaded=true;
-}
-async function writeFile(){
-  var w=await handle.createWritable();
-  await w.write(JSON.stringify({format:"suivi-maj-donnees",version:1,savedAt:Date.now(),majs:state.majs,groupes:state.groupes},null,1));
-  await w.close();
-  var f=await handle.getFile();lastMod=f.lastModified;lastSize=f.size;
-}
-function merge(t,s){
-  var out=Object.assign({},t);
-  Object.keys(s).forEach(function(k){
-    var a=out[k],b=s[k];
-    if(b&&typeof b==="object"&&!Array.isArray(b)&&a&&typeof a==="object"&&!Array.isArray(a))out[k]=merge(a,b);
-    else out[k]=b;
-  });
-  return out;
-}
-function snap(coll){
-  var c=state[coll];
-  return {docs:Object.keys(c).map(function(id){return {id:id,data:function(){return JSON.parse(JSON.stringify(c[id]))}}}),metadata:{fromCache:false,hasPendingWrites:false}};
-}
-function emit(coll){var s=snap(coll);listeners[coll].slice().forEach(function(l){try{l.cb(s)}catch(e){console.error(e)}})}
-function emitAll(){emit("majs");emit("groupes")}
-
-/* ---------- ecritures groupees ---------- */
-function queue(coll,id,op,data){
-  return new Promise(function(resolve,reject){
-    pending.push({coll:coll,id:id,op:op,data:data,resolve:resolve,reject:reject});
-    clearTimeout(timer);timer=setTimeout(flush,300);
-  });
-}
-async function flush(){
-  if(flushing){again=true;return}
-  if(!pending.length||!handle)return;
-  flushing=true;var ops=pending.splice(0);setStatus("saving");
-  try{
-    await readFile();   /* repart de la version la plus récente du fichier */
-    var errs=[];
-    ops.forEach(function(o){
-      var c=state[o.coll];
-      if(o.op==="set")c[o.id]=JSON.parse(JSON.stringify(o.data));
-      else if(o.op==="update"){if(!c[o.id])errs.push([o,new Error("not_found")]);else c[o.id]=merge(c[o.id],JSON.parse(JSON.stringify(o.data)))}
-      else if(o.op==="delete")delete c[o.id];
-    });
-    await writeFile();
-    ops.forEach(function(o){var e=errs.filter(function(x){return x[0]===o})[0];if(e)o.reject(e[1]);else o.resolve()});
-    lastSync=Date.now();setStatus("ok");emitAll();
-  }catch(e){
-    ops.forEach(function(o){o.reject(e)});setStatus("error",e&&e.message||String(e));
-  }finally{
-    flushing=false;if(again||pending.length){again=false;flush()}
-  }
-}
-async function poll(){
-  if(!handle||flushing||pending.length||document.hidden)return;
-  try{
-    var f=await handle.getFile();
-    if(f.lastModified!==lastMod||f.size!==lastSize){await readFile();lastSync=Date.now();setStatus("ok");emitAll()}
-    else if(status!=="ok"){setStatus("ok")}
-  }catch(e){setStatus("error",e&&e.message||String(e))}
-}
-
-/* ---------- API db (même forme que celle de Claude) ---------- */
-function docRef(coll,id){
-  return {
-    set:function(d){return queue(coll,id,"set",d)},
-    update:function(d){return queue(coll,id,"update",d)},
-    delete:function(){return queue(coll,id,"delete")},
-    get:function(){return Promise.resolve(state[coll][id]?{id:id,exists:true,data:function(){return JSON.parse(JSON.stringify(state[coll][id]))}}:{id:id,exists:false,data:function(){return undefined}})}
-  };
-}
-var db={collection:function(coll){
-  return {
-    doc:function(id){return docRef(coll,id)},
-    onSnapshot:function(cb,err){
-      var l={cb:cb};listeners[coll].push(l);
-      Promise.resolve().then(function(){if(loaded)try{cb(snap(coll))}catch(e){console.error(e)}});
-      return function(){listeners[coll]=listeners[coll].filter(function(x){return x!==l})};
-    }
-  };
-}};
-
-/* ---------- utilisateur : simple prénom saisi une fois ---------- */
-function myName(){try{return (localStorage.getItem(NAME_KEY)||"").trim()}catch(e){return ""}}
-var userApi={
-  id:function(){return Promise.resolve(myName())},
-  me:function(){return Promise.resolve({id:myName(),name:myName()})},
-  profiles:function(ids){var o={};(ids||[]).forEach(function(i){o[i]={name:String(i)}});return Promise.resolve(o)}
-};
-
-/* ---------- téléchargement ---------- */
-var downloads={save:function(r){
-  return new Promise(function(res,rej){
-    try{
-      var blob=r.data instanceof Blob?r.data:new Blob([r.data]);
-      var u=URL.createObjectURL(blob),a=document.createElement("a");
-      a.href=u;a.download=r.filename;document.body.appendChild(a);a.click();a.remove();
-      setTimeout(function(){URL.revokeObjectURL(u)},5000);res({status:"saved"});
-    }catch(e){rej({code:"unavailable",message:String(e)})}
-  });
-}};
-
-window.claude={use:function(name){
-  if(name==="db")return supported?dbReady:Promise.resolve(null);
-  if(name==="user")return Promise.resolve(myName()?userApi:null);
-  if(name==="downloads")return Promise.resolve(downloads);
-  return Promise.resolve(null);
-}};
-
-/* ---------- barre d'état + choix du fichier ---------- */
-function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
-var bar,msgEl,actEl,nameIn;
-function ensureBar(){
-  if(bar)return;
-  bar=el("div","fsbar");bar.id="fsbar";msgEl=el("span","fsmsg");actEl=el("span","fsact");
-  var nw=el("span","fsname");nameIn=el("input");nameIn.type="text";nameIn.placeholder="Ton prénom (facultatif)";nameIn.maxLength=30;nameIn.value=myName();nameIn.setAttribute("aria-label","Ton prénom");
-  var nb=el("button","fsb","OK");nb.type="button";
-  nb.onclick=function(){try{localStorage.setItem(NAME_KEY,nameIn.value.trim())}catch(e){}location.reload()};
-  nameIn.onkeydown=function(e){if(e.key==="Enter")nb.onclick()};
-  nw.append(nameIn,nb);
-  bar.append(msgEl,actEl,nw);document.body.insertBefore(bar,document.body.firstChild);
-}
-function btn(label,fn,primary){var b=el("button","fsb"+(primary?" p":""),label);b.type="button";b.onclick=fn;return b}
-function setStatus(s,m){
-  status=s;statusMsg=m||"";if(!bar)return;
-  actEl.textContent="";bar.dataset.s=s;
-  var fname=handle?handle.name:"";
-  if(s==="unsupported"){msgEl.textContent="Ce navigateur ne permet pas le fichier partagé : ouvre l'outil avec Microsoft Edge ou Google Chrome. Les données restent enregistrées sur ce poste uniquement."}
-  else if(s==="nofile"){msgEl.textContent="Données partagées : aucun fichier connecté.";actEl.append(btn("Ouvrir le fichier de données",pickOpen,true),btn("Créer un fichier",pickNew))}
-  else if(s==="reconnect"){msgEl.textContent="Fichier de données « "+fname+" » : autorisation à confirmer.";actEl.append(btn("Reconnecter",reconnect,true),btn("Autre fichier",pickOpen))}
-  else if(s==="saving"){msgEl.textContent="Enregistrement dans « "+fname+" »…"}
-  else if(s==="ok"){msgEl.textContent="Fichier partagé : « "+fname+" » · synchronisé à "+new Date(lastSync||Date.now()).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});actEl.append(btn("Changer de fichier",pickOpen))}
-  else if(s==="error"){msgEl.textContent="Problème avec le fichier de données : "+statusMsg;actEl.append(btn("Reconnecter",reconnect,true),btn("Autre fichier",pickOpen))}
-}
-async function attach(h){
-  handle=h;try{await idbSet("handle",h)}catch(e){}
-  await readFile();lastSync=Date.now();setStatus("ok");dbResolve(db);emitAll();
-}
-var JSON_TYPES=[{description:"Fichier de données Suivi MAJ (.json)",accept:{"application/json":[".json"]}}];
-async function pickOpen(){
-  try{var hs=await window.showOpenFilePicker({types:JSON_TYPES,multiple:false});await attach(hs[0])}
-  catch(e){if(!(e&&e.name==="AbortError"))setStatus("error",e&&e.message||String(e))}
-}
-async function pickNew(){
-  try{var h=await window.showSaveFilePicker({suggestedName:"suivi-maj-donnees.json",types:JSON_TYPES});
-    try{var f=await h.getFile();if(f.size>0){await attach(h);return}}catch(e){}
-    handle=h;state={majs:{},groupes:{}};await writeFile();loaded=true;try{await idbSet("handle",h)}catch(e){}
-    lastSync=Date.now();setStatus("ok");dbResolve(db);emitAll();
-  }catch(e){if(!(e&&e.name==="AbortError"))setStatus("error",e&&e.message||String(e))}
-}
-async function reconnect(){
-  try{
-    if(!handle){await pickOpen();return}
-    var p=await handle.requestPermission({mode:"readwrite"});
-    if(p==="granted")await attach(handle);else setStatus("reconnect")
-  }catch(e){setStatus("error",e&&e.message||String(e))}
-}
-
-function start(){
-  ensureBar();
-  if(!supported){setStatus("unsupported");return}
-  idbGet("handle").then(async function(h){
-    if(!h){setStatus("nofile");return}
-    handle=h;
-    try{var p=await h.queryPermission({mode:"readwrite"});if(p==="granted")await attach(h);else setStatus("reconnect")}
-    catch(e){setStatus("reconnect")}
-  }).catch(function(){setStatus("nofile")});
-  setInterval(poll,POLL_MS);
-  window.addEventListener("focus",poll);
-  document.addEventListener("visibilitychange",function(){if(!document.hidden)poll()});
-}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
-window.__fsDebug={flush:flush,state:function(){return state}};
-})();
-
-</script>
-</head><body>
-
 <style>
 /* Layout: accueil (coller le mail + liste des MAJ), puis suivi d'une MAJ : une table par module, une ligne par région, 3 étapes */
 :root{
@@ -704,7 +492,7 @@ async function finishCreate(){
 }
 function closeModal(val){const m=draft.modal;draft.modal=null;render();if(m)m.resolve(val)}
 function createMaj(){
-  const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,regions:m.regions.map(r=>({key:slug(r),label:r}))}));
+  const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
   const id="maj-"+Date.now();
   const title=baseTitleFor(draft.group);
   registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",created:t0,startedAt:t0,createdBy:myId||null,mods,prog:{}};
@@ -864,7 +652,7 @@ function viewMaj(app,id){
       const L=stepsOf(M).length;const n=p.s.slice(0,L).filter(Boolean).length;md+=n;
       if(onlyTodo&&n===L)return;
       const row=$("div","row"+(n===L?" full":"")+(L===1?" one":""));
-      const reg=$("div","reg");reg.appendChild($("strong",null,norm(r.label)));row.appendChild(reg);
+      const reg=$("div","reg");reg.appendChild($("strong",null,norm(r.label)));if(r.concept){const cs=$("small",null,r.concept);cs.style.color="var(--muted)";reg.appendChild(cs)}row.appendChild(reg);
       let warn=false;
       stepsOf(M).forEach((S,i)=>{
         const b=$("button","step");b.setAttribute("role","checkbox");b.setAttribute("aria-checked",p.s[i]?"true":"false");
@@ -1389,8 +1177,8 @@ function openXml(m,k,id){
     try{
       const d=await window.claude.use("downloads");
       if(!d){st.fb=true;st.msg="Le téléchargement direct n'est pas disponible dans ta vue : utilise une des solutions ci-dessous.";paint();return}
-      await d.save({filename:name,data:r.bytes});st.done=true;
-      st.msg="Fichier téléchargé : "+name+"."+tickDone();
+      await d.save({filename:zname,data:zip});st.done=true;
+      st.msg="Fichier téléchargé : "+zname+" (contient "+name+")."+tickDone();
     }catch(e){
       if(e&&e.code==="declined")st.msg="Téléchargement annulé.";
       else{st.fb=true;st.msg="Téléchargement impossible ("+((e&&e.code)||"erreur")+") : utilise une des solutions ci-dessous."}
@@ -1459,7 +1247,7 @@ function openXml(m,k,id){
         chk.appendChild($("li",null,(r.idempotent?"✓":"✗")+" Relancer le traitement sur la sortie ne change rien"));
         md.appendChild(chk);
         r.notes.forEach(n=>md.appendChild($("p",null,"Rappel : "+n)));
-        md.appendChild($("p",null,"Fichier livré : "+(r.outName||st.file)+"."));
+        md.appendChild($("p",null,"Fichier livré : "+(r.outName||st.file)+" (dans une archive .zip, les .xml n'étant pas téléchargeables directement : à dézipper avant l'import)."));
         if(st.msg)md.appendChild($("p","msg",st.msg));
         const ac=$("div","actions");
         const d=$("button","btn ok","Télécharger le XML complété");d.onclick=dl;
@@ -1828,7 +1616,7 @@ function closeCustom(){if(cdlg){cdlg.bg.remove();document.removeEventListener("k
 function openCustom(){
   if(cdlg)closeCustom();
   const known=[...new Set(Object.values(majs).map(groupOf).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr"));
-  const st={group:"",mods:new Set(),regs:new Set(["FR"]),extra:[],filter:""};
+  const st={group:"",mods:new Set(),regs:new Set(["FR"]),extra:[],filter:"",concepts:[],csel:new Set()};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","ct");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeCustom()};document.addEventListener("keydown",key);
@@ -1912,6 +1700,32 @@ function openCustom(){
   rh.append(rall,rnone,rcnt);rl.appendChild(rh);
   const rw=$("div","rpills");rl.appendChild(rw);md.appendChild(rl);
   let adding=false;
+  // concepts : facultatif et ephemere (propre a ce suivi, jamais memorise dans une liste)
+  const cl=$("div","fld");
+  const ch=$("div","rhead");ch.appendChild($("span",null,"Concept (facultatif)"));const ccnt=$("span","rcnt");ch.appendChild(ccnt);cl.appendChild(ch);
+  const cw2=$("div","rpills");cl.appendChild(cw2);
+  cl.appendChild($("small","gmsg","Ex. La Boucherie, La Boucherie + KDB. Une ligne par région et par concept ; rien n'est mémorisé en dehors de ce suivi."));
+  md.appendChild(cl);
+  let cadding=false;
+  function paintConcepts(){
+    cw2.textContent="";
+    st.concepts.forEach(c=>{
+      const b=$("button","rp");b.type="button";b.setAttribute("aria-pressed",String(st.csel.has(c)));b.append(c);
+      const x=$("span","rx","×");x.title="Retirer";x.setAttribute("role","button");x.setAttribute("aria-label","Retirer "+c);x.onclick=e=>{e.stopPropagation();st.concepts=st.concepts.filter(v=>v!==c);st.csel.delete(c);paintConcepts();check()};b.appendChild(x);
+      b.onclick=()=>{st.csel.has(c)?st.csel.delete(c):st.csel.add(c);paintConcepts();check()};
+      cw2.appendChild(b);
+    });
+    if(cadding){
+      const e=$("span","rp edit");const i=$("input","ri");i.type="text";i.placeholder="Nom du concept…";i.maxLength=40;i.setAttribute("aria-label","Ajouter un concept");
+      const ok2=$("button",null,"✓");ok2.type="button";ok2.setAttribute("aria-label","Ajouter");
+      const go=()=>{const v=i.value.replace(/\s+/g," ").trim();cadding=false;if(v){if(!st.concepts.includes(v))st.concepts.push(v);st.csel.add(v)}paintConcepts();check()};
+      ok2.onclick=go;i.onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();go()}else if(ev.key==="Escape"){ev.preventDefault();ev.stopPropagation();cadding=false;paintConcepts()}};
+      i.onblur=()=>{setTimeout(()=>{if(cadding&&!i.value.trim()){cadding=false;paintConcepts()}},150)};
+      e.append(i,ok2);cw2.appendChild(e);setTimeout(()=>i.focus(),0);
+    }else{
+      const pl=$("button","rp plus","+ Concept");pl.type="button";pl.onclick=()=>{cadding=true;paintConcepts()};cw2.appendChild(pl);
+    }
+  }
   // modules
   const ml=$("div","fld");ml.appendChild($("span",null,"Modules à suivre"));
   const fi=$("input");fi.type="search";fi.placeholder="Filtrer les modules";fi.setAttribute("aria-label","Filtrer les modules");ml.appendChild(fi);
@@ -1965,8 +1779,10 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
     const g=st.group;
     const n=st.mods.size,r=st.regs.size;
     ok.disabled=!(g&&n&&r);
-    cnt.textContent=n+" module"+(n>1?"s":"")+" · "+r+" région"+(r>1?"s":"");
+    const c=st.csel.size;
+    cnt.textContent=n+" module"+(n>1?"s":"")+" · "+r+" région"+(r>1?"s":"")+(c?" × "+c+" concept"+(c>1?"s":"")+" = "+r*c+" lignes par module":"");
     rcnt.textContent=r+" sélectionnée"+(r>1?"s":"");
+    ccnt.textContent=c?c+" sélectionné"+(c>1?"s":""):"";
   }
   fi.oninput=()=>{st.filter=fi.value;paintMods()};
   rall.onclick=()=>{[...REGIONS,...st.extra].forEach(r=>st.regs.add(r));paintRegs();check()};
@@ -1976,11 +1792,12 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
     const g=st.group;if(!g||!st.mods.size||!st.regs.size)return;
     const names=CATALOG.flatMap(([,a])=>a).filter(n=>st.mods.has(n));
     const regs=[...REGIONS,...st.extra].filter(r=>st.regs.has(r));
-    draft.group=g;draft.parsed=names.map(n=>({name:n,regions:regs.slice()}));
+    const cons=st.concepts.filter(c=>st.csel.has(c));
+    draft.group=g;draft.parsed=names.map(n=>({name:n,regions:cons.length?cons.flatMap(c=>regs.map(r=>({label:r,concept:c}))):regs.slice()}));
     closeCustom();createMaj();
   };
   cdlg.refresh=()=>{if(open)paintCombo()};
-  paintRegs();paintMods();check();
+  paintRegs();paintConcepts();paintMods();check();
   setTimeout(()=>gi.focus(),0);
 }
 /*CUSTOM-END*/
