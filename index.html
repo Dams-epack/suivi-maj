@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Suivi de préparation des majs.</title>
 <style>
-/* Layout: accueil (coller le mail + liste des MAJ), puis suivi d'une MAJ : une table par module, une ligne par région, 3 étapes */
+/* Layout: accueil (coller le mail + liste des MAJ), puis suivi d'une MAJ : une table par module, une ligne par région, étapes */
 :root{
   --bg:#F6F0EA; --surface:#ffffff; --fg:#1d3331; --muted:#5b6f6c; --line:#e1d8cd;
   --bad:#D11A1A; --mid:#E8590C; --accent:#305754; --accent-fg:#ffffff; --accent-soft:#E0EBFF;
@@ -105,6 +105,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
   .cols{display:none}
   .row{grid-template-columns:repeat(3,minmax(0,1fr))}
   .row.one{grid-template-columns:minmax(0,1fr)}
+  .row.two{grid-template-columns:repeat(2,minmax(0,1fr))}
   .reg{grid-column:1/-1}
   .step{flex-direction:column;gap:4px;font-size:.78rem;text-align:center}
   .stepname{display:block}
@@ -114,6 +115,47 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
   .row.one .step{flex-direction:row}
 }
 .modal.xml{max-width:640px;max-height:90vh;overflow:auto}
+.dates{display:flex;flex-wrap:wrap;gap:12px 24px}
+.mailbody{font:inherit;font-weight:400;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%;resize:vertical;line-height:1.45}
+.bloc{display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface);border-top:4px solid var(--cta)}
+.bloc-t{margin:0;font-size:inherit}
+.bloc-h{font:inherit;color:inherit;background:none;border:0;padding:2px 0;width:100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;cursor:pointer;text-align:left}
+.bloc-h .btl{font-size:1.2rem;font-weight:700}
+.bloc-h .caret{width:1.1em;color:var(--accent)}
+.bloc-h .cnt{margin-left:auto;font-family:var(--mono);font-size:.85rem;color:var(--muted)}
+.bloc-h:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.bloc-b{display:flex;flex-direction:column;gap:12px}.bloc-b[hidden]{display:none}
+.mailtrack{display:flex;flex-direction:column;gap:8px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 10px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.mrow.done{background:var(--ok-soft)}
+.mrow .mlab{display:flex;flex-direction:column;min-width:0}.mrow small{color:var(--muted)}
+.mrow .step{width:auto;min-width:120px}
+@media (max-width:620px){.mrow{grid-template-columns:minmax(0,1fr) auto}.mrow .mlab{grid-column:1/-1}.mrow .step{justify-content:center}}
+.datesave{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dates{align-items:flex-end}
+.datef{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
+.hrow{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px}.hrow h1{margin:0}
+.datef input:disabled{opacity:.75;cursor:not-allowed}
+.datef select,.datef input{font:inherit;font-weight:400;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
+.cols.two,.row.two{grid-template-columns:minmax(120px,1.3fr) repeat(2,minmax(0,1fr))}
+.stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
+.chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
+.gsheets{display:flex;flex-direction:column;gap:6px}
+.gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
+.gsheet span{color:var(--muted);font-size:.85rem}
+.gdet{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--muted)}
+.gdet .gdef{color:var(--warn)}.gdet .gbad{color:var(--bad);font-weight:600}
+.modal.xml details.adj summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+.gmap{display:grid;grid-template-columns:minmax(110px,160px) minmax(0,1fr);gap:6px 10px;align-items:center;margin-top:8px}
+.gmap .gt{font-family:var(--mono);font-size:.82rem}
+.gmap select,.gparams select{font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);min-width:0}
+.gparams{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.gcard{border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.gch{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.gbadge{font-size:.78rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--ok-soft);color:var(--ok)}
+.gbadge.bad{background:var(--warn-soft);color:var(--bad)}
+.gwarn{font-size:.82rem;color:var(--warn);background:var(--warn-soft);padding:4px 8px;border-radius:6px;overflow-wrap:anywhere}
+
 .fld{display:flex;flex-direction:column;gap:4px;font-weight:600}
 .fld select{font:inherit;font-weight:400;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
 .xres{margin:0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:.78rem;white-space:pre-wrap;overflow:auto;max-height:240px}
@@ -137,6 +179,9 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .fbadge[hidden]{display:none}
 .fgrid[hidden]{display:none}
 .kpi.acc,.card.acc,.panel.acc,.sitem.acc{border-top:4px solid var(--cta)}
+.kpi.link{cursor:pointer}.kpi.link:hover{border-color:var(--accent)}.kpi.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.kpi.link em{font-style:normal;color:var(--accent);font-size:.8rem;margin-top:4px}
+.sitem .bar{margin:4px 0;height:10px}
+.mhead{margin:10px 0 0;font-size:.9rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .tool:hover{border-color:var(--accent)}
 .tool:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tool span{color:var(--muted)}.tool small{color:var(--accent);font-weight:600}
@@ -166,6 +211,24 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .sitem{font:inherit;text-align:left;display:flex;flex-direction:column;gap:3px;padding:12px 14px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;cursor:pointer}
 .sitem:hover{border-color:var(--accent)}.sitem:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sitem small{color:var(--muted)}
+.mstrip{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:9px;border-top:1px dashed var(--line)}
+.mst{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.mchip{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--bg)}
+.mchip.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.mchip.nx{border-color:var(--warn);color:var(--warn);background:var(--warn-soft)}
+.sopen{all:unset;display:flex;flex-direction:column;gap:3px;cursor:pointer;color:inherit}.sopen:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+.sitem:has(.sopen){cursor:default}
+button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:brightness(1.15)}.mgen{margin-left:0;margin-right:6px}
+.tgl{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:3px 12px 3px 4px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+.tgl:hover{border-color:var(--accent)}.tgl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tgt{position:relative;width:34px;height:20px;border-radius:999px;background:var(--line);flex:none;transition:background .15s}
+.tgt::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.35);transition:transform .15s}
+.tgl.on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.tgl.on .tgt{background:var(--ok)}.tgl.on .tgt::after{transform:translateX(14px)}
+.tgl .tgl2::after{content:" · NON";font-weight:500;opacity:.75}.tgl.on .tgl2::after{content:" · OUI"}
+.mbar{flex:1;min-width:50px;max-width:140px;height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-left:4px}
+.mbar i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.mcnt{font-size:12px;font-weight:700;color:var(--muted);margin-left:auto}.mcnt.all{color:var(--ok)}
 .stop{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between}
 .badge{font-size:.75rem;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid var(--line)}
 .badge.live{color:var(--mid);border-color:var(--mid)}.badge.ready{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}.badge.arch{color:var(--muted)}
@@ -203,7 +266,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .cat legend{font-weight:600;padding:0 6px;display:flex;align-items:center;gap:8px}
 .cat legend .chip{padding:2px 10px;font-size:.78rem;font-weight:400}
 .chk{display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;padding:2px 0}
-.modal.xml input[type=text],.modal.xml input[type=search]{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%;font-weight:400}
+.modal.xml input[type=text],.modal.xml input[type=url],.modal.xml input[type=search]{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%;font-weight:400}
 .glist{display:flex;flex-direction:column;gap:2px;max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:4px}
 .gopt{font:inherit;font-weight:400;text-align:left;border:0;background:transparent;color:var(--fg);padding:6px 10px;border-radius:6px;cursor:pointer}
 .gopt:hover{background:var(--accent-soft)}
@@ -251,12 +314,25 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 </style>
 <div class="brandbar"><i></i><b>ePackPro</b><span>Outils support</span></div>
 <div class="wrap" id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const STEPS=[["Fichier d'import","Import"],["Configurateur (XML)","XML"],["Moulinette Claude","Moulinette Claude"]];
-const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:STEPS;
+const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dépôt SharePoint"]];
+const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?STEPS2:STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
 let userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
+/* MAJ en cours créées avec l'ancien flux (Configurateur + Moulinette) : passage aux 2 étapes, la coche Import est conservée */
+function upgradeMaj(m){
+  if(!m||m.archived||!Array.isArray(m.mods))return false;let ch=false;
+  m.mods.forEach(M=>{
+    if(M.gen||stepsOf(M).length===1)return;
+    M.gen=true;ch=true;
+    M.regions.forEach(r=>{const k=M.id+"_"+r.key,p=m.prog&&m.prog[k];if(p&&Array.isArray(p.s))m.prog[k]=Object.assign({},p,{s:[!!p.s[0],false,false]})});
+  });
+  return ch;
+}
 try{const s=localStorage.getItem(LS);if(s)majs=JSON.parse(s)}catch(e){}
+Object.values(majs).forEach(upgradeMaj);
 try{cur=localStorage.getItem(LSCUR)||null}catch(e){}
 if(cur&&!majs[cur])cur=null;
 
@@ -287,9 +363,10 @@ function renameGroup(id,g){
   persist(id);
 }
 const startOf=m=>m.startedAt||m.created;
-const endOf=m=>m.archived?(m.archivedAt||Date.now()):Date.now();
-const durOf=m=>Math.max(0,endOf(m)-startOf(m)-(m.pausedMs||0)-(m.pausedAt&&!m.archived?Date.now()-m.pausedAt:0));
-function togglePause(id){const m=majs[id];if(!m||m.archived)return;if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,Date.now()-m.pausedAt);m.pausedAt=null}else m.pausedAt=Date.now();persist(id);render()}
+const endOf=m=>m.prepDoneAt||(m.archived?(m.archivedAt||Date.now()):Date.now());
+const durOf=m=>Math.max(0,endOf(m)-startOf(m)-(m.pausedMs||0)-(m.pausedAt&&!m.archived&&!m.prepDoneAt?Date.now()-m.pausedAt:0));
+function syncDone(m){if(!m||m.archived||!m.mods)return;const st=stats(m),now=Date.now();if(st.total&&st.pct===100){if(!m.prepDoneAt){m.prepDoneAt=now;if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,now-m.pausedAt);m.pausedAt=null}}}else if(m.prepDoneAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,now-m.prepDoneAt);delete m.prepDoneAt}}
+function togglePause(id){const m=majs[id];if(!m||m.archived||m.prepDoneAt)return;if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,Date.now()-m.pausedAt);m.pausedAt=null}else m.pausedAt=Date.now();persist(id);render()}
 function fmtClock(ms){const s=Math.floor(ms/1000),d=Math.floor(s/86400),hh=Math.floor(s%86400/3600),mm=Math.floor(s%3600/60),ss=s%60,p=n=>String(n).padStart(2,"0");return (d?d+" j ":"")+p(hh)+":"+p(mm)+":"+p(ss)}
 function fmtDur(ms){const m=Math.round(ms/60000);if(m<60)return m+" min";const h=Math.floor(m/60);if(h<24)return h+" h "+String(m%60).padStart(2,"0");const d=Math.floor(h/24);return d+" j "+(h%24)+" h"}
 setInterval(()=>{document.querySelectorAll("[data-mid]").forEach(e=>{const m=majs[e.dataset.mid];if(m)e.textContent=fmtClock(durOf(m))})},1000);
@@ -306,7 +383,7 @@ function renameMaj(id,t){
 let renaming=null;
 const regionsOf=m=>[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ");
 function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;const r=regionsOf(m);m.title=(r&&langsOf(m).size>1)?m.baseTitle+" - "+r:m.baseTitle}
-function archiveMaj(id){const m=majs[id];stampTitle(m);m.archived=true;m.archivedAt=Date.now();if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,m.archivedAt-m.pausedAt);m.pausedAt=null}m.archivedBy=myId||null;persist(id);resolveNames()}
+function archiveMaj(id){flushDates(id);const m=majs[id];stampTitle(m);m.archived=true;m.archivedAt=Date.now();if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,m.archivedAt-m.pausedAt);m.pausedAt=null}m.archivedBy=myId||null;persist(id);resolveNames()}
 const wq={};
 function mergeMaj(l,r){
   if(!l)return r;
@@ -318,7 +395,7 @@ function mergeMaj(l,r){
   return base;
 }
 function persist(id,what){
-  const m=majs[id];
+  const m=majs[id];syncDone(m);
   if(m){m.updatedAt=Date.now();if(!col)m._pending=true}
   try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
   if(!col||!m)return;
@@ -326,10 +403,10 @@ function persist(id,what){
   if(what==='*')Object.keys(m.prog).forEach(k=>{m.prog[k].t=ts});else if(what&&what!=='new'&&m.prog[what])m.prog[what].t=ts;
   let data,full=false;
   if(what==="new"){data=JSON.parse(JSON.stringify(m));delete data._pending;full=true}
-  else if(what&&what!=="*"){data={updatedAt:ts,prog:{[what]:JSON.parse(JSON.stringify(m.prog[what]||{s:[false,false,false],note:""}))}}}
+  else if(what&&what!=="*"){data={updatedAt:ts,prepDoneAt:m.prepDoneAt||null,pausedAt:m.pausedAt||null,pausedMs:m.pausedMs||0,prog:{[what]:JSON.parse(JSON.stringify(m.prog[what]||{s:[false,false,false],note:""}))}}}
   else{
     const c=JSON.parse(JSON.stringify(m));delete c._pending;
-    c.archivedAt=m.archivedAt||null;c.archivedBy=m.archivedBy||null;c.baseTitle=m.baseTitle||null;c.pausedAt=m.pausedAt||null;c.pausedMs=m.pausedMs||0;
+    c.archivedAt=m.archivedAt||null;c.archivedBy=m.archivedBy||null;c.baseTitle=m.baseTitle||null;c.pausedAt=m.pausedAt||null;c.pausedMs=m.pausedMs||0;c.prepDoneAt=m.prepDoneAt||null;
     if(what!=="*")delete c.prog;
     data=c;
   }
@@ -513,7 +590,7 @@ async function finishCreate(){
 }
 function closeModal(val){const m=draft.modal;draft.modal=null;render();if(m)m.resolve(val)}
 function createMaj(){
-  const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
+  const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,gen:true,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
   const id="maj-"+Date.now();
   const title=baseTitleFor(draft.group);
   registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",created:t0,startedAt:t0,createdBy:myId||null,mods,prog:{}};
@@ -525,7 +602,7 @@ function viewHome(app){
   {const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb)}
   {const cb=$("button","btn","+ Suivi personnalisé");cb.style.alignSelf="flex-start";cb.title="Créer un suivi sans mail : choix du groupement, des modules et des régions";cb.onclick=openCustom;app.appendChild(cb)}
   app.appendChild($("h1",null,"Importer ou copier-coller le mail du client"));
-  app.appendChild($("p","sub","Colle le mail du client ou dépose-le en fichier : je dresse la liste des modules et des régions à traiter, puis tu suis les 3 étapes pour chacun."));
+  app.appendChild($("p","sub","Colle le mail du client ou dépose-le en fichier : je dresse la liste des modules et des régions à traiter, puis tu suis les étapes pour chacun."));
   const p=$("div","panel");
   const l2=$("label",null,"Mail du client");l2.htmlFor="mail";
   const ta=$("textarea");ta.id="mail";ta.placeholder="Colle ici le mail, avec la liste des modules à modifier et leurs régions";ta.value=draft.mail;ta.oninput=()=>draft.mail=ta.value;
@@ -602,17 +679,190 @@ function stats(m){
   m.mods.forEach(M=>M.regions.forEach(r=>{const s=(m.prog[M.id+"_"+r.key]||{s:[0,0,0]}).s;const L=stepsOf(M).length;const n=s.slice(0,L).filter(Boolean).length;total+=L;done+=n;rows++;if(n===L)rd++}));
   return {total,done,rows,rd,pct:total?Math.round(100*done/total):0};
 }
+/*MAIL-START*/
+/* Mails types à envoyer au client : texte pré-rempli depuis la MAJ (groupement, modules, régions, dates), modifiable avant de copier */
+const MAIL_TYPES=[
+  ["5j","01 · Prise en charge (délai 5 jours)"],
+  ["7j","01 · Prise en charge (délai 7 jours)"],
+  ["siege","02 · Confirmation mise à jour siège"],
+  ["debut","03 · Début de mise à jour"],
+  ["fin","04a · Fin de mise à jour"],
+  ["fin2","04b · Fin de mise à jour, seconde passe programmée"],
+  ["fin2ok","05 · Fin de la seconde passe"],
+  ["relance","06 · Relance, validation de la mise à jour siège"]
+];
+let mailType="5j",mailDlg=null;
+function closeMail(){if(mailDlg){mailDlg.bg.remove();document.removeEventListener("keydown",mailDlg.key);mailDlg=null}}
+/* Jours ouvrés : du lundi au vendredi (jours fériés non exclus) */
+const isOuvre=d=>d.getDay()!==0&&d.getDay()!==6;
+function addOuvres(d,n){const x=new Date(d),st=n<0?-1:1;let k=Math.abs(n);while(k>0){x.setDate(x.getDate()+st);if(isOuvre(x))k--}return x}
+function mailDraft(m,type){
+  const J=parseD(m.dateDeploiement),S=parseD(m.dateSiege),miss=new Set(),perso=!!m.datesPerso;
+  const fd=(d,lab)=>{if(!d){miss.add(lab);return "XX/XX/XXXX"}return d.toLocaleDateString("fr-FR")};
+  const jx=n=>J?addOuvres(J,n):null;
+  const dJ=()=>fd(J,"la date de déploiement (J)");
+  const calendrier=(n,s3,tail)=>
+    "Nous effectuerons la mise à jour en plusieurs étapes dont voici le calendrier :\n"+
+    (perso?"• Prise en charge (le "+fd(parseD(m.dateDemande),"la date de la demande")+")":"• J-"+n+" ouvrés (le "+(parseD(m.dateDemande)?fd(parseD(m.dateDemande)):fd(jx(-n),"la date de la demande ou de déploiement"))+")")+" : Nous récupérons les fichiers de mise à jour que vous aurez complétés. Nous les vérifions et les traitons pour intégration.\nSi le(s) fichier(s) sont non-conforme, nous reviendrons vers vous.\n"+
+    (perso?"• Mise à jour siège (le "+fd(S,"la date de la mise à jour siège")+")":"• J-3 ouvrés (le "+fd(S||jx(-3),"la date de la mise à jour siège ou de déploiement")+")")+" : "+s3+"\nLorsque vous validez par mail, nous procéderons au déploiement général le jour J.\n"+
+    (perso?"• Déploiement (le "+dJ()+")":"• J ouvrés (le "+dJ()+")")+" : Nous vous transmettons un mail lors du début du déploiement de la mise à jour ainsi qu'un rapport de déploiement en fin de la mise à jour (avec fichier Excel joint).\nSi des solutions n'ont pu recevoir la mise à jour (solution non connectée par exemple), nous procédons à une 2ème passe (cf. ci-dessous).\n"+
+    "• J+3 ouvrés (le "+fd(jx(3),"la date de déploiement (J)")+") : "+tail+"\n\n"+
+    "Un mail de votre part à destination des sites devant recevoir la mise à jour pour leur demander de bien vérifier que leur solution ePack Hygiène est bien allumée et connectée à internet serait apprécié.";
+  const prise=(n,s3,tail)=>["Confirmation de prise en charge de votre demande de mise à jour",
+    "Nous vous confirmons la bonne réception ainsi que la bonne prise en charge de votre demande de mise à jour.\n\nDans le respect de nos délais de prévenance, nous effectuerons la mise à jour de votre demande le "+dJ()+".\n\n"+calendrier(n,s3,tail)];
+  const B={
+    "5j":prise(5,"Nous insérons les mises à jour sur la solution du site référent et nous vous en notifions par mail. Nous vous demandons également une validation du contenu de la mise à jour par mail.","Nous effectuons un second passage de mise à jour au bout duquel nous clôturons la requête et nous vous transmettons le rapport d'intervention final."),
+    "7j":prise(7,"Nous insérons les mises à jour sur la solution siège ou du site référent et nous vous en notifions par mail. Nous vous demandons également une validation du contenu de la mise à jour par mail.","Au besoin, nous effectuons un second passage de mise à jour au bout duquel nous clôturons la requête et nous vous transmettons le rapport d'intervention final."),
+    siege:["Confirmation mise à jour siège","Je vous informe que la mise à jour a été déployée sur votre tablette au siège.\n\nPourriez-vous vérifier et valider son contenu en vue du déploiement prévu le "+dJ()+" ?"],
+    debut:["Début de mise à jour","Nous vous informons que la mise à jour prévue le "+dJ()+" a bien commencé.\n\nNous vous notifierons lorsque celle-ci sera terminée par mail dans lequel vous trouverez notre rapport d'intervention."],
+    fin:["Confirmation de fin de mise à jour","Je vous confirme que la mise à jour a bien été effectuée.\n\nLes solutions non-connectées la recevront quand elles se reconnecteront.\nVous trouverez ci-joint notre rapport d'intervention final."],
+    fin2:["Confirmation de fin de mise à jour - Programmation d'une seconde passe","Je vous confirme que la mise à jour a bien été effectuée.\nVous trouverez ci-joint notre rapport d'intervention.\n\nLes solutions non-connectées devront connecter leur solution afin que l'on effectue un second passage de déploiement.\nCette seconde passe aura lieu le "+fd(jx(3),"la date de déploiement (J)")+" au terme duquel nous clôturerons votre requête et nous ferons parvenir notre rapport d'intervention final.\n\nUn mail de votre part à destination des sites devant recevoir la mise à jour pour leur demander de bien vérifier que leur solution ePack Hygiène soit bien allumée et connectée à internet serait apprécié."],
+    fin2ok:["Confirmation de fin de mise à jour - Fin de la seconde passe","Je vous confirme que la seconde passe de mise à jour a bien été effectuée.\n\nVous trouverez ci-joint notre rapport d'intervention final.\nLes sites n'ayant pas reçu la mise à jour faute de connexion peuvent contacter notre service technique, afin de les aider à rétablir cette connexion et permettre la bonne mise à jour de la solution."],
+    relance:["Relance - Validation de la mise à jour siège","Je vous informe que la mise à jour a bien été déployée sur votre tablette au siège.\nA ce jour, nous n'avons pas eu de validation de votre part.\n\nPourriez-vous contrôler et valider son contenu en vue de la mise à jour prévue le "+dJ()+" ?\n\nSans validation de votre part, nous ne ferons pas la mise à jour des sites. Je vous informe également qu'en cas d'absence de validation ce jour, suivant notre planning, nous nous réservons le droit de décaler votre mise à jour à une date ultérieure.\nDans ce cas, nous vous fournirons un nouveau planning de mise à jour."]
+  }[type];
+  const cal=type==="5j"||type==="7j"||type==="fin2";
+  return {subject:B[0],body:"Bonjour,\n\n"+B[1]+"\n\nCordialement,",warn:[...miss],
+    hint:cal&&perso?"Dates personnalisées : prise en charge, mise à jour siège et déploiement repris de la MAJ ; J+3 calculé en jours ouvrés (du lundi au vendredi) à partir du déploiement.":cal?(type==="fin2"?"":"J-"+(type==="5j"?5:7)+" = date de la demande si elle est renseignée ; ")+"J+3 calculé en jours ouvrés (du lundi au vendredi) à partir de la date de déploiement"+(type!=="fin2"?" ; J-3 = date de la mise à jour siège si elle est renseignée":"")+".":""};
+}
+function openMail(id,type){
+  const m=majs[id];if(!m)return;if(type)mailType=type;
+  if(mailDlg)closeMail();
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","mt");
+  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const key=e=>{if(e.key==="Escape")closeMail()};document.addEventListener("keydown",key);
+  mailDlg={bg,key};
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)closeMail()});
+  const h=$("h2",null,"Mail client");h.id="mt";
+  const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeMail;hd.append(h,x);
+  const sel=$("select");MAIL_TYPES.forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===mailType)o.selected=true;sel.appendChild(o)});
+  const si=$("input");si.type="text";si.setAttribute("aria-label","Objet");
+  const ta=$("textarea","mailbody");ta.rows=14;ta.setAttribute("aria-label","Texte du mail");
+  const wn=$("p","msg err");wn.hidden=true;const hn=$("p","msg");hn.hidden=true;
+  const st=$("span","msg");st.setAttribute("role","status");
+  const fill=()=>{const d=mailDraft(m,mailType);si.value=d.subject;ta.value=d.body;wn.hidden=!d.warn.length;wn.textContent=d.warn.length?"À compléter : "+d.warn.join(" et ")+" (laissé en XX/XX/XXXX dans le texte).":"";hn.hidden=!d.hint;hn.textContent=d.hint;st.textContent=""};
+  sel.onchange=()=>{mailType=sel.value;fill()};
+  const copy=async(txt,what,src)=>{
+    let ok=false;try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
+    if(!ok){try{src.focus();src.select();ok=document.execCommand("copy")}catch(e){}}
+    st.textContent=ok?what+" copié.":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C.";
+  };
+  const bar=$("div","actions");
+  const b1=$("button","btn","Copier le texte");b1.onclick=()=>copy(ta.value,"Texte",ta);
+  const b2=$("button","btn ghost","Copier l'objet");b2.onclick=()=>copy(si.value,"Objet",si);
+  const b3=$("button","btn ghost","Remettre le texte d'origine");b3.onclick=fill;
+  bar.append(b1,b2,b3);
+  const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
+  md.append(hd,$("p",null,m.title),fl("Type de mail",sel),fl("Objet",si),fl("Texte (modifiable avant de copier)",ta),wn,hn,bar,st);
+  fill();
+}
+/* Validation siège : copie « NOM - Maj. validée par le siège » et propose d'ouvrir le canal Teams « Support SGC Automatisation » */
+let teamsDlg=null;
+function closeTeams(){if(teamsDlg){teamsDlg.bg.remove();document.removeEventListener("keydown",teamsDlg.key);teamsDlg=null}}
+const teamsLink=()=>{try{return localStorage.getItem("suivi-maj-teams")||""}catch(e){return ""}};
+const teamsFlow=()=>{try{return localStorage.getItem("suivi-maj-flow")||""}catch(e){return ""}};
+function openTeams(m){
+  closeTeams();
+  const nom=String(groupOf(m)||m.group||m.baseTitle||m.title||"").replace(/\s+/g," ").trim().toUpperCase();
+  const msg=nom+" - Maj. validée par le siège";
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","tmt");
+  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const key=e=>{if(e.key==="Escape")closeTeams()};document.addEventListener("keydown",key);teamsDlg={bg,key};
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)closeTeams()});
+  const h=$("h2",null,"Message Teams : validation siège");h.id="tmt";
+  const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeTeams;hd.append(h,x);
+  const ta=$("input");ta.type="text";ta.value=msg;ta.setAttribute("aria-label","Message à envoyer");
+  const st=$("span","msg");st.setAttribute("role","status");
+  const copy=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
+    if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
+    st.textContent=ok?"Message copié : colle-le dans le canal (Ctrl+V puis Entrée).":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C."};
+  const li=$("input");li.type="url";li.placeholder="https://teams.microsoft.com/l/channel/…";li.value=teamsLink();li.setAttribute("aria-label","Lien du canal Teams Support SGC Automatisation");
+  const op=$("a","btn","Ouvrir le canal Teams");op.target="_blank";op.rel="noopener noreferrer";
+  const sync=()=>{const v=li.value.trim();try{localStorage.setItem("suivi-maj-teams",v)}catch(e){}
+    if(v){op.href=v;op.removeAttribute("aria-disabled");op.style.opacity="";op.style.pointerEvents=""}else{op.removeAttribute("href");op.setAttribute("aria-disabled","true");op.style.opacity=".5";op.style.pointerEvents="none"}};
+  li.oninput=sync;sync();
+  const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
+  fu.oninput=()=>{try{localStorage.setItem("suivi-maj-flow",fu.value.trim())}catch(e){}bs.hidden=!fu.value.trim()};
+  const viaForm=u=>{const nm="tflow"+Date.now(),fr=$("iframe");fr.name=nm;fr.style.display="none";fr.setAttribute("aria-hidden","true");fr.tabIndex=-1;
+    const f=$("form");f.method="POST";f.action=u;f.target=nm;f.style.display="none";f.acceptCharset="UTF-8";
+    const i=$("input");i.type="hidden";i.name="message";i.value=ta.value;f.appendChild(i);
+    document.body.append(fr,f);f.submit();setTimeout(()=>{f.remove();fr.remove()},15000)};
+  const send=async()=>{const u=fu.value.trim();if(!u)return;st.textContent="Envoi dans Teams…";
+    try{await fetch(u,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:new URLSearchParams({message:ta.value}).toString()});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans la conversation Teams."}
+    catch(e){try{viaForm(u);await copy();st.textContent="Envoi tenté par formulaire (la page ne peut pas confirmer). Vérifie dans Teams ; sinon le message est copié : colle-le dans la conversation."}
+      catch(e2){await copy();st.textContent="Envoi impossible depuis la page. Message copié : colle-le dans la conversation."}}};
+  const bs=$("button","btn","Envoyer dans Teams");bs.type="button";bs.hidden=!fu.value.trim();bs.onclick=send;
+  const bc=$("button","btn ghost","Copier le message");bc.type="button";bc.onclick=copy;
+  op.addEventListener("click",copy);
+  const bar=$("div","actions");bar.append(bs,op,bc);
+  const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
+  md.append(hd,$("p",null,"Message pour le canal « Support SGC Automatisation » :"),fl("Message",ta),fl("URL du flux Power Automate (envoi automatique, enregistrée dans ce navigateur)",fu),fl("Lien du canal Teams (pour l'ouvrir)",li),bar,st);
+  if(fu.value.trim())send();else copy();
+}
+const mailKey2=t=>t==="5j"||t==="7j"?"prise":t;
+/*MAIL-END*/
+let blocClosed={};try{blocClosed=JSON.parse(localStorage.getItem("suivi-maj-bloc")||"{}")||{}}catch(e){}
+/* En-tête de bloc réductible : la case ouverte / fermée est mémorisée sur cet appareil */
+function blocHead(key,title,cnt){
+  const h=$("h2","bloc-t"),b=$("button","bloc-h");b.type="button";
+  const open=!blocClosed[key];b.setAttribute("aria-expanded",String(open));
+  b.append($("span","caret",open?"▾":"▸"),$("span","btl",title),$("span","cnt",cnt));
+  b.onclick=()=>{blocClosed[key]=open;try{localStorage.setItem("suivi-maj-bloc",JSON.stringify(blocClosed))}catch(e){}render()};
+  h.appendChild(b);return h;
+}
+const MAIL_TRACK=[["prise","01 · Prise en charge de la demande","5j"],["siege","02 · Confirmation mise à jour siège","siege"],["debut","03 · Début de mise à jour","debut"],["fin","04a · Fin de mise à jour","fin"],["fin2","04b · Fin de mise à jour, seconde passe programmée","fin2"],["fin2ok","05 · Fin de la seconde passe","fin2ok"],["relance","06 · Relance, validation de la mise à jour siège","relance"]];
+/* Bloc « Suivi d'envoi des mails » : une case par mail envoyé (n'entre pas dans le pourcentage d'avancement) */
+function viewMailTrack(app,id){
+  const m=majs[id],box=$("section","bloc");
+  const n=MAIL_TRACK.filter(([k])=>m.mails&&m.mails[k]).length;
+  box.appendChild(blocHead("mails","Suivi d'envoi des mails",n+" / "+MAIL_TRACK.length+" envoyés"));
+  const ls=$("div","mailtrack");ls.hidden=!!blocClosed.mails;
+  MAIL_TRACK.forEach(([k,lab,type])=>{
+    const done=!!(m.mails&&m.mails[k]);
+    const row=$("div","mrow"+(done?" done":""));
+    const t=$("div","mlab");t.appendChild($("strong",null,lab));
+    if(done&&typeof m.mails[k]==="number")t.appendChild($("small",null,"Envoyé le "+fdate(m.mails[k])));
+    const b=$("button","step");b.type="button";b.setAttribute("role","checkbox");b.setAttribute("aria-checked",String(done));b.setAttribute("aria-label",lab+" : envoyé");b.dataset.fid="mail-"+k;
+    b.append($("span","box",done?"✓":""),$("span",null,"Envoyé"));
+    b.onclick=()=>{m.mails=Object.assign({},m.mails);if(m.mails[k])delete m.mails[k];else m.mails[k]=Date.now();persist(id);render()};
+    const o=$("button","chip","Ouvrir le mail");o.type="button";o.onclick=()=>openMail(id,type==="5j"?(delayOf(m)===5?"5j":"7j"):type);
+    row.append(t,b,o);ls.appendChild(row);
+  });
+  box.appendChild(ls);app.appendChild(box);
+}
+const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+/* Délai de prévenance : J-7 par défaut, J-5 pour les groupements concernés (réglage mémorisé par groupement, partagé) */
+let gdelai={};try{gdelai=JSON.parse(localStorage.getItem("suivi-maj-delai")||"{}")||{}}catch(e){}
+const delayOf=m=>m.delai||gdelai[gkey(groupOf(m)||m.group||"")]||7;
+function setDelay(m,id,n){
+  const g=groupOf(m)||m.group;
+  if(!g){m.delai=n;persist(id);return}
+  const name=registerGroup(g),k=gkey(name||g);delete m.delai;
+  if(n===5)gdelai[k]=5;else delete gdelai[k];
+  try{localStorage.setItem("suivi-maj-delai",JSON.stringify(gdelai))}catch(e){}
+  if(gcol){const ref=gcol.doc(k),dl=n===5?5:null;ref.update({delai:dl}).catch(()=>ref.set({name:name||g,delai:dl}).catch(()=>{}))}
+  persist(id);
+}
+function calcDates(m,dem){if(m.datesPerso)return null;const D=parseD(dem);if(!D)return null;const J=addOuvres(D,delayOf(m));return {dateDeploiement:isoD(J),dateSiege:isoD(addOuvres(J,-3))}}
+let dateDraft=null;
+function setPerso(m,id,on){m.datesPerso=!!on;persist(id)}
+function flushDates(id){
+  const m=majs[id];if(!m||!dateDraft||dateDraft.id!==id)return false;let ch=false;
+  ["dateDemande","dateSiege","dateDeploiement"].forEach(f=>{const v=dateDraft[f]||"";if(v!==(m[f]||"")){ch=true;if(v)m[f]=v;else delete m[f]}});
+  if(ch)persist(id);return ch;
+}
 function viewMaj(app,id){
   const m=majs[id];
+  syncDone(m);
   const top=$("div","topbar");
-  const back=$("button","btn ghost",backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{if(backTo){page=backTo;backTo=null}setCur(null)};
+  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(backTo){page=backTo;backTo=null}setCur(null)};
   const sy=$("span","msg",syncTxt);sy.id="sync";
   top.append(back,sy);app.appendChild(top);
-  app.appendChild($("h1",null,m.title));
+  const hrow=$("div","hrow");hrow.appendChild($("h1",null,m.title));app.appendChild(hrow);
   app.appendChild($("p","sub","Créée le "+fdate(m.created)+(m.createdBy?" par "+who(m.createdBy):"")));
   {const tp=$("p","timer");tp.setAttribute("role","timer");
    const tb=$("b");
    if(m.archived){tb.textContent=fmtClock(durOf(m));tp.append("Durée de préparation : ",tb)}
+   else if(m.prepDoneAt){tb.textContent=fmtClock(durOf(m));tp.append("Temps de préparation (terminé) : ",tb)}
    else{tb.dataset.mid=id;tb.textContent=fmtClock(durOf(m));tp.append(m.pausedAt?"Temps de préparation (en pause) : ":"Temps de préparation : ",tb);
      const pb=$("button","chip",m.pausedAt?"▶ Reprendre":"⏸ Pause");pb.style.marginLeft="10px";pb.setAttribute("aria-label",m.pausedAt?"Reprendre le chronomètre":"Mettre le chronomètre en pause");pb.onclick=()=>togglePause(id);tp.append(pb);
      if(m.pausedAt){const ps=$("small",null," · en pause depuis le "+fdate(m.pausedAt)+" "+new Date(m.pausedAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}));tp.append(ps)}}
@@ -626,8 +876,31 @@ function viewMaj(app,id){
     ri.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}else if(e.key==="Escape"){renaming=null;render()}};
     rw.append(ri,rok,rno);app.appendChild(rw);setTimeout(()=>ri.focus(),0);
   }else{
-    const rc=$("button","chip","Renommer la MAJ");rc.style.alignSelf="flex-start";rc.onclick=()=>{renaming=id;render()};app.appendChild(rc);
+    const rc=$("button","chip","Renommer la MAJ");rc.onclick=()=>{renaming=id;render()};hrow.appendChild(rc);
   }
+  {const dw=$("div","dates");if(!dateDraft||dateDraft.id!==id){dateDraft={id,dateDemande:m.dateDemande||"",dateSiege:m.dateSiege||"",dateDeploiement:m.dateDeploiement||""};const c0=!m.archived&&calcDates(m,m.dateDemande);if(c0)Object.assign(dateDraft,c0)}const dr=dateDraft;
+   const sv=$("button","btn","Enregistrer"),sm=$("span","msg"),inp={},lbs={};
+   const dirty=()=>dr.dateDemande!==(m.dateDemande||"")||dr.dateSiege!==(m.dateSiege||"")||dr.dateDeploiement!==(m.dateDeploiement||"");
+   const note=()=>{sv.disabled=!dirty();sm.textContent=dirty()?"Modifications non enregistrées":""};
+   /* Déploiement = demande + délai (J-7 par défaut, J-5 pour certains groupements) en jours ouvrés ; siège = J-3 ouvrés */
+   const recalc=()=>{const c=calcDates(m,dr.dateDemande);if(!c)return;Object.assign(dr,c);inp.dateDeploiement.value=dr.dateDeploiement;inp.dateSiege.value=dr.dateSiege};
+   [["dateDemande","Date de la demande"],["dateSiege","Date de la mise à jour siège"],["dateDeploiement","Date de déploiement de la mise à jour"]].forEach(([f,lab])=>{
+     const l=$("label","datef");l.append($("span",null,lab));
+     const i=$("input");i.type="date";i.value=dr[f];i.setAttribute("aria-label",lab);inp[f]=i;if(f!=="dateDemande"){lbs[f]=l.firstChild;i.disabled=!m.datesPerso;i.title="Calculée à partir de la date de la demande et du délai de prévenance"}
+     i.oninput=i.onchange=()=>{dr[f]=i.value;if(f==="dateDemande")recalc();note()};
+     l.appendChild(i);dw.appendChild(l)});
+   {const l=$("label","datef");l.append($("span",null,"Délai de prévenance"));
+    const sl=$("select");[[7,"J-7 (par défaut)"],[5,"J-5"],["perso","Dates personnalisées"]].forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(m.datesPerso?v==="perso":v===delayOf(m))o.selected=true;sl.appendChild(o)});
+    sl.title="Délai entre la demande et le déploiement, en jours ouvrés. Mémorisé pour ce groupement.";
+    sl.onchange=()=>{if(sl.value==="perso")setPerso(m,id,true);else{setPerso(m,id,false);setDelay(m,id,+sl.value);recalc()}applyMode();note()};
+    l.appendChild(sl);dw.insertBefore(l,dw.children[1])}
+   const sub=$("p","sub");
+   const applyMode=()=>{const p=!!m.datesPerso;inp.dateSiege.disabled=inp.dateDeploiement.disabled=!p;lbs.dateSiege.textContent="Date de la mise à jour siège"+(p?"":" (calculée)");lbs.dateDeploiement.textContent="Date de déploiement de la mise à jour"+(p?"":" (calculée)");sub.textContent=p?"Dates personnalisées : choisis toi-même les dates de la mise à jour siège et du déploiement. Les mails de cette MAJ reprennent ces dates.":"La date de la demande et le délai de prévenance calculent la mise à jour siège (J-3) et le déploiement (J), en jours ouvrés (du lundi au vendredi)."};applyMode();
+   sv.disabled=!dirty();if(dirty())sm.textContent="Modifications non enregistrées";
+   sv.onclick=()=>{flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées"};
+   const sw=$("div","datesave");sw.append(sv,sm);dw.appendChild(sw);
+   app.appendChild(dw);
+   app.appendChild(sub)}
   const s=stats(m);
   const hero=$("div","hero");
   const ht=$("div","hero-top");
@@ -639,17 +912,22 @@ function viewMaj(app,id){
   const bar=$("div","bar"+(s.pct===0?" zero":"")+(lvl==="full"?" full":lvl==="mid"?" mid":""));bar.setAttribute("role","progressbar");bar.setAttribute("aria-label","Progression");bar.setAttribute("aria-valuenow",s.pct);
   const bi=$("i");bi.style.width=s.pct+"%";bar.appendChild(bi);
   hero.append(ht,bar);
+  let foot=null;
   if(m.archived){
     const ar=$("div","actions");
     ar.appendChild($("span","msg","Archivée le "+fdate(m.archivedAt||m.created)+(m.archivedBy?" par "+who(m.archivedBy):"")));
     const un=$("button","btn ghost","Désarchiver");un.onclick=()=>{m.archived=false;delete m.archivedAt;delete m.archivedBy;if(m.baseTitle){m.title=m.baseTitle;delete m.baseTitle}persist(id);render()};
-    ar.appendChild(un);hero.appendChild(ar);
+    ar.appendChild(un);foot=ar;
   }else if(s.pct===100){
     const va=$("div","actions");
     const v=$("button","btn ok","Valider et archiver");v.onclick=()=>{archiveMaj(id);setCur(null)};
-    va.appendChild(v);va.appendChild($("span","msg","Tout est fait : la MAJ passera dans les archives."));hero.appendChild(va);
+    va.appendChild(v);va.appendChild($("span","msg","Tout est fait : la MAJ passera dans les archives."));foot=va;
   }
-  app.appendChild(hero);
+  const bloc1=$("section","bloc");
+  bloc1.appendChild(blocHead("files","Préparation des fichiers",s.done+" / "+s.total+" étapes"));
+  const body1=$("div","bloc-b");body1.hidden=!!blocClosed.files;bloc1.appendChild(body1);
+  body1.appendChild(hero);
+  app.appendChild(bloc1);
   const tools=$("div","actions");
   const fa=$("button","chip","Tout");fa.setAttribute("aria-pressed",String(!onlyTodo));fa.onclick=()=>{onlyTodo=false;render()};
   const ft=$("button","chip","Reste à faire");ft.setAttribute("aria-pressed",String(onlyTodo));ft.onclick=()=>{onlyTodo=true;render()};
@@ -664,7 +942,7 @@ function viewMaj(app,id){
     const n=$("button","btn ghost","Annuler");n.onclick=()=>{confirmClear=false;render()};
     tools.append(y,n);
   }
-  app.appendChild(tools);
+  body1.appendChild(tools);
   const focusId=document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.fid:null;
   m.mods.forEach(M=>{
     const sec=$("section","mod");let md=0;const body=$("div");
@@ -672,7 +950,7 @@ function viewMaj(app,id){
       const k=M.id+"_"+r.key;const p=m.prog[k]||{s:[false,false,false],note:""};
       const L=stepsOf(M).length;const n=p.s.slice(0,L).filter(Boolean).length;md+=n;
       if(onlyTodo&&n===L)return;
-      const row=$("div","row"+(n===L?" full":"")+(L===1?" one":""));
+      const row=$("div","row"+(n===L?" full":"")+(L===1?" one":"")+(L===2?" two":""));
       const reg=$("div","reg");reg.appendChild($("strong",null,norm(r.label)));if(r.concept){const cs=$("small",null,r.concept);cs.style.color="var(--muted)";reg.appendChild(cs)}row.appendChild(reg);
       let warn=false;
       stepsOf(M).forEach((S,i)=>{
@@ -681,18 +959,19 @@ function viewMaj(app,id){
         if(p.s[i]&&p.s.slice(0,i).some(x=>!x)){b.classList.add("warn");warn=true}
         b.appendChild($("span","box",p.s[i]?"✓":""));b.appendChild($("span","stepname",S[1]));b.appendChild($("span",null,"Fait"));
         b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||""};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&stepsOf(M).length===3)openXml(m,k,id)};
-        row.appendChild(b);
+        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);w.appendChild(gx);row.appendChild(w)}else row.appendChild(b);
       });
       if(warn)row.appendChild($("div","warnmsg","Une étape est cochée alors qu'une étape précédente ne l'est pas. Vérifie l'ordre."));
       body.appendChild(row);
     });
     const h=$("div","mod-h");h.appendChild($("h2",null,M.name));h.appendChild($("span","cnt",md+" / "+M.regions.length*stepsOf(M).length+" étapes"));
     if(md===M.regions.length*stepsOf(M).length)sec.classList.add("done");
-    const cols=$("div","cols"+(stepsOf(M).length===1?" one":""));["Région",...stepsOf(M).map(x=>x[0])].forEach(x=>cols.appendChild($("div",null,x)));
+    const cols=$("div","cols"+(stepsOf(M).length===1?" one":"")+(stepsOf(M).length===2?" two":""));["Région",...stepsOf(M).map(x=>x[0])].forEach(x=>cols.appendChild($("div",null,x)));
     sec.append(h,cols);
     if(!body.children.length)sec.appendChild($("div","empty","Tout est fait pour ce module."));else sec.appendChild(body);
-    app.appendChild(sec);
+    body1.appendChild(sec);
   });
+  if(foot){foot.style.marginTop="18px";app.appendChild(foot)}
   const del=$("div","actions");
   if(!confirmDel){const d=$("button","btn danger","Supprimer cette MAJ");d.onclick=()=>{confirmDel=true;render()};del.appendChild(d)}
   else{
@@ -1124,6 +1403,428 @@ return {PROFILES,inspect,run,runOnce,cleanText,detectElement};
 })();
 /*XMLC-END*/
 
+/*GENX-START*/
+const GENX=(()=>{
+const MODS={
+  Warming:{el:'DefProductWarming',out:'ProductsWarming.xml',eol:'\r\n',enc:'utf-8',bare:true,
+    cols:[['Id','id'],['TS','text'],['Name','text'],['Category','text']],
+    req:['Name'],order:['Id','TS','Name','Category','Disable']},
+  Service:{el:'DefProductService',out:'ProductsService.xml',eol:'\r\n',enc:'utf-8',
+    cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['TempMin','num'],['TempMax','num'],['Delete','bool']],
+    req:['Name','TempMin','TempMax'],
+    order:['idFileAttente','Id','TS','Delete','Disable','Name','Category','TempMin','TempMax'],forceFalse:['Delete']},
+  Production:{el:'DefProductProduction',out:'ProductsProduction.xml',eol:'\n',enc:'UTF-8',
+    cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['DateLimit','int'],['Delete','bool']],
+    req:['Name','DateLimit'],
+    order:['idFileAttente','Id','TS','Name','Category','DateLimit','Delete','Disable']},
+  Stickers:{el:'DefProductStickerV3',out:'ProductsStickers.xml',eol:'\n',enc:'UTF-8',params:true,
+    cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['DateLimit','int'],['Fridge','text'],['Printer','text'],['MustIndicateOrigin','bool'],['Photo','text'],['Delete','bool']],
+    req:['Name','DateLimit'],
+    order:['idFileAttente','Id','TS','Name','Category','DateLimit','DLType','Fridge','Printer','MustIndicateOrigin','Photo','Delete','IsDDM','MustIndicateDLC','IsDLUO','Disable']},
+  Freezing:{el:'DefProductFreezing',out:'ProductsFreezing.xml',eol:'\r\n',enc:'UTF-8',
+    cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['Printer','text'],['Dlc','int'],['Ddm','int'],['Du','int'],['Delete','bool']],
+    req:['Name','Dlc','Ddm','Du'],
+    order:['idFileAttente','Id','TS','Name','Category','Ddm','Dlc','Du','Delete','Disable']},
+  Frozen:{el:'DefProductFrozen',out:'ProductsFrozen.xml',eol:'\r\n',enc:'utf-8',
+    cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['DateLimit','int'],['Printer','text'],['Delete','bool']],
+    req:['Name','DateLimit'],
+    order:['idFileAttente','Id','TS','Name','Category','DateLimit','Delete','Disable']},
+  StockIn:{el:'DefStockInV3',out:'ProductsStockIn.xml',eol:'\r\n',enc:'UTF-8',
+    cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['TempMin','num'],['TempMax','num'],['TempLimit','num'],['CheckList_Name','text'],['CheckList_AllMandatoryToValid','bool'],['OrderId','text'],['CategoryId','text'],['SupplierId','text'],['ProductReference','text'],['Quantity','text'],['DLCTheorique','text'],['Delete','bool'],['NumLot','text']],
+    req:['Name','TempMin','TempMax'],
+    order:['idFileAttente','Id','TS','Name','Category','TempMin','TempMax','TempLimit','CheckList_Name','CheckList_AllMandatoryToValid','Delete','Disable','ProductReference']}
+};
+const TRIM={Warming:['Name','Category'],Service:['Name','Category'],Production:['Name','Category'],Stickers:['Name','Category'],Freezing:['Name','Category'],Frozen:['Name','Category'],StockIn:['Name','Category','CheckList_Name']};
+const BOOLS={true:'true',vrai:'true',oui:'true','1':'true',x:'true',false:'false',faux:'false',non:'false','0':'false'};
+const LIG={'Œ':'OE','œ':'oe','Æ':'AE','æ':'ae'};
+const cleanText=v=>v.replace(/[ŒœÆæ]/g,c=>LIG[c]).replace(/\s+/g,' ').trim();
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pad2=n=>String(n).padStart(2,'0');
+const fmtDate=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+/* Horodatage par défaut : Warming = ISO UTC sur 7 décimales (format de l'export e-Pack), autres modules = AAAA-MM-JJ HH:MM:SS */
+const nowFn=t=>{
+  if(t==='Warming'){const b=new Date().toISOString();return i=>b.replace(/\.(\d{3})Z$/,(_,ms)=>'.'+ms+String(i%10000).padStart(4,'0')+'Z')}
+  const s=fmtDate(new Date());return()=>s;
+};
+function cellText(v,kind,warns,where){
+  if(v===null||v===undefined)return '';
+  if(typeof v==='boolean')return v?'true':'false';
+  if(v instanceof Date)return fmtDate(v);
+  if(typeof v==='number'){
+    v=String(v);
+    if(kind==='id'){warns.push(`${where} : Id numérique, zéros initiaux possiblement perdus, complété à 18 chiffres`);return v.padStart(18,'0')}
+    return v;
+  }
+  return String(v).trim();
+}
+function randId(){
+  const a=new Uint32Array(3);crypto.getRandomValues(a);
+  const n=(BigInt(a[0])<<64n|BigInt(a[1])<<32n|BigInt(a[2]))%(10n**18n);
+  return n.toString().padStart(18,'0');
+}
+function readRows(name,aoa,off){
+  off=off||0;
+  const m=MODS[name],errs=[],warns=[],rows=[];
+  if(!aoa||!aoa.length)return {rows,errs,warns,count:0};
+  const hdr=aoa[0].map(h=>h==null?'':String(h).trim());
+  const idx={};hdr.forEach((h,i)=>{if(h)idx[h]=i});
+  const known=m.cols.map(c=>c[0]);
+  const unknown=hdr.filter(h=>h&&!known.includes(h));
+  if(unknown.length)warns.push(`Colonnes ignorées (inconnues) : ${unknown.join(', ')}`);
+  m.req.forEach(t=>{if(!(t in idx))errs.push(`Colonne obligatoire absente : ${t}`)});
+  if(errs.length)return {rows,errs,warns,count:0};
+  for(let r=1;r<aoa.length;r++){
+    const row=aoa[r]||[];
+    if(row.every(v=>v==null||String(v).trim()===''))continue;
+    const rec={_row:r+1+off};let bad=false;
+    for(const [tag,kind] of m.cols){
+      const where=`L${r+1+off} ${tag}`;
+      let val=cellText(tag in idx?row[idx[tag]]:null,kind,warns,where);
+      const fail=msg=>{errs.push(`${where} : ${msg}`);bad=true};
+      if(val){
+        if(kind==='bool'){const b=BOOLS[val.toLowerCase()];if(b===undefined)fail(`booléen invalide « ${val} »`);else val=b}
+        else if(kind==='int'){const v2=val.replace(',','.');if(!/^-?\d+(\.0+)?$/.test(v2))fail(`entier attendu, reçu « ${val} »`);else val=String(parseInt(v2,10))}
+        else if(kind==='num'){const v2=val.replace(',','.');if(!/^-?\d+(\.\d+)?$/.test(v2))fail(`nombre attendu, reçu « ${val} »`);else val=v2.replace(/\.0+$/,'')}
+        else if(kind==='ts'&&!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(val))fail(`TS invalide « ${val} » (AAAA-MM-JJ HH:MM:SS)`);
+        else if(kind==='id'&&!/^\d+$/.test(val))fail(`Id non numérique « ${val} »`);
+      }else if(m.req.includes(tag))fail('valeur obligatoire manquante');
+      rec[tag]=val;
+    }
+    if(!bad)rows.push(rec);
+  }
+  return {rows,errs,warns,count:rows.length};
+}
+function finalize(name,rows,errs,warns,now){
+  const used=new Set();let gen=0;
+  rows.forEach(r=>{if(r.Id){if(used.has(r.Id))errs.push(`L${r._row} : Id en double ${r.Id}`);used.add(r.Id)}});
+  rows.forEach((r,i)=>{
+    if(!r.Id){let x;do{x=randId()}while(used.has(x));used.add(x);r.Id=x;gen++}
+    if(!r.TS)r.TS=now(i);
+    if(!r.Delete)r.Delete='false';
+  });
+  if(gen)warns.push(`${gen} Id généré(s) pour de nouveaux produits`);
+  const seen={};
+  rows.forEach(r=>{const k=(r.Name+'|'+(r.Category||'')).toLowerCase();
+    if(k in seen)warns.push(`Doublon Nom + Catégorie « ${r.Name} » (L${seen[k]} et L${r._row})`);else seen[k]=r._row});
+}
+function buildXml(name,rows,p,warns){
+  const m=MODS[name],eol=m.eol,out=[];
+  const excCat=(p.excCat||'').trim().toLowerCase();let excN=0;
+  out.push(`<?xml version="1.0" encoding="${m.enc}"?>`);
+  out.push(m.bare?`<ArrayOf${m.el}>`:`<ArrayOf${m.el} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">`);
+  for(const r0 of rows){
+    const r=Object.assign({},r0);
+    for(const t of TRIM[name]){if(r[t])r[t]=cleanText(r[t])}
+    if(m.forceFalse)m.forceFalse.forEach(t=>r[t]='false');
+    r.idFileAttente='0';r.Disable='false';r.MustIndicateDLC='false';r.IsDLUO='false';
+    if(!r.MustIndicateOrigin)r.MustIndicateOrigin='false';
+    if(name==='Stickers'){
+      r.DLType=(r.DateLimit==='-1'||p.dltype===''||p.dltype==null)?'-1':String(p.dltype);
+      const hit=excCat&&(r.Category||'').trim().toLowerCase()===excCat;if(hit)excN++;
+      r.IsDDM=hit?(p.excVal||'true'):(p.isddm||'false');
+    }
+    out.push(`  <${m.el}>`);
+    const known=new Set(m.order),tags=m.order.slice();
+    m.cols.forEach(([t])=>{if(!known.has(t)&&r[t])tags.push(t)});
+    for(const t of tags){
+      const v=r[t]==null?'':r[t];
+      if(v)out.push(`    <${t}>${esc(v)}</${t}>`);
+      else out.push(m.bare||t==='ProductReference'?`    <${t} />`:`    <${t}/>`);
+    }
+    out.push(`  </${m.el}>`);
+  }
+  out.push(`</ArrayOf${m.el}>`);
+  if(excCat)warns.push(excN?`Boulangerie Ange : ${excN} produit(s) en « ${p.excCat} », IsDDM = ${p.excVal||'true'}`:`Boulangerie Ange coché mais aucune ligne n'a la catégorie « ${p.excCat} » : IsDDM = ${p.isddm||'false'} partout. Vérifie les intitulés de catégorie du fichier.`);
+  return out.join(eol)+(m.bare?'':eol);
+}
+function countChanged(name,rows){let n=0;TRIM[name].forEach(t=>rows.forEach(r=>{if(r[t]&&cleanText(r[t])!==r[t])n++}));return n}
+function generate(name,aoa,p,now,off){
+  const res=readRows(name,aoa,off);
+  const {rows,errs,warns}=res;
+  let xml=null,cleaned=0;const m=MODS[name];
+  if(!errs.length&&rows.length){
+    finalize(name,rows,errs,warns,now);
+    if(m.params&&rows.some(r=>r.DateLimit!=='-1')&&(p.dltype===''||p.dltype==null||![-1,0,1,2,3].includes(Number(p.dltype))))errs.push('Type de DLC à choisir : des DateLimit autres que -1 sont présentes (-1, 0, 1, 2 ou 3)');
+    if(name==='Service'&&rows.some(r=>r.Delete==='true'))warns.push('Service : Delete est toujours remis à false (règle de la skill)');
+    if(!errs.length){cleaned=countChanged(name,rows);xml=buildXml(name,rows,p,warns)}
+  }else if(!errs.length&&!rows.length)errs.push('Aucune ligne de données dans cet onglet');
+  return {xml,errs,warns,count:rows.length,cleaned,file:m.out};
+}
+const DIR_CODES={fr:'FR+LUX',befr:'BE-FR',italie:'IT',lareunion:'REUNION',reunion:'REUNION',antilles:'ANTILLES',nouvellecaledonie:'NC'};
+const gnorm=s=>String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function dirCode(name){
+  const n=gnorm(name);
+  if(DIR_CODES[n])return DIR_CODES[n];
+  if(n.startsWith('benl'))return 'BE-NL';
+  if(n.startsWith('befr'))return 'BE-FR';
+  return String(name).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'ONGLET';
+}
+const SYN={
+  Id:['id','identifiant','code'],TS:['ts','datemaj','dernieremaj'],
+  Name:['name','nom','designation','libelle','produit','article','intitule','nomproduit'],
+  Category:['category','categorie','famille','rayon','groupe','type'],
+  DateLimit:['datelimit','dlc','dluo','dl','duree','dureedeconservation'],
+  TempMin:['tempmin','tmin','temperaturemin','min'],TempMax:['tempmax','tmax','temperaturemax','max'],TempLimit:['templimit','tlimite','limite'],
+  Dlc:['dlc'],Ddm:['ddm'],Du:['du'],Printer:['printer','imprimante'],Fridge:['fridge','frigo'],Photo:['photo'],
+  MustIndicateOrigin:['mustindicateorigin','origine'],Delete:['delete','supprime'],
+  CheckList_Name:['checklistname','checklist'],CheckList_AllMandatoryToValid:['checklistallmandatorytovalid'],
+  ProductReference:['productreference','reference','ref']
+};
+function findHeader(aoa){
+  const all=new Set(Object.values(SYN).flat());
+  let best=-1,bestScore=0;
+  for(let i=0;i<Math.min(aoa.length,15);i++){
+    const cells=(aoa[i]||[]).filter(v=>typeof v==='string'&&v.trim());
+    const score=cells.filter(v=>all.has(gnorm(v))).length*10+(cells.length>=2?1:0);
+    if(score>bestScore){bestScore=score;best=i}
+  }
+  return best<0?0:best;
+}
+function matchIdx(tag,header,used,loose){
+  const syn=SYN[tag]||[gnorm(tag)];
+  return header.findIndex((c,i)=>{
+    if(!c||used.has(i))return false;const n=gnorm(c);
+    return loose?syn.some(x=>x.length>=3&&n.includes(x)):(n===gnorm(tag)||syn.includes(n));
+  });
+}
+/* Colonnes d'un onglet : choix manuel (mp[tag] = {t:'col',v:entête} ou {t:'none'}), sinon reconnaissance exacte puis approximative */
+function resolve(t,s,mp){
+  const tags=MODS[t].cols.map(c=>c[0]),idx={},used=new Set();
+  tags.forEach(x=>{idx[x]=-1;const p=mp[x];if(p&&p.t==='col'){const k=s.header.indexOf(p.v);if(k>=0){idx[x]=k;used.add(k)}}});
+  [false,true].forEach(loose=>tags.forEach(x=>{
+    const p=mp[x];if(idx[x]>=0||(p&&p.t!=='auto'))return;
+    const k=matchIdx(x,s.header,used,loose);if(k>=0){idx[x]=k;used.add(k)}
+  }));
+  return idx;
+}
+const isDef=(t,x)=>MODS[t].req.includes(x)&&['int','num'].includes(MODS[t].cols.find(c=>c[0]===x)[1]);
+function normalized(t,s,mp){
+  const m=MODS[t],idx=resolve(t,s,mp),has=x=>idx[x]>=0;
+  const tags=m.cols.map(c=>c[0]).filter(x=>has(x)||isDef(t,x));
+  const errs=[],notes=[],filled={};
+  tags.filter(x=>!has(x)).forEach(x=>notes.push(`${x} : aucune colonne trouvée dans cet onglet, -1 appliqué`));
+  m.req.filter(x=>!isDef(t,x)&&!has(x)).forEach(x=>errs.push(`Colonne ${x} introuvable dans cet onglet (en-têtes lues : ${s.header.filter(Boolean).join(', ')||'aucune'})`));
+  const aoa=[tags];
+  s.rows.forEach(r=>{
+    const src=tags.filter(has).map(x=>r[idx[x]]);
+    if(src.length&&src.every(v=>v==null||String(v).trim()==='')){aoa.push(tags.map(()=>null));return}
+    aoa.push(tags.map(x=>{
+      let v=has(x)?r[idx[x]]:null;
+      if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x))filled[x]=(filled[x]||0)+1}
+      return v;
+    }));
+  });
+  Object.keys(filled).forEach(x=>notes.push(`${x} : ${filled[x]} cellule(s) vide(s) remplacée(s) par -1`));
+  return {aoa,errs,notes,idx};
+}
+return {MODS,generate,normalized,resolve,findHeader,dirCode,gnorm,nowFn,isDef};
+})();
+/*GENX-END*/
+/*GENUI-START*/
+function makeZipMany(files){
+  const enc=new TextEncoder(),d=new Date();
+  const dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF,dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  const locals=[],cents=[];let off=0;
+  for(const f of files){
+    const nb=enc.encode(f.name),data=f.data,crc=crc32(data),n=data.length;
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);lh.setUint16(10,dt,true);lh.setUint16(12,dd,true);
+    lh.setUint32(14,crc,true);lh.setUint32(18,n,true);lh.setUint32(22,n,true);lh.setUint16(26,nb.length,true);lh.setUint16(28,0,true);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);ch.setUint16(12,dt,true);ch.setUint16(14,dd,true);
+    ch.setUint32(16,crc,true);ch.setUint32(20,n,true);ch.setUint32(24,n,true);ch.setUint16(28,nb.length,true);ch.setUint32(42,off,true);
+    locals.push(new Uint8Array(lh.buffer),nb,data);cents.push(new Uint8Array(ch.buffer),nb);
+    off+=30+nb.length+n;
+  }
+  const cdSize=cents.reduce((a,p)=>a+p.length,0);
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true);eo.setUint16(8,files.length,true);eo.setUint16(10,files.length,true);eo.setUint32(12,cdSize,true);eo.setUint32(16,off,true);
+  const parts=[...locals,...cents,new Uint8Array(eo.buffer)];
+  const out=new Uint8Array(parts.reduce((a,p)=>a+p.length,0));let p=0;
+  for(const x of parts){out.set(x,p);p+=x.length}
+  return out;
+}
+/* Type d'XML proposé selon le nom du module (modifiable dans la fenêtre) */
+const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/mise en cong[eé]lation/i,"Freezing"],[/d[eé]cong[eé]lation/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/tra[cç]abilit[eé]/i,"Production"]];
+const guessType=name=>{for(const [re,t] of GEN_GUESS)if(re.test(name))return t;return ""};
+let genDlg=null;
+function closeGen(){if(genDlg){genDlg.bg.remove();document.removeEventListener("keydown",genDlg.key);genDlg=null}}
+function openGen(m,k,id,M,r){
+  if(genDlg)closeGen();
+  const isAnge=/boulangerie\s+ange/i.test(m.group||m.title||"");
+  const st={type:guessType(M.name),sheets:[],file:"",sel:new Set(),map:{},dl:"0",dd:"false",ange:isAnge,res:null,msg:"",err:"",ticked:false};
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","gt");
+  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const key=e=>{if(e.key==="Escape")closeGen()};document.addEventListener("keydown",key);
+  genDlg={bg,key};
+  const regLabel=r.label+(r.concept?" · "+r.concept:"");
+  const field=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
+  const sel=(opts,val,on)=>{const s=$("select");opts.forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===val)o.selected=true;s.appendChild(o)});s.onchange=()=>on(s.value);return s};
+  async function onFile(f){
+    st.err="";st.res=null;st.msg="";
+    if(typeof XLSX==="undefined"){st.err="Le lecteur Excel n'est pas chargé (problème de connexion ?). Recharge la page puis réessaie.";paint();return}
+    try{
+      const wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:"array",cellDates:true});
+      st.sheets=[];
+      wb.SheetNames.forEach(sn=>{
+        const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:null,blankrows:true});if(!aoa.length)return;
+        const h=GENX.findHeader(aoa),header=(aoa[h]||[]).map(v=>v==null?"":String(v).trim()),rows=aoa.slice(h+1);
+        const count=rows.filter(x=>x.some(v=>v!=null&&String(v).trim()!=="")).length;
+        st.sheets.push({name:sn,header,rows,hdrRow:h+1,count});
+      });
+      st.file=f.name;st.map={};st.sel=new Set();
+      const want=[GENX.gnorm(r.label+(r.concept?" "+r.concept:"")),GENX.gnorm(r.label)];
+      const hit=st.sheets.map((s,i)=>[s,i]).filter(([s])=>s.count>0&&(want.includes(GENX.gnorm(s.name))||GENX.dirCode(s.name)===GENX.dirCode(r.label)));
+      if(hit.length)hit.forEach(([,i])=>st.sel.add(i));
+      else{const wd=st.sheets.map((s,i)=>[s,i]).filter(([s])=>s.count>0);if(wd.length===1)st.sel.add(wd[0][1])}
+      if(!st.sheets.length)st.err="Aucun onglet lisible dans ce fichier.";
+    }catch(e){st.err="Fichier illisible : vérifie que c'est bien un classeur Excel (.xlsx).";st.file="";st.sheets=[]}
+    paint();
+  }
+  function run(){
+    const t=st.type,p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true"},nf=GENX.nowFn(t);
+    st.msg="";st.ticked=false;
+    st.res=[...st.sel].sort((a,b)=>a-b).map(i=>{
+      const s=st.sheets[i],n=GENX.normalized(t,s,st.map);
+      const g=n.errs.length?{xml:null,errs:n.errs,warns:[],count:0,cleaned:0,file:GENX.MODS[t].out}:GENX.generate(t,n.aoa,p,nf,s.hdrRow-1);
+      if(g.xml)g.warns=n.notes.concat(g.warns);
+      return {sheet:s.name,dir:GENX.dirCode(s.name),g};
+    });
+    paint();
+  }
+  function tick(){
+    const cm=majs[id];if(!(k&&cm))return "";
+    const q=cm.prog[k]||{s:[false,false,false],note:""};
+    if(q.s[0])return "";
+    const ns=q.s.slice();ns[0]=true;cm.prog[k]={s:ns,note:q.note||""};render();persist(id,k);return " Étape « Fichier d'import » cochée.";
+  }
+  const okRes=()=>(st.res||[]).filter(x=>x.g.xml);
+  function zipOf(){
+    const ok=okRes(),enc=new TextEncoder(),used=new Set(),files=[];
+    ok.forEach(x=>{let d=x.dir,n=2;while(used.has(d))d=x.dir+"_"+(n++);used.add(d);files.push({name:(ok.length>1?d+"/":"")+x.g.file,data:enc.encode(x.g.xml)})});
+    const part=(ok.length>1?"REGIONS":ok[0].dir).replace(/[^A-Za-z0-9_-]+/g,"-");
+    return {name:part+"_"+GENX.MODS[st.type].out.replace(/\.xml$/i,"")+".zip",bytes:makeZipMany(files)};
+  }
+  async function save(){
+    st.msg="";
+    const z=zipOf();let done=false;
+    try{
+      const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
+      if(!d)throw {code:"unavailable"};
+      await d.save({filename:z.name,data:z.bytes});done=true;st.msg="Fichier enregistré : "+z.name+"."+tick();
+    }catch(e){
+      if(e&&e.code==="declined")st.msg="Enregistrement annulé.";
+      else{
+        try{
+          const u=URL.createObjectURL(new Blob([z.bytes],{type:"application/zip"}));const a=$("a");a.href=u;a.download=z.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+          st.msg="Téléchargement lancé : "+z.name+". Si rien n'arrive, utilise « Copier le XML »."+tick();
+        }catch(e2){st.msg="Enregistrement impossible"+(e&&e.code?" ("+e.code+")":"")+" : utilise « Copier le XML »."}
+      }
+    }
+    paint();
+  }
+  async function copy(x){
+    let ok=false;
+    try{await navigator.clipboard.writeText(x.g.xml);ok=true}catch(e){}
+    if(!ok){try{const ta=md.querySelector("textarea.xmlout");if(ta){ta.focus();ta.select();ok=document.execCommand("copy")}}catch(e){}}
+    st.msg=ok?"XML copié : colle-le dans un fichier « "+x.g.file+" » (Bloc-notes, enregistrer en UTF-8)."+tick():"Copie automatique impossible : sélectionne le texte ci-dessous (Ctrl+A puis Ctrl+C).";
+    paint();
+  }
+  function paint(){
+    md.textContent="";
+    const h=$("h2",null,"Excel → XML");h.id="gt";
+    const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
+    md.append(hd,$("p",null,M.name+" · "+regLabel));
+    const T=GENX.MODS;
+    md.appendChild(field("Type d'XML",sel([["","Choisir…"],...Object.keys(T).map(t=>[t,t+" · "+T[t].out])],st.type,v=>{st.type=v;st.map={};st.res=null;paint()})));
+    if(!st.type&&!st.file)md.appendChild($("p",null,"Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
+    const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls";inp.hidden=true;
+    inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
+    if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
+    if(!st.file){
+      const d=$("button","drop");d.type="button";d.append($("strong",null,"Fichier Excel du client"),$("span",null,"Dépose le .xlsx ici ou clique pour le choisir"));
+      d.onclick=()=>inp.click();
+      d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
+      d.ondrop=e=>{e.preventDefault();d.classList.remove("over");const f=e.dataTransfer.files[0];if(f)onFile(f)};
+      const w=$("div");w.append(d,inp);md.appendChild(w);return;
+    }
+    const fl=$("p",null);fl.append("Fichier : ",$("b",null,st.file)," ");
+    const ch=$("button","chip","Changer de fichier");ch.type="button";ch.onclick=()=>inp.click();fl.append(ch,inp);md.appendChild(fl);
+    /* onglets */
+    md.appendChild($("p",null,"Onglets à traiter (un XML par onglet) :"));
+    const sl=$("div","gsheets");
+    st.sheets.forEach((s,i)=>{
+      const l=$("label","gsheet");const cb=$("input");cb.type="checkbox";cb.checked=st.sel.has(i);cb.disabled=s.count===0;
+      cb.onchange=()=>{if(cb.checked)st.sel.add(i);else st.sel.delete(i);st.res=null;paint()};
+      l.append(cb,$("b",null,s.name),$("span",null,s.count?s.count+" ligne(s)":"aucune donnée"));sl.appendChild(l);
+    });
+    md.appendChild(sl);
+    if(!st.type){md.appendChild($("p","msg err","Choisis le type d'XML pour continuer."));return}
+    const chosen=[...st.sel].sort((a,b)=>a-b).map(i=>st.sheets[i]);
+    /* colonnes reconnues */
+    if(chosen.length){
+      const m0=T[st.type],box=$("div","gdet");
+      chosen.forEach(s=>{
+        const idx=GENX.resolve(st.type,s,st.map),line=$("div","gl");line.appendChild($("b",null,s.name+" : "));
+        const parts=m0.cols.map(c=>c[0]).filter(t=>idx[t]>=0||m0.req.includes(t));
+        parts.forEach((t,j)=>{
+          const sp=$("span",idx[t]>=0?null:(GENX.isDef(st.type,t)?"gdef":"gbad"),idx[t]>=0?t+" ← "+s.header[idx[t]]:t+" : "+(GENX.isDef(st.type,t)?"-1 par défaut":"introuvable"));
+          line.appendChild(sp);if(j<parts.length-1)line.append(" · ");
+        });
+        box.appendChild(line);
+      });
+      md.appendChild(box);
+      /* ajustement manuel */
+      const dt=$("details","adj");dt.appendChild($("summary",null,"Ajuster les colonnes"));
+      const heads=[...new Set(chosen.flatMap(s=>s.header.filter(Boolean)))];
+      const gr=$("div","gmap");
+      m0.cols.map(c=>c[0]).forEach(t=>{
+        const cur=st.map[t]||{t:"auto"};
+        gr.appendChild($("span","gt",t));
+        gr.appendChild(sel([["auto","Automatique"],["none","Ignorer"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
+          st.map[t]=v==="auto"?{t:"auto"}:v==="none"?{t:"none"}:{t:"col",v:v.slice(2)};st.res=null;paint();const d2=md.querySelector("details.adj");if(d2)d2.open=true}));
+      });
+      dt.appendChild(gr);if(Object.keys(st.map).some(t=>st.map[t].t!=="auto"))dt.open=true;md.appendChild(dt);
+    }
+    if(T[st.type].params){
+      const pw=$("div","gparams");
+      pw.appendChild(field("Type de DLC",sel([["","À choisir"],["-1","-1 · interface"],["0","0 · jours"],["1","1 · services"],["2","2 · heures"],["3","3 · minutes"]],st.dl,v=>{st.dl=v})));
+      pw.appendChild(field("IsDDM par défaut",sel([["false","false"],["true","true"]],st.dd,v=>{st.dd=v})));
+      const al=$("label","gsheet");const ax=$("input");ax.type="checkbox";ax.checked=st.ange;ax.onchange=()=>{st.ange=ax.checked};
+      al.append(ax,$("b",null,"Boulangerie Ange"),$("span",null,"IsDDM = true pour la catégorie « DDM SECONDAIRE »"));
+      pw.appendChild(al);md.appendChild(pw);
+    }
+    const ac=$("div","actions");
+    const gb=$("button","btn","Générer l'XML");gb.disabled=!chosen.length;gb.onclick=run;ac.appendChild(gb);
+    if(!chosen.length)ac.appendChild($("span","msg","Coche au moins un onglet."));
+    md.appendChild(ac);
+    /* résultats */
+    if(st.res){
+      st.res.forEach(x=>{
+        const c=$("div","gcard");
+        const hh=$("div","gch");hh.append($("b",null,x.sheet),$("span","gbadge"+(x.g.xml?"":" bad"),x.g.xml?x.g.count+" produit(s)":"non généré"));c.appendChild(hh);
+        x.g.errs.slice(0,8).forEach(e=>c.appendChild($("div","msg err",e)));if(x.g.errs.length>8)c.appendChild($("div","msg err","… et "+(x.g.errs.length-8)+" autre(s) erreur(s)"));
+        x.g.warns.slice(0,8).forEach(e=>c.appendChild($("div","gwarn",e)));
+        if(x.g.xml&&x.g.cleaned)c.appendChild($("div","gwarn",x.g.cleaned+" valeur(s) nettoyée(s) (espaces, ligatures Œ/Æ)"));
+        if(x.g.xml){const pre=$("pre","xres",x.g.xml.split(/\r?\n/).slice(0,10).join("\n")+"\n…");c.appendChild(pre)}
+        md.appendChild(c);
+      });
+      const ok=okRes();
+      if(ok.length){
+        const a2=$("div","actions");
+        const sb=$("button","btn","Enregistrer (ZIP)");sb.onclick=save;a2.appendChild(sb);
+        if(ok.length===1){const cb=$("button","btn ghost","Copier le XML");cb.onclick=()=>copy(ok[0]);a2.appendChild(cb)}
+        md.appendChild(a2);
+        if(ok.length===1){const ta=$("textarea","xmlout");ta.value=ok[0].g.xml;ta.readOnly=true;ta.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px";md.appendChild(ta)}
+        md.appendChild($("p",null,"Le ZIP contient le fichier "+GENX.MODS[st.type].out+(ok.length>1?" dans un dossier par onglet":"")+". L'étape « Fichier d'import » se coche à l'enregistrement."));
+      }
+    }
+    if(st.msg){const e=$("p","msg",st.msg);e.setAttribute("role","status");md.appendChild(e)}
+  }
+  paint();
+}
+/*GENUI-END*/
+
 /*XMLUI-START*/
 const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRCT[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0};
@@ -1406,14 +2107,18 @@ function viewHub(app){
   [["En cours",live.length,"MAJ à traiter"],["Prêtes à archiver",todo.length,"à 100 %, à valider"],["Archivées",arch.length,"MAJ terminées"],["Avancement moyen",live.length?avg+" %":"-",live.length?"des MAJ en cours":"aucune MAJ en cours"],["Durée moyenne",arch.length?fmtDur(arch.reduce((a,x)=>a+durOf(x.m),0)/arch.length):"-","de préparation (archivées)"]].forEach(([a,v,c],i)=>{
     const t=$("div","kpi");t.append($("small",null,a),$("b",null,String(v)),$("span",null,c));
     if(i===3&&live.length){t.classList.add(avg>=100?"full":avg>=50?"mid":"low")}
+    if(i===0||i===2){const go=i===0?openLive:openArch;t.classList.add("link");t.setAttribute("role","button");t.tabIndex=0;t.title=i===0?"Voir les MAJ en cours":"Voir les MAJ archivées";t.appendChild($("em",null,"Voir la liste →"));t.onclick=go;t.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}}
     tiles.appendChild(t);
   });
   app.appendChild(tiles);
   // outils
   app.appendChild($("h2",null,"Outils"));
   const tl=$("div","tools");
-  const tb=$("button","tool");tb.append($("strong",null,"Suivi des MAJ modules"),$("span",null,"Importer le mail client, suivre les 3 étapes par module et par région, compléter les XML."),$("small",null,live.length+" en cours · "+arch.length+" archivées"));
+  const tb=$("button","tool");tb.append($("strong",null,"Créer un suivi de MAJ"),$("span",null,"Importer le mail client, suivre les étapes par module et par région, générer les XML depuis l'Excel."),$("small",null,live.length+" en cours · "+arch.length+" archivées"));
   tb.onclick=openTool;tl.appendChild(tb);
+  {const ub=$("button","tool");const ev=majEvents(),t0=startOfToday();const nx=ev.filter(e=>e.date>=t0).length;
+   ub.append($("strong",null,"MAJ à venir"),$("span",null,"Voir les mises à jour siège et les déploiements prévus, d'après les dates saisies dans les suivis."),$("small",null,nx+" date"+(nx>1?"s":"")+" à venir"));
+   ub.onclick=openUpcoming;tl.appendChild(ub)}
   const sb=$("button","tool");sb.append($("strong",null,"Recherche de MAJ"),$("span",null,"Retrouver une MAJ par mot-clé, groupement, module, région, collègue, date ou durée."),$("small",null,(live.length+arch.length)+" MAJ indexées"));
   sb.onclick=openSearch;tl.appendChild(sb);
 app.appendChild(tl);
@@ -1487,6 +2192,90 @@ app.appendChild(tl);
 const SF0={q:"",status:"",group:"",mod:"",reg:"",who:"",dfield:"created",from:"",to:"",prog:"",dur:"",sort:"recent"};
 let sf=Object.assign({},SF0);let backTo=null;let sfOpen=false;
 function openSearch(){page="search";render()}
+function openLive(){page="live";backTo=null;render()}
+function openArch(){page="archived";backTo=null;render()}
+function openUpcoming(){page="upcoming";backTo=null;render()}
+const parseD=v=>{const x=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||"");return x?new Date(+x[1],+x[2]-1,+x[3]):null};
+const startOfToday=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())};
+/* Dates saisies dans les suivis en cours : une ligne par date (siège / déploiement) */
+function majEvents(){
+  const out=[];
+  Object.keys(majs).forEach(id=>{const m=majs[id];if(m.archived)return;
+    [["dateSiege","Mise à jour siège"],["dateDeploiement","Déploiement"]].forEach(([f,lab])=>{const d=parseD(m[f]);if(d)out.push({id,m,s:stats(m),date:d,kind:f,label:lab})});
+  });
+  return out.sort((a,b)=>a.date-b.date||(a.kind==="dateSiege"?-1:1));
+}
+function viewUpcoming(app){
+  const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
+  app.appendChild($("h1",null,"MAJ à venir"));
+  const t0=startOfToday(),ev=majEvents();
+  const undated=Object.keys(majs).filter(id=>!majs[id].archived&&!majs[id].dateSiege&&!majs[id].dateDeploiement).length;
+  app.appendChild($("p","sub","Les dates saisies dans les suivis en cours, de la plus proche à la plus lointaine."));
+  const days=d=>Math.round((d-t0)/86400000);
+  const when=n=>n===0?"aujourd'hui":n===1?"demain":n>1?"dans "+n+" jours":n===-1?"hier":"il y a "+(-n)+" jours";
+  const item=e=>{
+    const w=$("div","sitem acc"),b=$("button","sopen");b.type="button";
+    const top=$("div","stop");
+    top.appendChild($("strong",null,e.date.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})));
+    b.append(top,$("span",null,e.m.title),$("small",null,when(days(e.date))+" · "+e.s.pct+" % · "+e.s.done+" / "+e.s.total+" étapes"));
+    b.onclick=()=>{backTo="upcoming";setCur(e.id)};
+    w.appendChild(b);
+    const strip=$("div","mstrip");
+    const g=$("button","chip mgen","✉ Générer un mail");g.type="button";
+    g.onclick=()=>openMail(e.id);
+    strip.appendChild(g);
+    [["prise","Rétroplanning"],["siege","Mise à jour siège"],["validSiege","Validation siège"],["debut","Début de déploiement"],["fin","Fin de déploiement"]].filter(([k])=>e.kind==="dateSiege"?(k==="prise"||k==="siege"||k==="validSiege"):(k==="debut"||k==="fin")).forEach(([k,lab])=>{
+      const on=!!(e.m.mails&&e.m.mails[k]);
+      const sw=$("button","tgl"+(on?" on":""));sw.type="button";sw.setAttribute("role","switch");sw.setAttribute("aria-checked",String(on));
+      const vs=k==="validSiege";sw.setAttribute("aria-label",lab+(vs?" : validée par le client":" : mail envoyé"));sw.title=on?(typeof e.m.mails[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(e.m.mails[k]):(vs?"Validée":"Mail envoyé")):(vs?"Pas encore validée":"Mail non envoyé");
+      sw.append($("span","tgt"),$("span","tgl2",lab));
+      sw.onclick=()=>{const m=e.m,was=!!(m.mails&&m.mails[k]);m.mails=Object.assign({},m.mails);if(was)delete m.mails[k];else m.mails[k]=Date.now();persist(e.id);render();if(k==="validSiege"&&!was)openTeams(m)};
+      strip.appendChild(sw)});
+    w.appendChild(strip);return w;
+  };
+  const list=(box,rows)=>{
+    let mon="";
+    rows.forEach(e=>{
+      const k=e.date.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+      if(k!==mon){mon=k;box.appendChild($("h3","mhead",k.charAt(0).toUpperCase()+k.slice(1)))}
+      box.appendChild(item(e));
+    });
+  };
+  const block=(title,kind)=>{
+    const rows=ev.filter(e=>e.kind===kind),fut=rows.filter(e=>e.date>=t0),past=rows.filter(e=>e.date<t0).reverse();
+    const sec=$("section","panel acc");sec.appendChild($("h2",null,title));
+    sec.appendChild($("p","sub",fut.length+" à venir"+(past.length?" · "+past.length+" date"+(past.length>1?"s":"")+" dépassée"+(past.length>1?"s":""):"")));
+    const box=$("div","sres");
+    if(fut.length)list(box,fut);else box.appendChild($("p","empty","Aucune date à venir."));
+    if(past.length){box.appendChild($("h3","mhead","Dates dépassées (suivi non archivé)"));past.forEach(e=>box.appendChild(item(e)))}
+    sec.appendChild(box);app.appendChild(sec);
+  };
+  block("MAJ siège","dateSiege");
+  block("MAJ nationale","dateDeploiement");
+  if(undated)app.appendChild($("p","sub",undated+" MAJ en cours "+(undated>1?"n'ont":"n'a")+" aucune date renseignée."));
+}
+function viewLive(app,arch){
+  const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
+  app.appendChild($("h1",null,arch?"MAJ archivées":"MAJ en cours"));
+  const rows=Object.keys(majs).map(id=>({id,m:majs[id],s:stats(majs[id])})).filter(x=>!!x.m.archived===arch).sort(arch?(a,b)=>(b.m.archivedAt||b.m.created)-(a.m.archivedAt||a.m.created):(a,b)=>b.m.created-a.m.created);
+  app.appendChild($("p","sub",rows.length?rows.length+(arch?" MAJ terminées, de la plus récemment archivée à la plus ancienne.":" MAJ à traiter, de la plus récente à la plus ancienne."):(arch?"Aucune MAJ archivée.":"Aucune MAJ en cours.")));
+  const res=$("div","sres");
+  rows.forEach(x=>{
+    const m=x.m,b=$("button","sitem acc");
+    const top=$("div","stop");top.appendChild($("strong",null,m.title));
+    const st=arch?["Archivée","arch"]:x.s.pct>=100?["Prête à archiver","ready"]:["En cours","live"];top.appendChild($("span","badge "+st[1],st[0]));
+    const lvl=x.s.pct>=100?"full":x.s.pct>=50?"mid":"low";
+    const bar=$("div","bar"+(x.s.pct===0?" zero":"")+(lvl==="full"?" full":lvl==="mid"?" mid":""));const bi=$("i");bi.style.width=x.s.pct+"%";bar.appendChild(bi);
+    const meta=$("small",null,x.s.pct+" % · "+x.s.done+" / "+x.s.total+" étapes · créée le "+fdate(m.created)+(arch?" · archivée le "+fdate(m.archivedAt||m.created):"")+" · "+fmtDur(durOf(m))+(m.createdBy?" · "+(who(m.createdBy)||""):""));
+    const dts=[m.dateDemande?"Demande : "+fdate(m.dateDemande):"",m.dateSiege?"MAJ siège : "+fdate(m.dateSiege):"",m.dateDeploiement?"Déploiement : "+fdate(m.dateDeploiement):""].filter(Boolean);
+    const names=[...new Set(m.mods.map(M=>M.name))],rg=[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))];
+    b.append(top,bar,meta);
+    if(dts.length)b.appendChild($("small",null,dts.join(" · ")));
+    b.appendChild($("small","sm",names.join(", ")+" - "+rg.join(", ")));
+    b.onclick=()=>{backTo=arch?"archived":"live";setCur(x.id)};res.appendChild(b);
+  });
+  app.appendChild(res);
+}
 const fold=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 function viewSearch(app){
   const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
@@ -1856,7 +2645,7 @@ function render(){
   const app=document.getElementById("app");
   const keepY=window.scrollY;
   app.textContent="";
-  if(cur&&majs[cur])viewMaj(app,cur);else if(page==='hub')viewHub(app);else if(page==='search')viewSearch(app);else viewHome(app);
+  if(cur&&majs[cur])viewMaj(app,cur);else if(page==='hub')viewHub(app);else if(page==='search')viewSearch(app);else if(page==='live')viewLive(app,false);else if(page==='archived')viewLive(app,true);else if(page==='upcoming')viewUpcoming(app);else viewHome(app);
   window.scrollTo(0,keepY);
 }
 render();
@@ -1870,7 +2659,7 @@ render();
     if(!db){syncTxt="Sauvegarde locale uniquement";paintSync();return}
     gcol=db.collection("groupes");
     gcol.onSnapshot(sn=>{
-      sn.docs.forEach(d=>{const v=d.data();if(v&&v.name)gmap[d.id]=v.name});
+      gdelai={};sn.docs.forEach(d=>{const v=d.data();if(v&&v.name)gmap[d.id]=v.name;if(v&&v.delai===5)gdelai[d.id]=5});try{localStorage.setItem("suivi-maj-delai",JSON.stringify(gdelai))}catch(e){}
       try{localStorage.setItem(LSG,JSON.stringify(gmap))}catch(e){}
       if(cdlg&&cdlg.refresh)cdlg.refresh();
     },()=>{});
@@ -1882,6 +2671,7 @@ render();
       Object.keys(remote).forEach(k=>{
         seen.add(k);
         majs[k]=mergeMaj(majs[k],remote[k]);
+        if(upgradeMaj(majs[k]))persist(k,"*");
       });
       if(!snap.metadata.fromCache&&!snap.metadata.hasPendingWrites)Object.keys(majs).forEach(k=>{if(seen.has(k)&&!remote[k])delete majs[k]});
       if(cur&&!majs[cur])cur=null;
