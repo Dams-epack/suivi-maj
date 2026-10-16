@@ -10,7 +10,11 @@ Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation d
 - **Dates** : date de la demande + délai de prévenance (J-7 par défaut, J-5, ou dates personnalisées) ; les dates de MAJ siège (J-3) et de déploiement (J) sont calculées en jours ouvrés (lundi au vendredi).
 - **Générateur XML** : import de l'Excel du client et génération de l'XML selon le module (Mise en température, Service, Production, Étiquetage, etc.), enregistré en ZIP.
 - **MAJ à venir** : deux blocs (MAJ siège, MAJ nationale), boutons ON/OFF d'envoi des mails, génération des mails types à copier.
-- **Validation siège** : message Teams « NOM DU GROUPEMENT - Maj. validée par le siège », envoyé via un flux Power Automate (URL à coller dans l'outil, jamais dans le dépôt).
+- **Mails** : chaque bouton ON/OFF ouvre le mail correspondant (01 prise en charge 5j/7j, 02 MAJ siège, 03 début de déploiement, 04a/04b fin de déploiement, 05 seconde passe).
+- **Teams** : Validation siège et Début de déploiement préparent un message (liens ressources et rapports demandés en popup, un rapport par langue), envoyé seulement au clic sur « Envoyer dans Teams » via un flux Power Automate (URL à coller dans l'outil, jamais dans le dépôt).
+- **Fin de déploiement** : rappel du rapport d'intervention final, question « seconde passe ? » et switch « 2nde passe ».
+- **Liens de la MAJ** : les liens saisis sont affichés et modifiables sur la page de la MAJ.
+- **Enregistrer** : bouton en bas de la page de la MAJ, qui sauvegarde et revient à « MAJ à venir ».
 
 ## Utilisation
 Conçu pour tourner comme Artifact claude.ai (stockage partagé via la base de l'Artifact). Ouvert hors de claude.ai, il retombe sur le stockage local du navigateur (`localStorage`), donc les données ne sont pas partagées entre postes.

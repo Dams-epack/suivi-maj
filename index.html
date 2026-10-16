@@ -219,6 +219,8 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .sopen{all:unset;display:flex;flex-direction:column;gap:3px;cursor:pointer;color:inherit}.sopen:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 .sitem:has(.sopen){cursor:default}
 button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:brightness(1.15)}.mgen{margin-left:0;margin-right:6px}
+.lrow input[type=url]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box}.lrow input[type=url]:disabled{opacity:.7}
+.liensbox h3{margin:0 0 6px}
 .tgl{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:3px 12px 3px 4px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
 .tgl:hover{border-color:var(--accent)}.tgl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tgt{position:relative;width:34px;height:20px;border-radius:999px;background:var(--line);flex:none;transition:background .15s}
@@ -669,10 +671,6 @@ function viewHome(app){
   const cur_=all.filter(i=>!majs[i].archived), arc=all.filter(i=>majs[i].archived);
   if(cur_.length){app.appendChild($("h2",null,"MAJ en cours"));const ls=$("div","list");cur_.forEach(i=>ls.appendChild(item(i,false)));app.appendChild(ls)}
   if(!cur_.length)app.appendChild($("p","empty","Aucune MAJ en cours."));
-  if(arc.length){
-    const ar=$("p","sub",arc.length+" MAJ archivée"+(arc.length>1?"s":"")+" : retrouve-les dans la recherche. ");
-    const go=$("button","chip","Ouvrir la recherche de MAJ");go.onclick=openSearch;ar.appendChild(go);app.appendChild(ar);
-  }
 }
 function stats(m){
   let total=0,done=0,rows=0,rd=0;
@@ -724,8 +722,8 @@ function mailDraft(m,type){
   return {subject:B[0],body:"Bonjour,\n\n"+B[1]+"\n\nCordialement,",warn:[...miss],
     hint:cal&&perso?"Dates personnalisées : prise en charge, mise à jour siège et déploiement repris de la MAJ ; J+3 calculé en jours ouvrés (du lundi au vendredi) à partir du déploiement.":cal?(type==="fin2"?"":"J-"+(type==="5j"?5:7)+" = date de la demande si elle est renseignée ; ")+"J+3 calculé en jours ouvrés (du lundi au vendredi) à partir de la date de déploiement"+(type!=="fin2"?" ; J-3 = date de la mise à jour siège si elle est renseignée":"")+".":""};
 }
-function openMail(id,type){
-  const m=majs[id];if(!m)return;if(type)mailType=type;
+function openMail(id,type,only){
+  const m=majs[id];if(!m)return;if(type)mailType=type;if(only&&!only.includes(mailType))mailType=only[0];
   if(mailDlg)closeMail();
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","mt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
@@ -734,7 +732,7 @@ function openMail(id,type){
   bg.addEventListener("mousedown",e=>{if(e.target===bg)closeMail()});
   const h=$("h2",null,"Mail client");h.id="mt";
   const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeMail;hd.append(h,x);
-  const sel=$("select");MAIL_TYPES.forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===mailType)o.selected=true;sel.appendChild(o)});
+  const sel=$("select");MAIL_TYPES.filter(([v])=>!only||only.includes(v)).forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===mailType)o.selected=true;sel.appendChild(o)});
   const si=$("input");si.type="text";si.setAttribute("aria-label","Objet");
   const ta=$("textarea","mailbody");ta.rows=14;ta.setAttribute("aria-label","Texte du mail");
   const wn=$("p","msg err");wn.hidden=true;const hn=$("p","msg");hn.hidden=true;
@@ -757,46 +755,119 @@ function openMail(id,type){
 }
 /* Validation siège : copie « NOM - Maj. validée par le siège » et propose d'ouvrir le canal Teams « Support SGC Automatisation » */
 let teamsDlg=null;
-function closeTeams(){if(teamsDlg){teamsDlg.bg.remove();document.removeEventListener("keydown",teamsDlg.key);teamsDlg=null}}
-const teamsLink=()=>{try{return localStorage.getItem("suivi-maj-teams")||""}catch(e){return ""}};
+function closeTeams(){if(teamsDlg){const cb=teamsDlg.onClose;teamsDlg.bg.remove();document.removeEventListener("keydown",teamsDlg.key);teamsDlg=null;if(cb)setTimeout(cb,0)}}
 const teamsFlow=()=>{try{return localStorage.getItem("suivi-maj-flow")||""}catch(e){return ""}};
-function openTeams(m){
+function askLink(step,total,title,label,value){
+  return new Promise(res=>{
+    const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","alt");
+    const md=$("div","modal xml");md.style.maxWidth="560px";bg.appendChild(md);document.body.appendChild(bg);
+    let done=false;const fin=v=>{if(done)return;done=true;document.removeEventListener("keydown",key);bg.remove();res(v)};
+    const key=e=>{if(e.key==="Escape")fin(null)};document.addEventListener("keydown",key);
+    bg.addEventListener("mousedown",e=>{if(e.target===bg)fin(null)});
+    const h=$("h2",null,title);h.id="alt";
+    const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=()=>fin(null);hd.append(h,x);
+    const i=$("input");i.type="url";i.placeholder="https://… (lien SharePoint)";i.value=value||"";i.setAttribute("aria-label",label);
+    const l=$("label","fld");l.append($("span",null,label),i);
+    const ok=$("button","btn",step<total?"Continuer":"Terminer");ok.type="button";const no=$("button","btn ghost","Annuler");no.type="button";
+    const upd=()=>{ok.disabled=!i.value.trim()};i.oninput=upd;upd();
+    ok.onclick=()=>fin(i.value.trim());no.onclick=()=>fin(null);
+    i.onkeydown=e=>{if(e.key==="Enter"&&i.value.trim()){e.preventDefault();fin(i.value.trim())}};
+    const bar=$("div","actions");bar.append(ok,no);
+    md.append(hd,$("p","sub","Étape "+step+" sur "+total),l,bar);setTimeout(()=>i.focus(),0);
+  });
+}
+/* Langues d'une MAJ : réutilise langOf (code de langue d'après la région) */
+const LANG_NAMES={FR:"Français",NL:"Néerlandais",IT:"Italien",ES:"Espagnol",DE:"Allemand",EN:"Anglais",PT:"Portugais"};
+function majLangs(m){const out=[],seen=new Set();(m.mods||[]).forEach(M=>(M.regions||[]).forEach(r=>{const c=langOf(r.label);if(!seen.has(c)){seen.add(c);out.push([c,LANG_NAMES[c]||c])}}));return out}
+/* Fin de déploiement : rappel d'envoyer le rapport d'intervention final, avec le ou les liens enregistrés */
+function rapportRows(m){const langs=majLangs(m),multi=langs.length>1,L0=m.liens||{},R0=L0.rapports||{},anyR=Object.values(R0).some(Boolean);
+  return multi?langs.map(([c,n],i)=>({key:c,label:n,val:R0[c]||(i===0&&!anyR?L0.rapport||"":"")})):[{key:null,label:"",val:L0.rapport||R0[(langs[0]||[])[0]]||""}]}
+function saveLien(m,id,field,key,v){m.liens=Object.assign({},m.liens);if(field==="rapport"&&key)m.liens.rapports=Object.assign({},m.liens.rapports,{[key]:v});else m.liens[field]=v;if(id)persist(id)}
+function lienRow(label,val,placeholder,aria,onSave,ro){
+  const row=$("div","lrow");row.style.cssText="display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap";
+  if(label){const lb=$("strong",null,label);lb.style.minWidth="130px";row.appendChild(lb)}
+  const i=$("input");i.type="url";i.placeholder=placeholder;i.value=val||"";i.style.flex="1";i.style.minWidth="200px";i.setAttribute("aria-label",aria);i.disabled=!!ro;
+  const o=$("a","chip","Ouvrir ↗");o.target="_blank";o.rel="noopener noreferrer";
+  const sync=()=>{const v=i.value.trim();if(v){o.href=v;o.hidden=false}else{o.removeAttribute("href");o.hidden=true}};sync();
+  i.oninput=sync;i.onchange=()=>onSave(i.value.trim());row.append(i,o);return row}
+/* Bloc « Liens » de la page de suivi : ressources et rapport(s) d'intervention renseignés au début / fin de déploiement */
+function viewLiens(app,m,id){
+  const rows=rapportRows(m),L=m.liens||{};
+  if(!L.ressources&&!rows.some(r=>r.val))return;
+  const box=$("section","bloc liensbox");box.style.padding="12px 16px";box.style.margin="12px 0";
+  box.appendChild($("h3",null,"Liens de la MAJ"));
+  box.appendChild(lienRow("Ressources",L.ressources,"https://… (lien SharePoint)","Lien des ressources de la MAJ",v=>saveLien(m,id,"ressources",null,v),m.archived));
+  rows.forEach(r=>box.appendChild(lienRow("Rapport d'intervention"+(r.label?" ("+r.label+")":""),r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v),m.archived)));
+  app.appendChild(box);
+}
+function rapportLinks(m){const L=m.liens||{},langs=majLangs(m),R=L.rapports||{};
+  if(langs.length>1)return langs.map(([c,n])=>[n,R[c]||""]);
+  return [["",L.rapport||(langs[0]&&R[langs[0][0]])||""]]}
+function openFin(m,id){
   closeTeams();
-  const nom=String(groupOf(m)||m.group||m.baseTitle||m.title||"").replace(/\s+/g," ").trim().toUpperCase();
-  const msg=nom+" - Maj. validée par le siège";
-  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","tmt");
-  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","fnt");
+  const md=$("div","modal xml");md.style.maxWidth="560px";bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeTeams()};document.addEventListener("keydown",key);teamsDlg={bg,key};
   bg.addEventListener("mousedown",e=>{if(e.target===bg)closeTeams()});
-  const h=$("h2",null,"Message Teams : validation siège");h.id="tmt";
+  const h=$("h2",null,"Avez-vous pensé à envoyer le rapport d'intervention final ?");h.id="fnt";
   const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeTeams;hd.append(h,x);
-  const ta=$("input");ta.type="text";ta.value=msg;ta.setAttribute("aria-label","Message à envoyer");
+  const rows=rapportRows(m);
+  const box=$("div");box.appendChild($("p","sub",rows.length>1?"Liens d'accès aux rapports (un par langue) :":"Lien d'accès au rapport :"));
+  rows.forEach(r=>box.appendChild(lienRow(r.label,r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v))));
+  const q=$("h3",null,"Une seconde passe est-elle nécessaire ?");q.style.margin="14px 0 8px";
+  const choose=sp=>{closeTeams();m.secondPass=sp;if(id)persist(id);render();if(id)openMail(id,sp?"fin2":"fin",[sp?"fin2":"fin"])};
+  const no=$("button","btn ghost","Non (mail 04a)");no.type="button";no.onclick=()=>choose(false);
+  const yes=$("button","btn","Oui, seconde passe (mail 04b)");yes.type="button";yes.onclick=()=>choose(true);
+  const bar=$("div","actions");bar.append(no,yes);
+  md.append(hd,box,q,bar);setTimeout(()=>no.focus(),0);
+}
+function openTeams(m,kind,id,onDone){
+  if(kind==="debut"){(async()=>{
+    const langs=majLangs(m),multi=langs.length>1,total=1+(multi?langs.length:1),old=m.liens||{};
+    const a=await askLink(1,total,"Début de déploiement","Lien SharePoint : ressources de la MAJ",old.ressources||"");if(a===null){if(onDone)onDone();return}
+    let b="",rap=Object.assign({},old.rapports);
+    if(multi){for(let i=0;i<langs.length;i++){const [c,n]=langs[i];const v=await askLink(i+2,total,"Début de déploiement","Lien SharePoint : rapport d'intervention ("+n+")",rap[c]||"");if(v===null){if(onDone)onDone();return}rap[c]=v}}
+    else{b=await askLink(2,total,"Début de déploiement","Lien SharePoint : rapport d'intervention",old.rapport||"");if(b===null){if(onDone)onDone();return}}
+    m.liens=Object.assign({},old,{ressources:a,rapport:multi?(old.rapport||""):b,rapports:rap});if(id)persist(id);
+    showTeams(m,kind,id,onDone)})();return}
+  showTeams(m,kind,id,onDone);
+}
+function showTeams(m,kind,id,onDone){
+  closeTeams();const deb=kind==="debut";
+  const nom=String(groupOf(m)||m.group||m.baseTitle||m.title||"").replace(/\s+/g," ").trim().toUpperCase();
+  const msg=nom+" - Maj. validée par le siège";
+  const L=Object.assign({ressources:"",rapport:""},m.liens);
+  const langs=majLangs(m),multi=langs.length>1,R=Object.assign({},(m.liens||{}).rapports);
+  const build=()=>String(m.title||nom).trim()+"\n\nRessources : "+(L.ressources||"…")+"\n"+(multi?langs.map(([c,n])=>"Rapport d'intervention ("+n+") : "+(R[c]||"…")).join("\n"):"Rapport d'intervention : "+(L.rapport||"…"));
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","tmt");
+  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const key=e=>{if(e.key==="Escape")closeTeams()};document.addEventListener("keydown",key);teamsDlg={bg,key,onClose:onDone};
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)closeTeams()});
+  const h=$("h2",null,deb?"Message Teams : début de déploiement":"Message Teams : validation siège");h.id="tmt";
+  const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeTeams;hd.append(h,x);
+  const ta=deb?$("textarea"):$("input");if(deb)ta.rows=5;else ta.type="text";ta.value=deb?build():msg;ta.setAttribute("aria-label","Message à envoyer");
   const st=$("span","msg");st.setAttribute("role","status");
   const copy=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
     if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
     st.textContent=ok?"Message copié : colle-le dans le canal (Ctrl+V puis Entrée).":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C."};
-  const li=$("input");li.type="url";li.placeholder="https://teams.microsoft.com/l/channel/…";li.value=teamsLink();li.setAttribute("aria-label","Lien du canal Teams Support SGC Automatisation");
-  const op=$("a","btn","Ouvrir le canal Teams");op.target="_blank";op.rel="noopener noreferrer";
-  const sync=()=>{const v=li.value.trim();try{localStorage.setItem("suivi-maj-teams",v)}catch(e){}
-    if(v){op.href=v;op.removeAttribute("aria-disabled");op.style.opacity="";op.style.pointerEvents=""}else{op.removeAttribute("href");op.setAttribute("aria-disabled","true");op.style.opacity=".5";op.style.pointerEvents="none"}};
-  li.oninput=sync;sync();
   const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
   fu.oninput=()=>{try{localStorage.setItem("suivi-maj-flow",fu.value.trim())}catch(e){}bs.hidden=!fu.value.trim()};
-  const viaForm=u=>{const nm="tflow"+Date.now(),fr=$("iframe");fr.name=nm;fr.style.display="none";fr.setAttribute("aria-hidden","true");fr.tabIndex=-1;
-    const f=$("form");f.method="POST";f.action=u;f.target=nm;f.style.display="none";f.acceptCharset="UTF-8";
-    const i=$("input");i.type="hidden";i.name="message";i.value=ta.value;f.appendChild(i);
-    document.body.append(fr,f);f.submit();setTimeout(()=>{f.remove();fr.remove()},15000)};
+  const ready=()=>{};
+  const toHtml=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1">$1</a>').replace(/\r?\n/g,"<br>");
+  const flowUrl=u=>u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toHtml(ta.value));
   const send=async()=>{const u=fu.value.trim();if(!u)return;st.textContent="Envoi dans Teams…";
-    try{await fetch(u,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:new URLSearchParams({message:ta.value}).toString()});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans la conversation Teams."}
-    catch(e){try{viaForm(u);await copy();st.textContent="Envoi tenté par formulaire (la page ne peut pas confirmer). Vérifie dans Teams ; sinon le message est copié : colle-le dans la conversation."}
-      catch(e2){await copy();st.textContent="Envoi impossible depuis la page. Message copié : colle-le dans la conversation."}}};
-  const bs=$("button","btn","Envoyer dans Teams");bs.type="button";bs.hidden=!fu.value.trim();bs.onclick=send;
+    try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans la conversation Teams."}
+    catch(e){await copy();
+      let w=null;try{w=window.open(flowUrl(u),"_blank");if(w){try{w.opener=null}catch(e3){}setTimeout(()=>{try{w.close()}catch(e4){}},3000)}}catch(e2){}
+      st.textContent=w!==null?"Message envoyé via un onglet qui se ferme tout seul (si l'onglet reste ouvert, tu peux le fermer). Vérifie dans Teams ; sinon le message est copié, colle-le dans la conversation.":"Envoi bloqué par le navigateur. Message copié : colle-le dans la conversation."}};
+  const bs=$("button","btn","Envoyer dans Teams");bs.type="button";bs.hidden=!fu.value.trim();bs.onclick=send;ready();
   const bc=$("button","btn ghost","Copier le message");bc.type="button";bc.onclick=copy;
-  op.addEventListener("click",copy);
-  const bar=$("div","actions");bar.append(bs,op,bc);
+  const bar=$("div","actions");bar.append(bs,bc);
+  const rg=$("details");rg.style.marginTop="12px";if(!fu.value.trim())rg.open=true;const sm0=$("summary",null,"Réglages (flux Power Automate)");sm0.style.cursor="pointer";sm0.style.color="var(--muted)";rg.append(sm0);
   const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
-  md.append(hd,$("p",null,"Message pour le canal « Support SGC Automatisation » :"),fl("Message",ta),fl("URL du flux Power Automate (envoi automatique, enregistrée dans ce navigateur)",fu),fl("Lien du canal Teams (pour l'ouvrir)",li),bar,st);
-  if(fu.value.trim())send();else copy();
+  rg.append(fl("URL du flux Power Automate (enregistrée dans ce navigateur)",fu));
+  md.append(hd,$("p",null,"Message pour la conversation « Support SGC Automatisation » :"),fl("Message",ta),bar,st,rg);
+  st.textContent=fu.value.trim()?"Vérifie le message, puis clique sur « Envoyer dans Teams ».":"Aucun flux configuré : copie le message ou renseigne l'URL du flux dans les réglages.";
 }
 const mailKey2=t=>t==="5j"||t==="7j"?"prise":t;
 /*MAIL-END*/
@@ -901,6 +972,7 @@ function viewMaj(app,id){
    const sw=$("div","datesave");sw.append(sv,sm);dw.appendChild(sw);
    app.appendChild(dw);
    app.appendChild(sub)}
+  viewLiens(app,m,id);
   const s=stats(m);
   const hero=$("div","hero");
   const ht=$("div","hero-top");
@@ -918,10 +990,10 @@ function viewMaj(app,id){
     ar.appendChild($("span","msg","Archivée le "+fdate(m.archivedAt||m.created)+(m.archivedBy?" par "+who(m.archivedBy):"")));
     const un=$("button","btn ghost","Désarchiver");un.onclick=()=>{m.archived=false;delete m.archivedAt;delete m.archivedBy;if(m.baseTitle){m.title=m.baseTitle;delete m.baseTitle}persist(id);render()};
     ar.appendChild(un);foot=ar;
-  }else if(s.pct===100){
+  }else{
     const va=$("div","actions");
-    const v=$("button","btn ok","Valider et archiver");v.onclick=()=>{archiveMaj(id);setCur(null)};
-    va.appendChild(v);va.appendChild($("span","msg","Tout est fait : la MAJ passera dans les archives."));foot=va;
+    const v=$("button","btn ok","Enregistrer");v.onclick=()=>{flushDates(id);persist(id);page="upcoming";backTo=null;setCur(null)};
+    va.appendChild(v);foot=va;
   }
   const bloc1=$("section","bloc");
   bloc1.appendChild(blocHead("files","Préparation des fichiers",s.done+" / "+s.total+" étapes"));
@@ -2224,12 +2296,18 @@ function viewUpcoming(app){
     const g=$("button","chip mgen","✉ Générer un mail");g.type="button";
     g.onclick=()=>openMail(e.id);
     strip.appendChild(g);
-    [["prise","Rétroplanning"],["siege","Mise à jour siège"],["validSiege","Validation siège"],["debut","Début de déploiement"],["fin","Fin de déploiement"]].filter(([k])=>e.kind==="dateSiege"?(k==="prise"||k==="siege"||k==="validSiege"):(k==="debut"||k==="fin")).forEach(([k,lab])=>{
+    [["prise","Rétroplanning"],["siege","Mise à jour siège"],["validSiege","Validation siège"],["debut","Début de déploiement"],["fin","Fin de déploiement"],["pass2","2nde passe"]].filter(([k])=>e.kind==="dateSiege"?(k==="prise"||k==="siege"||k==="validSiege"):(k==="debut"||k==="fin"||(k==="pass2"&&e.m.secondPass))).forEach(([k,lab])=>{
       const on=!!(e.m.mails&&e.m.mails[k]);
       const sw=$("button","tgl"+(on?" on":""));sw.type="button";sw.setAttribute("role","switch");sw.setAttribute("aria-checked",String(on));
       const vs=k==="validSiege";sw.setAttribute("aria-label",lab+(vs?" : validée par le client":" : mail envoyé"));sw.title=on?(typeof e.m.mails[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(e.m.mails[k]):(vs?"Validée":"Mail envoyé")):(vs?"Pas encore validée":"Mail non envoyé");
       sw.append($("span","tgt"),$("span","tgl2",lab));
-      sw.onclick=()=>{const m=e.m,was=!!(m.mails&&m.mails[k]);m.mails=Object.assign({},m.mails);if(was)delete m.mails[k];else m.mails[k]=Date.now();persist(e.id);render();if(k==="validSiege"&&!was)openTeams(m)};
+      sw.onclick=()=>{const m=e.m,was=!!(m.mails&&m.mails[k]);m.mails=Object.assign({},m.mails);if(was)delete m.mails[k];else m.mails[k]=Date.now();persist(e.id);render();if(was)return;
+        if(k==="validSiege")openTeams(m);
+        else if(k==="prise")openMail(e.id,delayOf(m)===5?"5j":"7j",["5j","7j"]);
+        else if(k==="siege")openMail(e.id,"siege",["siege"]);
+        else if(k==="debut")openTeams(m,"debut",e.id,()=>openMail(e.id,"debut",["debut"]));
+        else if(k==="fin")openFin(m,e.id);
+        else if(k==="pass2")openMail(e.id,"fin2ok",["fin2ok"])};
       strip.appendChild(sw)});
     w.appendChild(strip);return w;
   };
