@@ -161,6 +161,14 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .xres{margin:0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:.78rem;white-space:pre-wrap;overflow:auto;max-height:240px}
 .ligs{margin:0;padding-left:20px;color:var(--fg)}
 .modal .drop{width:100%;box-sizing:border-box}
+.nextlist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.nrow{font:inherit;text-align:left;display:flex;align-items:center;gap:14px;padding:10px 14px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--cta);border-radius:10px;cursor:pointer}
+.nrow:hover,.nrow:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.ndate{display:flex;flex-direction:column;width:104px;flex:none}.ndate b{font-size:1.05rem;text-transform:capitalize}.ndate small{color:var(--muted)}
+.ndate.late b,.ndate.late small{color:var(--bad)}
+.nmid{display:flex;flex-direction:column;flex:1;min-width:0}.nmid small{color:var(--muted)}
+.badge.late{color:var(--bad);border-color:var(--bad)}
+.nrow:has(.badge.late){border-left-color:var(--bad)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .timer{margin:0;color:var(--muted)}.timer b{font-family:var(--mono);font-weight:500;color:var(--fg);font-size:1.05rem}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
@@ -211,6 +219,25 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .sitem{font:inherit;text-align:left;display:flex;flex-direction:column;gap:3px;padding:12px 14px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;cursor:pointer}
 .sitem:hover{border-color:var(--accent)}.sitem:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sitem small{color:var(--muted)}
+.sitem.alldone{border-color:var(--ok)}
+.sitem .stop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.donebadge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);white-space:nowrap}
+.donebadge.wait{background:var(--warn-soft);color:var(--warn);border-color:var(--warn);white-space:normal}
+.atabw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.atab{width:100%;border-collapse:collapse;font-size:14px}
+.atab th,.atab td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.atab th{background:var(--band);color:var(--band-fg);position:sticky;top:0;white-space:nowrap}
+.athb{all:unset;cursor:pointer;font-weight:700;color:var(--band-fg)}.athb:hover,.athb:focus-visible{color:var(--cta);outline:none}
+.atab tbody tr{cursor:pointer}.atab tbody tr:hover,.atab tbody tr:focus-visible{background:var(--accent-soft);outline:none}
+.atabw{border-top:4px solid var(--cta);box-shadow:0 1px 0 var(--line);background:var(--surface)}
+.atab tbody tr:nth-child(even){background:var(--accent-soft)}
+.atab tbody tr:nth-child(even):hover{background:var(--line)}
+.atab th{border-bottom:3px solid var(--cta)}
+.gname{color:var(--accent)}
+.lchip{display:inline-block;margin:0 4px 3px 0;padding:2px 8px;border-radius:999px;background:var(--cta);color:var(--cta-fg);font-size:12px;font-weight:700}
+.atab td.num{font-family:var(--mono);white-space:nowrap;color:var(--muted)}
+.atab td:nth-child(6){color:var(--s1);font-weight:600}
+.atab tbody tr:last-child td{border-bottom:0}
 .mstrip{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:9px;border-top:1px dashed var(--line)}
 .mst{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
 .mchip{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--bg)}
@@ -778,26 +805,57 @@ function askLink(step,total,title,label,value){
 }
 /* Langues d'une MAJ : réutilise langOf (code de langue d'après la région) */
 const LANG_NAMES={FR:"Français",NL:"Néerlandais",IT:"Italien",ES:"Espagnol",DE:"Allemand",EN:"Anglais",PT:"Portugais"};
-function majLangs(m){const out=[],seen=new Set();(m.mods||[]).forEach(M=>(M.regions||[]).forEach(r=>{const c=langOf(r.label);if(!seen.has(c)){seen.add(c);out.push([c,LANG_NAMES[c]||c])}}));return out}
+function majLangs(m){const out=[],seen=new Set();(m.mods||[]).forEach(M=>(M.regions||[]).forEach(r=>{const c=String(r.label||"").trim().toUpperCase()||"FR";if(!seen.has(c)){seen.add(c);out.push([c,c])}}));return out}
 /* Fin de déploiement : rappel d'envoyer le rapport d'intervention final, avec le ou les liens enregistrés */
 function rapportRows(m){const langs=majLangs(m),multi=langs.length>1,L0=m.liens||{},R0=L0.rapports||{},anyR=Object.values(R0).some(Boolean);
   return multi?langs.map(([c,n],i)=>({key:c,label:n,val:R0[c]||(i===0&&!anyR?L0.rapport||"":"")})):[{key:null,label:"",val:L0.rapport||R0[(langs[0]||[])[0]]||""}]}
-function saveLien(m,id,field,key,v){m.liens=Object.assign({},m.liens);if(field==="rapport"&&key)m.liens.rapports=Object.assign({},m.liens.rapports,{[key]:v});else m.liens[field]=v;if(id)persist(id)}
+function saveLien(m0,id,field,key,v){const m=(id&&majs[id])||m0;m.liens=Object.assign({},m.liens);if(field==="rapport"&&key)m.liens.rapports=Object.assign({},m.liens.rapports,{[key]:v});else m.liens[field]=v;if(id)persist(id)}
 function lienRow(label,val,placeholder,aria,onSave,ro){
   const row=$("div","lrow");row.style.cssText="display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap";
   if(label){const lb=$("strong",null,label);lb.style.minWidth="130px";row.appendChild(lb)}
   const i=$("input");i.type="url";i.placeholder=placeholder;i.value=val||"";i.style.flex="1";i.style.minWidth="200px";i.setAttribute("aria-label",aria);i.disabled=!!ro;
   const o=$("a","chip","Ouvrir ↗");o.target="_blank";o.rel="noopener noreferrer";
   const sync=()=>{const v=i.value.trim();if(v){o.href=v;o.hidden=false}else{o.removeAttribute("href");o.hidden=true}};sync();
-  i.oninput=sync;i.onchange=()=>onSave(i.value.trim());row.append(i,o);return row}
+  i.oninput=sync;i.onchange=()=>onSave(i.value.trim());
+  if(ro==="copy"){
+    if(!val){row.appendChild($("span","msg","Sera disponible au début de déploiement, lors de l'envoi du mail."));return row}
+    i.readOnly=true;i.disabled=false;o.href=val;o.hidden=false;
+    const cp=$("button","chip","Copier");cp.type="button";
+    cp.onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(val);ok=true}catch(e){}if(!ok){try{i.focus();i.select();ok=document.execCommand("copy")}catch(e){}}cp.textContent=ok?"Copié ✓":"Ctrl+C";setTimeout(()=>{cp.textContent="Copier"},1800)};
+    i.onfocus=()=>i.select();row.append(i,o,cp);return row}
+  if(ro==="btn"){if(val){o.href=val;o.hidden=false;row.appendChild(o)}else row.appendChild($("span","msg","Aucun lien enregistré (à ajouter dans « Accès aux données »)"));return row}
+  row.append(i,o);return row}
 /* Bloc « Liens » de la page de suivi : ressources et rapport(s) d'intervention renseignés au début / fin de déploiement */
 function viewLiens(app,m,id){
   const rows=rapportRows(m),L=m.liens||{};
-  if(!L.ressources&&!rows.some(r=>r.val))return;
-  const box=$("section","bloc liensbox");box.style.padding="12px 16px";box.style.margin="12px 0";
-  box.appendChild($("h3",null,"Liens de la MAJ"));
-  box.appendChild(lienRow("Ressources",L.ressources,"https://… (lien SharePoint)","Lien des ressources de la MAJ",v=>saveLien(m,id,"ressources",null,v),m.archived));
-  rows.forEach(r=>box.appendChild(lienRow("Rapport d'intervention"+(r.label?" ("+r.label+")":""),r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v),m.archived)));
+  if(blocClosed.liens===undefined)blocClosed.liens=true;
+  const n=(L.ressources?1:0)+rows.filter(r=>r.val).length;
+  const box=$("section","bloc liensbox");
+  box.appendChild(blocHead("liens","Accès aux données",n+" / "+(1+rows.length)+" liens"));
+  const body=$("div","bloc-b");body.hidden=!!blocClosed.liens;box.appendChild(body);
+  body.appendChild(lienRow("Ressources",L.ressources,"https://… (lien SharePoint)","Lien des ressources de la MAJ",v=>saveLien(m,id,"ressources",null,v),"copy"));
+  rows.forEach(r=>body.appendChild(lienRow("Rapport d'intervention"+(r.label?" ("+r.label+")":""),r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v),"copy")));
+  app.appendChild(box);
+}
+function viewXmlLog(app,m){
+  const L=m.xmlLog||[];if(!L.length)return;
+  if(blocClosed.xmls===undefined)blocClosed.xmls=true;
+  const box=$("section","bloc liensbox");
+  box.appendChild(blocHead("xmls","XML générés",L.length+" fichier"+(L.length>1?"s":"")));
+  const body=$("div","bloc-b");body.hidden=!!blocClosed.xmls;box.appendChild(body);
+  const tb=$("table","atab"),tbd=$("tbody");
+  L.forEach(e=>{const tr=$("tr");[new Date(e.t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}),e.reg||"-",e.mod||"-",e.file,e.by?(who(e.by)||""):""].forEach(x=>tr.appendChild($("td",null,x)));
+    const td=$("td");
+    if(e.blob&&xcol){const b=$("button","chip","Télécharger");b.type="button";b.onclick=async()=>{b.disabled=true;b.textContent="…";
+      try{const data=await fetchXml(e);let done=false;
+        try{const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;if(d){await d.save({filename:e.file,data});done=true}}catch(x){if(x&&x.code==="declined"){b.textContent="Annulé";b.disabled=false;setTimeout(()=>{b.textContent="Télécharger"},1500);return}}
+        if(!done){const u=URL.createObjectURL(new Blob([data],{type:"application/zip"}));const a=document.createElement("a");a.href=u;a.download=e.file;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+        b.textContent="Téléchargé ✓"}catch(x){b.textContent=x&&x.code==="gone"?"Fichier introuvable":"Échec"}
+      setTimeout(()=>{b.textContent="Télécharger";b.disabled=false},2200)};td.appendChild(b)}
+    else td.textContent=e.blob?"":"-";
+    tr.appendChild(td);tbd.appendChild(tr)});
+
+  tb.appendChild(tbd);const w=$("div","atabw");w.appendChild(tb);body.append($("p","sub","XML générés depuis cette fiche : le fichier ZIP est conservé et peut être retéléchargé."),w);
   app.appendChild(box);
 }
 function rapportLinks(m){const L=m.liens||{},langs=majLangs(m),R=L.rapports||{};
@@ -812,10 +870,10 @@ function openFin(m,id){
   const h=$("h2",null,"Avez-vous pensé à envoyer le rapport d'intervention final ?");h.id="fnt";
   const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeTeams;hd.append(h,x);
   const rows=rapportRows(m);
-  const box=$("div");box.appendChild($("p","sub",rows.length>1?"Liens d'accès aux rapports (un par langue) :":"Lien d'accès au rapport :"));
-  rows.forEach(r=>box.appendChild(lienRow(r.label,r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v))));
+  const box=$("div");
+  rows.forEach(r=>box.appendChild(lienRow("Lien d'accès au rapport"+(r.label?" - "+r.label:"")+" :",r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v),"btn")));
   const q=$("h3",null,"Une seconde passe est-elle nécessaire ?");q.style.margin="14px 0 8px";
-  const choose=sp=>{closeTeams();m.secondPass=sp;if(id)persist(id);render();if(id)openMail(id,sp?"fin2":"fin",[sp?"fin2":"fin"])};
+  const choose=sp=>{closeTeams();((id&&majs[id])||m).secondPass=sp;if(id)persist(id);render();if(id)openMail(id,sp?"fin2":"fin",[sp?"fin2":"fin"])};
   const no=$("button","btn ghost","Non (mail 04a)");no.type="button";no.onclick=()=>choose(false);
   const yes=$("button","btn","Oui, seconde passe (mail 04b)");yes.type="button";yes.onclick=()=>choose(true);
   const bar=$("div","actions");bar.append(no,yes);
@@ -824,12 +882,12 @@ function openFin(m,id){
 function openTeams(m,kind,id,onDone){
   if(kind==="debut"){(async()=>{
     const langs=majLangs(m),multi=langs.length>1,total=1+(multi?langs.length:1),old=m.liens||{};
-    const a=await askLink(1,total,"Début de déploiement","Lien SharePoint : ressources de la MAJ",old.ressources||"");if(a===null){if(onDone)onDone();return}
+    const a=await askLink(1,total,"Début de déploiement","Copier/coller le lien d'accès aux ressources de la MAJ",old.ressources||"");if(a===null){if(onDone)onDone();return}
     let b="",rap=Object.assign({},old.rapports);
-    if(multi){for(let i=0;i<langs.length;i++){const [c,n]=langs[i];const v=await askLink(i+2,total,"Début de déploiement","Lien SharePoint : rapport d'intervention ("+n+")",rap[c]||"");if(v===null){if(onDone)onDone();return}rap[c]=v}}
-    else{b=await askLink(2,total,"Début de déploiement","Lien SharePoint : rapport d'intervention",old.rapport||"");if(b===null){if(onDone)onDone();return}}
-    m.liens=Object.assign({},old,{ressources:a,rapport:multi?(old.rapport||""):b,rapports:rap});if(id)persist(id);
-    showTeams(m,kind,id,onDone)})();return}
+    if(multi){for(let i=0;i<langs.length;i++){const [c,n]=langs[i];const v=await askLink(i+2,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention - "+n.toUpperCase(),rap[c]||"");if(v===null){if(onDone)onDone();return}rap[c]=v}}
+    else{b=await askLink(2,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention"+(langs.length?" - "+langs[0][1].toUpperCase():""),old.rapport||"");if(b===null){if(onDone)onDone();return}}
+    const mm=(id&&majs[id])||m;mm.liens=Object.assign({},mm.liens,{ressources:a,rapport:multi?(old.rapport||""):b,rapports:rap});if(id)persist(id);
+    showTeams(mm,kind,id,onDone)})();return}
   showTeams(m,kind,id,onDone);
 }
 function showTeams(m,kind,id,onDone){
@@ -925,7 +983,7 @@ function viewMaj(app,id){
   const m=majs[id];
   syncDone(m);
   const top=$("div","topbar");
-  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(backTo){page=backTo;backTo=null}setCur(null)};
+  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(backTo){page=backTo;backTo=null}setCur(null)};
   const sy=$("span","msg",syncTxt);sy.id="sync";
   top.append(back,sy);app.appendChild(top);
   const hrow=$("div","hrow");hrow.appendChild($("h1",null,m.title));app.appendChild(hrow);
@@ -972,7 +1030,6 @@ function viewMaj(app,id){
    const sw=$("div","datesave");sw.append(sv,sm);dw.appendChild(sw);
    app.appendChild(dw);
    app.appendChild(sub)}
-  viewLiens(app,m,id);
   const s=stats(m);
   const hero=$("div","hero");
   const ht=$("div","hero-top");
@@ -1000,6 +1057,7 @@ function viewMaj(app,id){
   const body1=$("div","bloc-b");body1.hidden=!!blocClosed.files;bloc1.appendChild(body1);
   body1.appendChild(hero);
   app.appendChild(bloc1);
+  viewLiens(app,m,id);viewXmlLog(app,m);
   const tools=$("div","actions");
   const fa=$("button","chip","Tout");fa.setAttribute("aria-pressed",String(!onlyTodo));fa.onclick=()=>{onlyTodo=false;render()};
   const ft=$("button","chip","Reste à faire");ft.setAttribute("aria-pressed",String(onlyTodo));ft.onclick=()=>{onlyTodo=true;render()};
@@ -1049,7 +1107,7 @@ function viewMaj(app,id){
   else{
     del.appendChild($("span","msg err","Supprimer définitivement ce suivi ?"));
     const y=$("button","btn danger","Oui, supprimer");y.onclick=()=>{
-      delete majs[id];try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
+      purgeXml(majs[id]);delete majs[id];try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
       if(col)col.doc(id).delete().catch(()=>{});setCur(null)};
     const n=$("button","btn ghost","Annuler");n.onclick=()=>{confirmDel=false;render()};
     del.append(y,n);
@@ -1177,12 +1235,12 @@ function processSubblocks(body,sbs,eol,ctx,label,refBody){
   for(const sb of sbs){
     const cname=sb.container;
     const m=new RegExp(`(?<open>[ \\t]*<${cname}>[ \\t]*\\r?\\n)(?<inner>.*?)(?<close>[ \\t]*</${cname}>)`,"s").exec(body);
-    if(m===null){warnings.push(`${label} : bloc <${cname}> absent — non traité`);continue}
+    if(m===null){warnings.push(`${label} : bloc <${cname}> absent - non traité`);continue}
     let inner=m.groups.inner;const orig=inner;
     const im=/^([ \t]*)\S/m.exec(inner);const indent=im?im[1]:"      ";
     for(const tag of sb.never_invent||[]){
       const tm=tagVal(inner,tag);
-      if(tm===null||!((tm[1]||"").trim()))warnings.push(`${label} > ${cname} : <${tag}> absente ou vide — à renseigner à la main`);
+      if(tm===null||!((tm[1]||"").trim()))warnings.push(`${label} > ${cname} : <${tag}> absente ou vide - à renseigner à la main`);
     }
     const present=new Set(directChildren(inner).map(([t])=>t.toLowerCase()));
     const additions=[];
@@ -1190,7 +1248,7 @@ function processSubblocks(body,sbs,eol,ctx,label,refBody){
       if(present.has(tag.toLowerCase()))continue;
       if((sb.reference_tags||[]).includes(tag)){
         const value=refBody?refLookup(refBody,`${cname}/${tag}`):null;
-        if(value===null){warnings.push(`${label} > ${cname} : <${tag}> absente et introuvable dans le fichier de référence — à renseigner à la main`);continue}
+        if(value===null){warnings.push(`${label} > ${cname} : <${tag}> absente et introuvable dans le fichier de référence - à renseigner à la main`);continue}
         additions.push(`${indent}<${tag}>${value}</${tag}>${eol}`);
       }else if(def===null)additions.push(`${indent}<${tag} />${eol}`);
       else additions.push(`${indent}<${tag}>${def}</${tag}>${eol}`);
@@ -1236,7 +1294,7 @@ function processChildren(body,child,eol,ctx,parentLabel){
     const label=nm?`${parentLabel} > ${nm[1].trim()}`:`${parentLabel} > item #${counter}`;
     for(const tag of child.never_invent||[]){
       const tm=tagVal(ibody,tag);
-      if(tm===null||!((tm[1]||"").trim()))warnings.push(`${label} : <${tag}> absente ou vide — à renseigner à la main`);
+      if(tm===null||!((tm[1]||"").trim()))warnings.push(`${label} : <${tag}> absente ou vide - à renseigner à la main`);
     }
     const present=new Set(directChildren(ibody).map(([t])=>t.toLowerCase()));
     const additions=[];
@@ -1302,7 +1360,7 @@ function processText(text,eol,profile,o,reference){
     if(cm0)label=`${label} / ${cm0[1].trim()}`;
     for(const tag of profile.never_invent||[]){
       const tm=tagVal(body,tag);
-      if(tm===null||!((tm[1]||"").trim()))warnings.push(`${label} : <${tag}> absente ou vide — à renseigner à la main`);
+      if(tm===null||!((tm[1]||"").trim()))warnings.push(`${label} : <${tag}> absente ou vide - à renseigner à la main`);
     }
     if(profile.children){
       const [nb,ct]=processChildren(body,profile.children,eol,ctx,label);body=nb;if(ct)touched=true;
@@ -1390,7 +1448,7 @@ function processText(text,eol,profile,o,reference){
     return openTag+body+closeTag;
   }
   let newText=text.replace(blockRe(element),processBlock);
-  if(countOf(newText,element)!==countProducts)throw new Error("Le nombre d'objets a changé après traitement — sortie non fiable.");
+  if(countOf(newText,element)!==countProducts)throw new Error("Le nombre d'objets a changé après traitement - sortie non fiable.");
   const [nt,attrsAdded]=ensureRootAttrs(newText,element,profile.root_attrs);
   return {newText:nt,countProducts,productsTouched,missingDL,stats,warnings,attrsAdded,ligs};
 }
@@ -1428,7 +1486,7 @@ function runOnce(bytes,o,refBytes){
   if(refBytes){
     try{reference=loadReference(refBytes,element)}catch(e){return {ok:false,error:"Fichier de référence illisible (UTF-8 attendu)."}}
     lines.push(`Référence chargée : ${reference.size} bloc(s)`);
-  }else if(needsRef)lines.push(`AVERTISSEMENT : le profil ${element} attend un fichier de référence pour les valeurs métier non inventables — elles seront signalées comme manquantes.`);
+  }else if(needsRef)lines.push(`AVERTISSEMENT : le profil ${element} attend un fichier de référence pour les valeurs métier non inventables - elles seront signalées comme manquantes.`);
   let r;
   try{r=processText(d.text,outEol,profile,o,reference)}catch(e){return {ok:false,error:e.message}}
   let nt=r.newText;
@@ -1441,7 +1499,7 @@ function runOnce(bytes,o,refBytes){
   if(bom)out.set([0xEF,0xBB,0xBF],0);out.set(body,bom?3:0);
   const st=r.stats,g=k=>st[k]||0;
   const unit=profile.label_plural||"produit(s)";
-  lines.push(`OK : type détecté « ${element} » — ${r.countProducts} ${unit} vérifié(e)s, ${r.productsTouched} modifié(e)s.`);
+  lines.push(`OK : type détecté « ${element} » - ${r.countProducts} ${unit} vérifié(e)s, ${r.productsTouched} modifié(e)s.`);
   if(profile.leading_tag)lines.push(`  ${profile.leading_tag[0]} ajoutée sur ${g(profile.leading_tag[0])} objet(s)`);
   if(profile.has_dltype)lines.push(`  DLType ajoutée sur ${g("DLType (ajoutée)")}, mise à jour sur ${g("DLType (mise à jour)")}, forcée à -1 sur ${g("DLType (forcée -1)")}`);
   if(profile.forced_tag){const ft=profile.forced_tag;lines.push(`  ${ft} ajoutée sur ${g(ft+" (ajoutée)")}, mise à jour sur ${g(ft+" (mise à jour)")}`)}
@@ -1721,6 +1779,34 @@ const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produi
 const guessType=name=>{for(const [re,t] of GEN_GUESS)if(re.test(name))return t;return ""};
 let genDlg=null;
 function closeGen(){if(genDlg){genDlg.bg.remove();document.removeEventListener("keydown",genDlg.key);genDlg=null}}
+let xcol=null;
+const XCH=150000,XMAX=6000000;
+function b64enc(u8){let s="";for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)}
+function b64dec(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+async function storeXml(bid,id,file,bytes){
+  const n=Math.ceil(bytes.length/XCH);
+  for(let i=0;i<n;i++)await xcol.doc(bid+"_"+i).set({data:b64enc(bytes.subarray(i*XCH,(i+1)*XCH))});
+  await xcol.doc(bid).set({majId:id,name:file,size:bytes.length,n,t:Date.now()});
+}
+async function fetchXml(e){
+  const meta=await xcol.doc(e.blob).get();if(!meta.exists)throw {code:"gone"};
+  const n=meta.data().n,parts=[];
+  for(let i=0;i<n;i++){const d=await xcol.doc(e.blob+"_"+i).get();if(!d.exists)throw {code:"gone"};parts.push(b64dec(d.data().data))}
+  const out=new Uint8Array(parts.reduce((a,b)=>a+b.length,0));let o=0;parts.forEach(x=>{out.set(x,o);o+=x.length});return out;
+}
+function purgeXml(m){if(!xcol||!m)return;(m.xmlLog||[]).forEach(e=>{if(!e.blob)return;const n=e.n||1;xcol.doc(e.blob).delete().catch(()=>{});for(let i=0;i<n;i++)xcol.doc(e.blob+"_"+i).delete().catch(()=>{})})}
+function logXml(id,k,file,kind,bytes){
+  const cm=majs[id];if(!(cm&&k&&file))return;
+  let mod="",reg="";(cm.mods||[]).forEach(M=>(M.regions||[]).forEach(r=>{if(M.id+"_"+r.key===k){mod=M.name;reg=norm(r.label)}}));
+  const L=(cm.xmlLog||[]).slice();
+  if(L.length&&L[0].file===file&&Date.now()-L[0].t<8000)return;
+  const e={t:Date.now(),file,mod,reg,kind:kind||"",by:myId||null};
+  L.unshift(e);cm.xmlLog=L.slice(0,60);persist(id);
+  if(bytes&&xcol&&bytes.length<=XMAX){
+    const bid="x"+e.t.toString(36)+Math.random().toString(36).slice(2,6);
+    storeXml(bid,id,file,bytes).then(()=>{const c=majs[id];if(!c)return;const x=(c.xmlLog||[]).find(z=>z.t===e.t);if(x){x.blob=bid;x.n=Math.ceil(bytes.length/XCH);x.size=bytes.length;persist(id);if(page==="tool"&&cur===id)render()}}).catch(()=>{});
+  }
+}
 function openGen(m,k,id,M,r){
   if(genDlg)closeGen();
   const isAnge=/boulangerie\s+ange/i.test(m.group||m.title||"");
@@ -1764,7 +1850,8 @@ function openGen(m,k,id,M,r){
     });
     paint();
   }
-  function tick(){
+  function tick(fn,bytes){
+    logXml(id,k,fn,"Excel → XML",bytes);
     const cm=majs[id];if(!(k&&cm))return "";
     const q=cm.prog[k]||{s:[false,false,false],note:""};
     if(q.s[0])return "";
@@ -1783,13 +1870,13 @@ function openGen(m,k,id,M,r){
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"unavailable"};
-      await d.save({filename:z.name,data:z.bytes});done=true;st.msg="Fichier enregistré : "+z.name+"."+tick();
+      await d.save({filename:z.name,data:z.bytes});done=true;st.msg="Fichier enregistré : "+z.name+"."+tick(z.name,z.bytes);
     }catch(e){
       if(e&&e.code==="declined")st.msg="Enregistrement annulé.";
       else{
         try{
           const u=URL.createObjectURL(new Blob([z.bytes],{type:"application/zip"}));const a=$("a");a.href=u;a.download=z.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
-          st.msg="Téléchargement lancé : "+z.name+". Si rien n'arrive, utilise « Copier le XML »."+tick();
+          st.msg="Téléchargement lancé : "+z.name+". Si rien n'arrive, utilise « Copier le XML »."+tick(z.name,z.bytes);
         }catch(e2){st.msg="Enregistrement impossible"+(e&&e.code?" ("+e.code+")":"")+" : utilise « Copier le XML »."}
       }
     }
@@ -1799,7 +1886,7 @@ function openGen(m,k,id,M,r){
     let ok=false;
     try{await navigator.clipboard.writeText(x.g.xml);ok=true}catch(e){}
     if(!ok){try{const ta=md.querySelector("textarea.xmlout");if(ta){ta.focus();ta.select();ok=document.execCommand("copy")}}catch(e){}}
-    st.msg=ok?"XML copié : colle-le dans un fichier « "+x.g.file+" » (Bloc-notes, enregistrer en UTF-8)."+tick():"Copie automatique impossible : sélectionne le texte ci-dessous (Ctrl+A puis Ctrl+C).";
+    st.msg=ok?"XML copié : colle-le dans un fichier « "+x.g.file+" » (Bloc-notes, enregistrer en UTF-8)."+tick(x.g.file):"Copie automatique impossible : sélectionne le texte ci-dessous (Ctrl+A puis Ctrl+C).";
     paint();
   }
   function paint(){
@@ -1958,7 +2045,8 @@ function openXml(m,k,id){
     }
     paint();
   }
-  function tickDone(){
+  function tickDone(fn,bytes){
+    logXml(id,k,fn||(st.res&&(st.res.outName||st.file)),"Moulinette",bytes);
     const cm=majs[id];if(!(k&&cm))return "";
     const q=cm.prog[k]||{s:[false,false,false],note:""};
     if(q.s[2])return "";
@@ -1974,7 +2062,7 @@ function openXml(m,k,id){
       const d=await window.claude.use("downloads");
       if(!d){st.fb=true;st.msg="Le téléchargement direct n'est pas disponible dans ta vue : utilise une des solutions ci-dessous.";paint();return}
       await d.save({filename:zname,data:zip});st.done=true;
-      st.msg="Fichier téléchargé : "+zname+" (contient "+name+")."+tickDone();
+      st.msg="Fichier téléchargé : "+zname+" (contient "+name+")."+tickDone(zname,zip);
     }catch(e){
       if(e&&e.code==="declined")st.msg="Téléchargement annulé.";
       else{st.fb=true;st.msg="Téléchargement impossible ("+((e&&e.code)||(e&&e.name)||"erreur")+(e&&e.message?" : "+String(e.message).slice(0,160):"")+"). Utilise une des solutions ci-dessous."}
@@ -1991,10 +2079,10 @@ function openXml(m,k,id){
   }
   function dlAnchor(){
     const r=st.res;const name=r.outName||st.file;const zname=name.replace(/\.xml$/i,"")+".zip";
-    try{
-      const blob=new Blob([makeZip(name,r.bytes)],{type:"application/zip"});const u=URL.createObjectURL(blob);
+    let zb=null;try{
+      const blob=new Blob([zb=makeZip(name,r.bytes)],{type:"application/zip"});const u=URL.createObjectURL(blob);
       const a=document.createElement("a");a.href=u;a.download=zname;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
-      st.done=true;st.msg="Téléchargement lancé : "+zname+". Si rien n'arrive, utilise « Copier le XML »."+tickDone();
+      st.done=true;st.msg="Téléchargement lancé : "+zname+". Si rien n'arrive, utilise « Copier le XML »."+tickDone(zname,zb);
     }catch(e){st.msg="Téléchargement impossible : utilise « Copier le XML »."}
     paint();
   }
@@ -2164,25 +2252,62 @@ function backupCard(){
 }
 /*BACKUP-END*/
 
+/* Accueil : prochaine étape d'une échéance (d'après les interrupteurs de « MAJ à venir ») */
+function nextStep(e){
+  const k=e.m.mails||{};
+  if(e.kind==="dateSiege"){
+    if(!k.prise)return ["Envoyer le rétroplanning",0];
+    if(!k.siege)return ["Déposer la mise à jour sur la solution siège",0];
+    if(!k.validSiege)return ["Attendre la validation du siège",0];
+    return null;
+  }
+  if(!k.debut)return ["Lancer le début de déploiement",0];
+  if(!k.fin)return ["Terminer le déploiement",0];
+  if(e.m.secondPass&&!k.pass2)return ["Faire la seconde passe",0];
+  return ["Archiver la MAJ",1];
+}
+function viewHubNext(app){
+  const t0=startOfToday(),ev=majEvents().map(e=>({e,n:nextStep(e)})).filter(x=>x.n);
+  const late=ev.filter(x=>x.e.date<t0).reverse(),soon=ev.filter(x=>x.e.date>=t0);
+  const rows=[...late.slice(0,3),...soon].slice(0,6);
+  const sec=$("section","panel acc");
+  const hd=$("div","hubtop");hd.appendChild($("h2",null,"Prochaines échéances"));
+  const all=$("button","chip","Tout voir →");all.type="button";all.onclick=openUpcoming;hd.appendChild(all);sec.appendChild(hd);
+  if(!rows.length){sec.appendChild($("p","empty","Rien à traiter pour le moment : aucune échéance en attente."));app.appendChild(sec);return}
+  const ul=$("div","nextlist");
+  rows.forEach(({e,n})=>{
+    const d=Math.round((e.date-t0)/86400000);
+    const when=d===0?"Aujourd'hui":d===1?"Demain":d>1?"Dans "+d+" jours":d===-1?"Hier":"Il y a "+(-d)+" jours";
+    const r=$("button","nrow");r.type="button";
+    const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})),$("small",null,when));if(d<0)dt.classList.add("late");
+    const mid=$("span","nmid");mid.append($("strong",null,e.m.title),$("small",null,(e.kind==="dateSiege"?"MAJ siège":"MAJ nationale")+" · "+n[0]));
+    const bd=$("span","badge "+(n[1]?"ready":d<0?"late":"live"),n[1]?"Prête à archiver":d<0?"En retard":"À traiter");
+    r.append(dt,mid,bd);r.onclick=()=>{backTo="hub";setCur(e.id)};ul.appendChild(r);
+  });
+  sec.appendChild(ul);app.appendChild(sec);
+}
 function viewHub(app){
   const hr=$("div","hubtop");hr.appendChild($("h1",null,"Accueil"));
   const rb=$("button","btn ghost","Actualisation");rb.title="Recharge la page : dernière version de l'outil et données à jour";
   rb.onclick=()=>{rb.disabled=true;rb.textContent="Actualisation…";try{location.reload()}catch(e){render();rb.disabled=false;rb.textContent="Actualisation"}};
   const sy=$("span","msg",syncTxt);sy.id="sync";
   const rg=$("div","actions");rg.append(sy,rb);hr.appendChild(rg);app.appendChild(hr);
-  app.appendChild($("p","sub","Vue d'ensemble de tes outils et des MAJ de modules."));
+  app.appendChild($("p","sub",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).replace(/^./,c=>c.toUpperCase())+" · vue d'ensemble des MAJ de modules."));
   const all=Object.keys(majs).map(k=>({id:k,m:majs[k],s:stats(majs[k])}));
   const live=all.filter(x=>!x.m.archived),arch=all.filter(x=>x.m.archived);
   const todo=live.filter(x=>x.s.pct===100);
   const avg=live.length?Math.round(live.reduce((a,x)=>a+x.s.pct,0)/live.length):0;
+  const t7=startOfToday(),lim=new Date(t7.getTime()+7*86400000);
+  const dueN=majEvents().filter(e=>nextStep(e)&&e.date<=lim).length;
   const tiles=$("div","kpis");
-  [["En cours",live.length,"MAJ à traiter"],["Prêtes à archiver",todo.length,"à 100 %, à valider"],["Archivées",arch.length,"MAJ terminées"],["Avancement moyen",live.length?avg+" %":"-",live.length?"des MAJ en cours":"aucune MAJ en cours"],["Durée moyenne",arch.length?fmtDur(arch.reduce((a,x)=>a+durOf(x.m),0)/arch.length):"-","de préparation (archivées)"]].forEach(([a,v,c],i)=>{
+  [["En cours",live.length,"MAJ à traiter"],["Échéances à traiter",dueN,"dans les 7 jours ou en retard"],["Archivées",arch.length,"MAJ terminées"],["Avancement moyen",live.length?avg+" %":"-",live.length?"des MAJ en cours":"aucune MAJ en cours"],["Durée moyenne",arch.length?fmtDur(arch.reduce((a,x)=>a+durOf(x.m),0)/arch.length):"-","de préparation (archivées)"]].forEach(([a,v,c],i)=>{
     const t=$("div","kpi");t.append($("small",null,a),$("b",null,String(v)),$("span",null,c));
     if(i===3&&live.length){t.classList.add(avg>=100?"full":avg>=50?"mid":"low")}
-    if(i===0||i===2){const go=i===0?openLive:openArch;t.classList.add("link");t.setAttribute("role","button");t.tabIndex=0;t.title=i===0?"Voir les MAJ en cours":"Voir les MAJ archivées";t.appendChild($("em",null,"Voir la liste →"));t.onclick=go;t.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}}
+    if(i<3){const go=i===0?openLive:i===1?openUpcoming:openArch;t.classList.add("link");t.setAttribute("role","button");t.tabIndex=0;t.title=i===0?"Voir les MAJ en cours":i===1?"Voir les MAJ à venir":"Voir les MAJ archivées";t.appendChild($("em",null,"Voir la liste →"));t.onclick=go;t.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}}
     tiles.appendChild(t);
   });
   app.appendChild(tiles);
+  viewHubNext(app);
   // outils
   app.appendChild($("h2",null,"Outils"));
   const tl=$("div","tools");
@@ -2309,7 +2434,16 @@ function viewUpcoming(app){
         else if(k==="fin")openFin(m,e.id);
         else if(k==="pass2")openMail(e.id,"fin2ok",["fin2ok"])};
       strip.appendChild(sw)});
-    w.appendChild(strip);return w;
+    w.appendChild(strip);
+    const mk=e.m.mails||{};
+    const STAT=e.kind==="dateSiege"
+      ?[["validSiege","Mise à jour validée",1],["siege","Mise à jour déposée sur la solution siège",0],["prise","Rétroplanning envoyé - En attente de déploiement sur la solution siège",0]]
+      :[["fin",e.m.secondPass&&!mk.pass2?"Déploiement terminé - Seconde passe à prévoir":"Déploiement terminé",1],["pass2","Seconde passe effectuée",1],["debut","Déploiement en cours",0]];
+    let st=null;
+    if(e.kind!=="dateSiege"&&mk.pass2)st=STAT[1];else st=STAT.find(([k])=>mk[k]);
+    if(st){const ok=!!st[2]&&!(e.kind!=="dateSiege"&&e.m.secondPass&&!mk.pass2);w.classList.toggle("alldone",ok);const bd=$("span","donebadge"+(ok?"":" wait"),(ok?"✓ ":"")+st[1]);top.appendChild(bd);
+      if(ok&&e.kind!=="dateSiege"){const ab=$("button","btn ok","Archiver la MAJ");ab.type="button";ab.style.marginLeft="auto";ab.onclick=ev=>{ev.stopPropagation();archiveMaj(e.id);render()};strip.appendChild(ab)}}
+    return w;
   };
   const list=(box,rows)=>{
     let mon="";
@@ -2332,11 +2466,43 @@ function viewUpcoming(app){
   block("MAJ nationale","dateDeploiement");
   if(undated)app.appendChild($("p","sub",undated+" MAJ en cours "+(undated>1?"n'ont":"n'a")+" aucune date renseignée."));
 }
+
+let archSort={k:"arch",d:-1},archF={g:"",l:""};
+function viewArchTable(app,rows){
+  const R=x=>[...new Set(x.m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))];
+  const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,"fr"));
+  const gs=uniq(rows.map(x=>groupOf(x.m))),ls=uniq(rows.flatMap(R));
+  const bar=$("div","actions");
+  const mk=(lab,key,opts)=>{const l=$("label","fld");l.style.flexDirection="row";l.style.alignItems="center";l.style.gap="8px";l.appendChild($("span",null,lab));
+    const s=$("select");[["","Tous"],...opts.map(o=>[o,o])].forEach(([v,tx])=>{const o=$("option",null,tx);o.value=v;if(v===archF[key])o.selected=true;s.appendChild(o)});
+    s.onchange=()=>{archF[key]=s.value;render()};l.appendChild(s);bar.appendChild(l)};
+  mk("Enseigne","g",gs);mk("Langue","l",ls);
+  app.appendChild(bar);
+  const COLS=[["g","Enseigne",x=>groupOf(x.m)||""],["t","MAJ",x=>x.m.title||""],["l","Langues",x=>R(x).join(", ")],["mo","Modules",x=>[...new Set(x.m.mods.map(M=>M.name))].join(", ")],["dem","Demande",x=>x.m.dateDemande||0],["dep","Déploiement",x=>x.m.dateDeploiement||0],["arch","Archivée le",x=>x.m.archivedAt||x.m.created||0],["dur","Durée",x=>durOf(x.m)]];
+  const fmt={dem:v=>v?fdate(v):"-",dep:v=>v?fdate(v):"-",arch:v=>v?fdate(v):"-",dur:v=>fmtDur(v)};
+  let data=rows.filter(x=>(!archF.g||groupOf(x.m)===archF.g)&&(!archF.l||R(x).includes(archF.l)));
+  const c=COLS.find(z=>z[0]===archSort.k)||COLS[6];
+  data.sort((a,b)=>{const u=c[2](a),v=c[2](b);const r=typeof u==="number"&&typeof v==="number"?u-v:String(u).localeCompare(String(v),"fr",{numeric:true});return r*archSort.d});
+  if(!data.length){app.appendChild($("p","empty","Aucune MAJ ne correspond aux filtres."));return}
+  const wrap=$("div","atabw panel acc"),tb=$("table","atab"),th=$("thead"),hr=$("tr");
+  COLS.forEach(([k,lab])=>{const h=$("th");h.scope="col";const b=$("button","athb",lab+(archSort.k===k?(archSort.d>0?" ▲":" ▼"):""));b.type="button";b.onclick=()=>{if(archSort.k===k)archSort.d*=-1;else{archSort.k=k;archSort.d=1}render()};h.setAttribute("aria-sort",archSort.k===k?(archSort.d>0?"ascending":"descending"):"none");h.appendChild(b);hr.appendChild(h)});
+  th.appendChild(hr);tb.appendChild(th);
+  const tbd=$("tbody");
+  data.forEach(x=>{const tr=$("tr");tr.tabIndex=0;
+    COLS.forEach(([k,,f])=>{const v=f(x),td=$("td",null,"");
+      if(k==="l"){String(v).split(", ").filter(Boolean).forEach(c=>td.appendChild($("span","lchip",c)))}
+      else if(k==="g"){td.appendChild($("strong","gname",v||"-"))}
+      else{td.textContent=fmt[k]?fmt[k](v):v;if(k==="dur"||k==="dem"||k==="dep"||k==="arch")td.className="num"}
+      tr.appendChild(td)});
+    const go=()=>{backTo="archived";setCur(x.id)};tr.onclick=go;tr.onkeydown=e=>{if(e.key==="Enter")go()};tbd.appendChild(tr)});
+  tb.appendChild(tbd);wrap.appendChild(tb);app.appendChild(wrap);
+}
 function viewLive(app,arch){
   const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
   app.appendChild($("h1",null,arch?"MAJ archivées":"MAJ en cours"));
   const rows=Object.keys(majs).map(id=>({id,m:majs[id],s:stats(majs[id])})).filter(x=>!!x.m.archived===arch).sort(arch?(a,b)=>(b.m.archivedAt||b.m.created)-(a.m.archivedAt||a.m.created):(a,b)=>b.m.created-a.m.created);
-  app.appendChild($("p","sub",rows.length?rows.length+(arch?" MAJ terminées, de la plus récemment archivée à la plus ancienne.":" MAJ à traiter, de la plus récente à la plus ancienne."):(arch?"Aucune MAJ archivée.":"Aucune MAJ en cours.")));
+  app.appendChild($("p","sub",rows.length?rows.length+(arch?" MAJ terminées : clique sur un titre de colonne pour trier.":" MAJ à traiter, de la plus récente à la plus ancienne."):(arch?"Aucune MAJ archivée.":"Aucune MAJ en cours.")));
+  if(arch){viewArchTable(app,rows);return}
   const res=$("div","sres");
   rows.forEach(x=>{
     const m=x.m,b=$("button","sitem acc");
@@ -2735,7 +2901,7 @@ render();
     c.use("user").then(async u=>{if(u){userApi=u;try{myId=await u.id()}catch(e){}resolveNames()}}).catch(()=>{});
     const db=await c.use("db");
     if(!db){syncTxt="Sauvegarde locale uniquement";paintSync();return}
-    gcol=db.collection("groupes");
+    gcol=db.collection("groupes");xcol=db.collection("xmlfiles");
     gcol.onSnapshot(sn=>{
       gdelai={};sn.docs.forEach(d=>{const v=d.data();if(v&&v.name)gmap[d.id]=v.name;if(v&&v.delai===5)gdelai[d.id]=5});try{localStorage.setItem("suivi-maj-delai",JSON.stringify(gdelai))}catch(e){}
       try{localStorage.setItem(LSG,JSON.stringify(gmap))}catch(e){}

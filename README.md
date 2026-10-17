@@ -14,6 +14,9 @@ Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation d
 - **Teams** : Validation siège et Début de déploiement préparent un message (liens ressources et rapports demandés en popup, un rapport par langue), envoyé seulement au clic sur « Envoyer dans Teams » via un flux Power Automate (URL à coller dans l'outil, jamais dans le dépôt).
 - **Fin de déploiement** : rappel du rapport d'intervention final, question « seconde passe ? » et switch « 2nde passe ».
 - **Liens de la MAJ** : les liens saisis sont affichés et modifiables sur la page de la MAJ.
+- **XML générés** : chaque XML produit (Excel → XML ou Moulinette) est historisé sur la fiche (date, région, module, auteur) et le ZIP est conservé dans la base partagée pour être retéléchargé.
+- **Accueil** : indicateurs, bloc « Prochaines échéances » (prochaine étape de chaque MAJ, retards en rouge), outils et graphiques.
+- **MAJ archivées** : tableau triable par enseigne, langue (codes région) et date.
 - **Enregistrer** : bouton en bas de la page de la MAJ, qui sauvegarde et revient à « MAJ à venir ».
 
 ## Utilisation
