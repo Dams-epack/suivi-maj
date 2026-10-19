@@ -636,8 +636,6 @@ function mailIssues(){
   (info.unclear||[]).forEach(u=>out.push({title:"Point à préciser",text:u.point,ask:u.question||null}));
   if(!(typeof info.file==="boolean"?info.file:RX_FILE.test(mail)))
     out.push({title:"Aucun fichier mentionné",text:"Le mail ne parle d'aucun fichier Excel ni d'aucune pièce jointe. Vérifie dans le mail d'origine qu'une pièce jointe ne t'a pas échappé.",ask:"Pourriez-vous nous transmettre le fichier Excel contenant les éléments à mettre à jour ?"});
-  if(!(typeof info.region==="boolean"?info.region:RX_REG.test(mail)))
-    out.push({title:"Aucun pays ni langue précisé",text:"Aucune région n'est citée dans le mail : « FR » est appliqué par défaut.",ask:"La mise à jour concerne-t-elle uniquement la France, ou aussi d'autres pays et langues ?"});
   return out;
 }
 function mailDialog(o){
