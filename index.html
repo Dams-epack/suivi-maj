@@ -73,6 +73,7 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 section.mod{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .mod-h{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.modtog{cursor:pointer;user-select:none}.modtog:hover h2,.modtog:focus-visible h2{color:var(--cta)}.modtog:focus-visible{outline:2px solid var(--cta);outline-offset:-2px}
 .mod-h .cnt{font-family:var(--mono);font-size:.85rem;color:var(--muted)}
 .mod.done .cnt{color:var(--ok)}
 .cols,.row{display:grid;grid-template-columns:minmax(120px,1.3fr) repeat(3,minmax(0,1fr));gap:8px;padding:10px 16px;align-items:center}
@@ -138,7 +139,9 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .datef input:disabled{opacity:.75;cursor:not-allowed}
 .datef select,.datef input{font:inherit;font-weight:400;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
 .cols.two,.row.two{grid-template-columns:minmax(120px,1.3fr) repeat(2,minmax(0,1fr))}
+.pill-bad{align-self:center;font-size:.76rem;font-weight:700;padding:2px 10px;border-radius:999px;background:#D11A1A;color:#fff;white-space:nowrap}
 .stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
+.row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
@@ -151,7 +154,8 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .gmap select,.gparams select{font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);min-width:0}
 .gparams{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .gcard{border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
-.gch{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.gch{display:flex;justify-content:space-between;gap:8px;align-items:center}.gchb{all:unset;box-sizing:border-box;width:100%;display:flex;justify-content:space-between;gap:8px;align-items:center;cursor:pointer;font-size:1.05rem}.gchb:focus-visible{outline:2px solid var(--cta);outline-offset:2px}.gclean summary{cursor:pointer}.gcl{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:2px;font-size:.82rem}.gcl code{font-family:var(--mono);font-size:.8rem;background:var(--bg);padding:0 4px;border-radius:4px;overflow-wrap:anywhere}
+.gcb{display:flex;flex-direction:column;gap:6px}.gcb[hidden]{display:none}
 .gbadge{font-size:.78rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--ok-soft);color:var(--ok)}
 .gbadge.bad{background:var(--warn-soft);color:var(--bad)}
 .gwarn{font-size:.82rem;color:var(--warn);background:var(--warn-soft);padding:4px 8px;border-radius:6px;overflow-wrap:anywhere}
@@ -162,12 +166,14 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .ligs{margin:0;padding-left:20px;color:var(--fg)}
 .modal .drop{width:100%;box-sizing:border-box}
 .dlcalert{border:1px solid var(--bad);border-left:5px solid var(--bad);background:var(--warn-soft);color:var(--fg);border-radius:8px;padding:10px 14px;margin:8px 0;display:flex;flex-direction:column;gap:6px}
-.dlcalert strong{color:var(--bad)}.dlcalert ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:2px}.dlcalert small{color:var(--muted)}
+.dlcmail{border:1px solid var(--line,#8884);border-radius:8px;padding:10px 14px;margin:8px 0;display:flex;flex-direction:column;gap:8px}.dlcmail textarea{width:100%;box-sizing:border-box;font:inherit}.dlcalert strong{color:var(--bad)}.dlcalert ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:2px}.dlcalert small{color:var(--muted)}
 .gsug{display:flex;flex-direction:column;gap:4px;margin:8px 0 12px;max-height:260px;overflow:auto}
 .gsug small{color:var(--muted)}
 .gopt{font:inherit;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);cursor:pointer}
 .gopt:hover,.gopt.act{border-color:var(--accent);background:var(--accent-soft)}
 .gopt.add{border-style:dashed;color:var(--accent);font-weight:600}
+.mpt{color:var(--muted);display:block}.amlist{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 12px;display:grid;gap:4px;margin:8px 0}.amcat{font-weight:600;color:var(--muted);font-size:.8rem;margin-top:8px}.chk{display:flex;gap:8px;align-items:flex-start;cursor:pointer}.chk input{margin-top:3px}
+.gear{position:relative;display:inline-flex;align-items:center;justify-content:center;padding:8px 10px}.gear svg{width:18px;height:18px}.gdot{position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:var(--warn,#c0392b)}.setrow{display:grid;gap:6px;margin-top:14px}.setrow small{color:var(--muted)}.setrow input{width:100%;box-sizing:border-box}
 .hubset{margin-top:18px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.hubset summary{cursor:pointer;font-weight:600}.hubset input{width:100%;margin-top:8px;box-sizing:border-box}
 .nextlist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .nrow{font:inherit;text-align:left;display:flex;align-items:center;gap:14px;padding:10px 14px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--cta);border-radius:10px;cursor:pointer}
@@ -417,7 +423,7 @@ function renameMaj(id,t){
   const g=groupOf(m);if(g)m.group=g;
   persist(id);
 }
-let renaming=null;
+let renaming=null,siteEdit=null;
 const regionsOf=m=>[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ");
 /* Nom de la MAJ : si plusieurs codes pays / langues sont suivis, ils sont ajoutés au nom (ex. « O TACOS - Maj du 17/10/2026 - FR, BE-NL ») */
 const PAYS_CODES={fr:"FR",france:"FR",befr:"BE-FR",benl:"BE-NL",blufr:"BE-FR",blunl:"BE-NL",it:"IT",italie:"IT",es:"ES",espagne:"ES",de:"DE",allemagne:"DE",en:"EN",uk:"EN",pt:"PT",portugal:"PT",lareunion:"REUNION",reunion:"REUNION",antilles:"ANTILLES",nouvellecaledonie:"NC",nc:"NC"};
@@ -427,7 +433,10 @@ function paysCode(label){
   if(/^[A-Za-z]{2}(-[A-Za-z]{2})?$/.test(String(n).trim()))return String(n).trim().toUpperCase();
   return String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 }
-function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).map(r=>paysCode(r.label))))].filter(Boolean);m.title=rs.length>1?m.baseTitle+" - "+rs.join(", "):m.baseTitle}
+function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).map(r=>paysCode(r.label))))].filter(Boolean);const sx=m.site?" - "+m.site:"";m.title=m.baseTitle+sx+(rs.length>1?" - "+rs.join(", "):"")}
+/* Nom des ZIP : NOM DU GROUPEMENT - Nom du fichier XML */
+const zipGroup=id=>{const m=majs[id];const g=m?(groupOf(m)||m.group||""):"";return String(g).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim()};
+const zipName=(id,base)=>{const g=zipGroup(id);return (g?g+" - ":"")+base+".zip"};
 function archiveMaj(id){flushDates(id);const m=majs[id];stampTitle(m);m.archived=true;m.archivedAt=Date.now();if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,m.archivedAt-m.pausedAt);m.pausedAt=null}m.archivedBy=myId||null;persist(id);resolveNames()}
 const wq={};
 function mergeMaj(l,r){
@@ -471,7 +480,7 @@ function persist(id,what){
   wq[id]=(wq[id]||Promise.resolve()).then(run,run);
 }
 function paintSync(){const e=document.getElementById("sync");if(e)e.textContent=syncTxt}
-function setCur(id){cur=id;if(id)page="tool";confirmDel=false;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
+function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
 
 /* ---- Analyse du mail ---- */
 const norm=l=>String(l).replace(/\bblux(?:embourg)?[\s-]*(FR|NL)\b/i,(m,c)=>"BE-"+c.toUpperCase());
@@ -586,14 +595,128 @@ async function loadFile(file){
     if(!t){draft.msg="Je n'ai pas réussi à lire ce fichier. Colle le texte du mail à la place.";draft.err=true;render();return}
     draft.mail=t;draft.msg="";draft.err=false;render();
     await analyse();
-    await finishCreate();
+    if(await reviewMail())await finishCreate();
   }catch(e){draft.msg="Lecture du fichier impossible. Colle le texte du mail à la place.";draft.err=true;render()}
 }
 
+/* ---- Contrôle du mail client : alertes une par une, puis mail de retour proposé ---- */
+const RX_FILE=/pi[èe]ces?\s+jointes?|ci[- ]joint|\bpj\b|excel|xlsx?\b|fichier|tableau|document/i;
+const RX_DATE=/\b\d{1,2}[\/.-]\d{1,2}(?:[\/.-]\d{2,4})?\b|\b\d{1,2}(?:er)?\s+(?:janv|f[ée]vr|mars|avr|mai|juin|juil|ao[uû]t|sept|oct|nov|d[ée]c)|\b(?:lundi|mardi|mercredi|jeudi|vendredi|semaine|demain|urgent|rapidement|asap)\b|\b(?:avant|pour|d[èe]s)\s+le\b/i;
+const RX_REG=/\b(?:france|fran[çc]ais\w*|belg\w*|n[ée]erland\w*|flamand\w*|ital\w*|espagn\w*|allemand\w*|portug\w*|r[ée]union|antilles|nouvelle[- ]cal[ée]donie|langues?|pays)\b|\b(?:FR|BE|NL|IT|ES|DE|PT|NC)\b/;
+const knownSites=()=>[...new Set(Object.values(majs).map(m=>String(m.site||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr"));
+function siteList(){let d=document.getElementById("sitelist");if(d)d.remove();d=$("datalist");d.id="sitelist";knownSites().forEach(s=>{const o=$("option");o.value=s;d.appendChild(o)});return d}
+function mailIssues(){
+  const mail=draft.mail||"",info=draft.info||{},g=draft.group||"",out=[];
+  if(g){
+    const ex=Object.keys(majs).map(k=>majs[k]).filter(m=>groupOf(m)===g&&(!draft.site||String(m.site||"").toLowerCase()===draft.site.toLowerCase())).sort((a,b)=>(b.created||0)-(a.created||0))[0];
+    if(ex)out.push({title:"Une MAJ existe déjà pour ce groupement",text:"« "+ex.title+" » est déjà suivie ("+(ex.archived?"archivée":"en cours")+"). Vérifie qu'il ne s'agit pas de la même demande avant d'en créer une nouvelle."});
+  }
+  (info.unclear||[]).forEach(u=>out.push({title:"Point à préciser",text:u.point,ask:u.question||null}));
+  if(!(typeof info.file==="boolean"?info.file:RX_FILE.test(mail)))
+    out.push({title:"Aucun fichier mentionné",text:"Le mail ne parle d'aucun fichier Excel ni d'aucune pièce jointe. Vérifie dans le mail d'origine qu'une pièce jointe ne t'a pas échappé.",ask:"Pourriez-vous nous transmettre le fichier Excel contenant les éléments à mettre à jour ?"});
+  if(!(typeof info.region==="boolean"?info.region:RX_REG.test(mail)))
+    out.push({title:"Aucun pays ni langue précisé",text:"Aucune région n'est citée dans le mail : « FR » est appliqué par défaut.",ask:"La mise à jour concerne-t-elle uniquement la France, ou aussi d'autres pays et langues ?"});
+  return out;
+}
+function mailDialog(o){
+  return new Promise(res=>{
+    const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","mdt");
+    const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+    const key=e=>{if(e.key==="Escape")done({cancel:true})};
+    const done=v=>{document.removeEventListener("keydown",key);bg.remove();res(v)};
+    document.addEventListener("keydown",key);
+    const h=$("h2",null,o.title);h.id="mdt";
+    const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label",o.close||"Annuler la création");x.onclick=()=>done({cancel:true});hd.append(h,x);
+    md.appendChild(hd);
+    if(o.step)md.appendChild($("small","mpt",o.step));
+    o.body(md,()=>done);
+    setTimeout(()=>{const f=md.querySelector("textarea,input,button.btn");if(f)f.focus()},0);
+  });
+}
+async function replyDialog(asks){
+  const g=draft.group;
+  const lines=asks.length===1?"Afin de traiter votre demande, merci de nous préciser : "+asks[0].replace(/^./,c=>c.toLowerCase()):"Afin de traiter votre demande, merci de nous préciser les points suivants :\n"+asks.map(a=>"- "+a).join("\n");
+  const txt="Bonjour,\n\nNous avons bien reçu votre demande de mise à jour"+(g?" pour "+g:"")+".\n\n"+lines+"\n\nNous planifions la mise à jour dès réception de ces éléments.\n\nCordialement,";
+  return mailDialog({title:"Mail de retour au client",step:"Proposition à copier dans ta réponse, modifiable avant copie.",body:(md,fin)=>{
+    const ta=$("textarea");ta.rows=12;ta.value=txt;ta.setAttribute("aria-label","Mail de retour au client");
+    const st=$("span","msg");st.setAttribute("role","status");
+    const cp=$("button","btn","Copier le mail");cp.type="button";
+    cp.onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
+      if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
+      st.textContent=ok?"Mail copié.":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C."};
+    const ac=$("div","actions");
+    const go=$("button","btn ok","Créer le suivi");go.type="button";go.onclick=()=>fin()({ok:true});
+    const no=$("button","btn ghost","Annuler");no.type="button";no.onclick=()=>fin()({cancel:true});
+    ac.append(cp,go,no,st);md.append(ta,ac);
+  }});
+}
+async function planDates(){
+  draft.plan=null;
+  const rq=(draft.info&&draft.info.requested)||"",D=parseD(rq);if(!D)return {ok:true};
+  const today=new Date();today.setHours(0,0,0,0);if(D<today)return {ok:true};
+  const dem=isoD(today),dl=delayOf({group:draft.group||""}),mn=addOuvres(today,dl),okDay=isOuvre(D),sg=d=>isoD(addOuvres(d,-3));
+  if(D>=mn&&okDay){draft.plan={dateDemande:dem,dateSiege:sg(D),dateDeploiement:rq,perso:true,note:"Date demandée par le client reprise : MAJ siège le "+fdate(sg(D))+", déploiement le "+fdate(rq)+"."};return {ok:true}}
+  const P=D>=mn?addOuvres(D,1):mn,Pi=isoD(P);
+  const why=D>=mn?"Le "+fdate(rq)+" n'est pas un jour ouvré.":"Le "+fdate(rq)+" ne laisse pas le délai standard de "+dl+" jours ouvrés à partir d'aujourd'hui : le déploiement n'est possible qu'au plus tôt le "+fdate(Pi)+".";
+  const ask=D>=mn?"Le "+fdate(rq)+" n'étant pas un jour ouvré, pouvons-nous déployer la mise à jour le "+fdate(Pi)+" ?":"Compte tenu de nos délais de prévenance ("+dl+" jours ouvrés), la mise à jour peut être déployée au plus tôt le "+fdate(Pi)+". Cette date vous convient-elle ?";
+  let chk=null;
+  const r=await mailDialog({title:D>=mn?"Date demandée non ouvrée":"Date demandée trop proche",step:"Délai standard : "+dl+" jours ouvrés",body:(md,fin)=>{
+    md.appendChild($("p",null,why));
+    const l1=$("p");l1.append("Date demandée par le client : ",$("b",null,fdate(rq)));
+    const l2=$("p");l2.append("Nouveau rétroplanning proposé : MAJ siège le ",$("b",null,fdate(sg(P))),", déploiement le ",$("b",null,fdate(Pi)));
+    md.append(l1,l2);
+    const lb=$("label","chk");chk=$("input");chk.type="checkbox";chk.checked=true;lb.append(chk,$("span",null,"Proposer cette date au client dans le mail de retour"));md.appendChild(lb);
+    const ac=$("div","actions");
+    const ap=$("button","btn","Appliquer le nouveau rétroplanning");ap.type="button";ap.onclick=()=>fin()({mode:"new"});
+    const kp=$("button","btn ghost","Garder la date du client");kp.type="button";kp.onclick=()=>fin()({mode:"keep"});
+    const no=$("button","btn ghost","Annuler la création");no.type="button";no.onclick=()=>fin()({cancel:true});
+    ac.append(ap,kp,no);md.appendChild(ac);
+  }});
+  if(r.cancel)return {cancel:true};
+  const ask2=chk&&chk.checked?ask:null;
+  if(r.mode==="keep")draft.plan={dateDemande:dem,dateSiege:sg(D),dateDeploiement:rq,perso:true,note:"Date du client conservée : MAJ siège le "+fdate(sg(D))+", déploiement le "+fdate(rq)+" (délai standard non respecté)."};
+  else if(Pi===isoD(mn))draft.plan={dateDemande:dem,perso:false,note:"Nouveau rétroplanning appliqué : déploiement le "+fdate(Pi)+" (J+"+dl+" ouvrés), MAJ siège le "+fdate(sg(P))+"."};
+  else draft.plan={dateDemande:dem,dateSiege:sg(P),dateDeploiement:Pi,perso:true,note:"Nouveau rétroplanning appliqué : MAJ siège le "+fdate(sg(P))+", déploiement le "+fdate(Pi)+"."};
+  return {ok:true,ask:ask2};
+}
+async function reviewMail(){
+  if(!(draft.parsed&&draft.parsed.length))return true;
+  if(draft.site){
+    const r=await mailDialog({title:"Site ou concept détecté",step:"Il sera ajouté au nom de la MAJ.",body:(md,fin)=>{
+      md.appendChild($("p",null,"La demande semble viser un site ou un concept précis, pas tout le réseau. Vérifie le nom, ou vide le champ si ce n'est pas le cas."));
+      const fi=$("input");fi.type="text";fi.value=draft.site;fi.maxLength=80;fi.setAttribute("aria-label","Site ou concept");fi.setAttribute("list","sitelist");
+      const go=()=>fin()({ok:true,val:fi.value});
+      fi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
+      const ac=$("div","actions");const ok=$("button","btn","Valider");ok.type="button";ok.onclick=go;
+      const no=$("button","btn ghost","Annuler la création");no.type="button";no.onclick=()=>fin()({cancel:true});
+      ac.append(ok,no);md.append(fi,siteList(),ac);
+    }});
+    if(r.cancel){draft.msg="Création annulée.";draft.err=true;render();return false}
+    draft.site=String(r.val||"").replace(/\s+/g," ").trim().slice(0,80);
+  }
+  const asks=[];
+  {const pr=await planDates();if(pr.cancel){draft.msg="Création annulée.";draft.err=true;render();return false}if(pr.ask)asks.push(pr.ask)}
+  const iss=mailIssues();if(!iss.length&&!asks.length)return true;
+  for(let i=0;i<iss.length;i++){
+    const it=iss[i],last=i===iss.length-1;let chk=null;
+    const r=await mailDialog({title:it.title,step:"Point "+(i+1)+" sur "+iss.length,body:(md,fin)=>{
+      md.appendChild($("p",null,it.text));
+      if(it.ask){const lb=$("label","chk");chk=$("input");chk.type="checkbox";chk.checked=true;lb.append(chk,$("span",null,"Le demander au client dans le mail de retour"));md.appendChild(lb)}
+      const ac=$("div","actions");
+      const nx=$("button","btn","Suivant");nx.type="button";const upd=()=>{nx.textContent=last?((asks.length||(chk&&chk.checked))?"Voir le mail de retour":"Créer le suivi"):"Suivant"};upd();if(chk)chk.onchange=upd;nx.onclick=()=>fin()({ok:true,ask:!!(chk&&chk.checked)});
+      const no=$("button","btn ghost","Annuler la création");no.type="button";no.onclick=()=>fin()({cancel:true});
+      ac.append(nx,no);md.appendChild(ac);
+    }});
+    if(r.cancel){draft.msg="Création annulée.";draft.err=true;render();return false}
+    if(r.ask&&it.ask)asks.push(it.ask);
+  }
+  if(asks.length){const r=await replyDialog(asks);if(r.cancel){draft.msg="Création annulée.";draft.err=true;render();return false}}
+  return true;
+}
 async function analyse(){
   const mail=draft.mail.trim();
   if(!mail){draft.msg="Colle d'abord le mail du client.";draft.err=true;render();return}
-  draft.busy=true;draft.msg="Analyse en cours…";draft.err=false;draft.parsed=null;render();
+  draft.busy=true;draft.msg="Analyse en cours…";draft.err=false;draft.parsed=null;draft.info={};draft.site="";draft.plan=null;render();
   let mods=null, group="";
   if(sampleFn){
     try{
@@ -601,9 +724,13 @@ async function analyse(){
         "Voici un mail client demandant des mises à jour de modules d'un logiciel de sécurité alimentaire. Extrais : (1) le nom COMPLET du groupement, de l'enseigne ou du client si tu le reconnais clairement dans le mail (signature, objet, expéditeur, corps, liens et adresses de sites web), sinon une chaîne vide, sans rien inventer. Donne le nom entier tel que l'enseigne le porte, avec ses mots génériques (par exemple « Boulangerie Ange » et non « Ange »). Ne prends jamais « ePackPro », « E-Pack » ou « e-pack » comme groupement : c'est le nom du logiciel utilisé, pas le client ; (2) la liste des modules à modifier et, pour chacun, les régions ou langues concernées. "+
         "Si le mail écrit 'Blux FR et NL', sépare en deux régions : 'Blux FR' et 'Blux NL'. Garde les noms de modules et de régions tels qu'écrits dans le mail (corrige seulement la casse évidente). "+
         "Les modules peuvent être cités dans une phrase (par exemple « via le module étiquette et le module traçabilité ») : relève-les aussi, avec un nom court et propre (« Étiquette », « Traçabilité »). Ignore les tableaux de produits ou d'ingrédients : ce ne sont pas des modules. Si le mail ne mentionne ni région ni langue différentes pour un module, renvoie une seule région : \"FR\". "+
-        "Réponds uniquement avec ce JSON : {\"group\":\"...\",\"modules\":[{\"name\":\"...\",\"regions\":[\"...\"]}]}. Si aucun module n'est identifiable, renvoie {\"group\":\"\",\"modules\":[]}.\n\nMail :\n"+mail,
+        "Si le groupement exploite une enseigne ou un concept (par exemple Autogrill pour Brioche Dorée), le groupement est celui de l'expéditeur de la demande (Autogrill). Indique aussi « site » : le point de vente ou le site précis visé par la demande (par exemple « Carrousel du Louvre ») et/ou le concept ou l'enseigne concernée (par exemple « Brioche Dorée »), sous la forme « Site (Concept) », « Site » ou « Concept » ; chaîne vide si la demande vise tout le réseau ou si rien n'est précisé. Indique aussi : « requestedDate » (si le client exige que la mise à jour soit en place à une date précise ou donne une date limite, cette date au format AAAA-MM-JJ ; date du jour : "+isoD(new Date())+" ; ignore les dates d'envoi des messages et les simples mentions de dates ; chaîne vide si aucune date n'est exigée, y compris pour « rapidement » ou « urgent »), « fileMentioned » (true si le mail mentionne ou joint un fichier Excel, un tableau ou une pièce jointe contenant les éléments à mettre à jour, sinon false), « regionMentioned » (true si le mail précise un pays, une région ou une langue, sinon false) et « unclear » : la liste des vrais points flous du mail (module non précisé ou douteux, formulation incompréhensible, demande incomplète), chacun sous la forme {\"point\":\"description courte du problème\",\"question\":\"question polie et courte à poser au client pour lever le doute\"} ; liste vide s'il n'y a aucun doute sérieux. "+
+        "Modules connus, à ne jamais signaler comme flous : « étiquettes produits » = module ProductStickers (Étiquettes produits), « mise en température », « mise en congélation », « décongélation », « température de service », « réception », « traçabilité ». "+
+        "Réponds uniquement avec ce JSON : {\"group\":\"...\",\"site\":\"...\",\"modules\":[{\"name\":\"...\",\"regions\":[\"...\"]}],\"requestedDate\":\"\",\"fileMentioned\":true,\"regionMentioned\":true,\"unclear\":[{\"point\":\"...\",\"question\":\"...\"}]}. Si aucun module n'est identifiable, renvoie {\"group\":\"\",\"modules\":[]}.\n\nMail :\n"+mail,
         {modelTier:"quick",cache:false});
       if(r&&typeof r.group==="string")group=r.group.trim();
+      if(r&&typeof r.site==="string")draft.site=r.site.replace(/\s+/g," ").trim().slice(0,80);
+      if(r){const bo=v=>typeof v==="boolean"?v:null;draft.info={requested:(typeof r.requestedDate==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(r.requestedDate.trim()))?r.requestedDate.trim():"",file:bo(r.fileMentioned),region:bo(r.regionMentioned),unclear:Array.isArray(r.unclear)?r.unclear.filter(u=>u&&u.point&&!(/[eé]tiquettes?\s+produits?/i.test(u.point)&&!/fini/i.test(u.point))).slice(0,5).map(u=>({point:String(u.point),question:String(u.question||"")})):[]}}
       if(r&&Array.isArray(r.modules))mods=r.modules.filter(m=>m&&m.name&&Array.isArray(m.regions)&&m.regions.length).map(m=>({name:String(m.name),regions:m.regions.map(String)}));
     }catch(e){mods=null}
   }
@@ -638,8 +765,9 @@ function createMaj(){
   const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,gen:true,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
   const id="maj-"+Date.now();
   const title=baseTitleFor(draft.group);
-  registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",created:t0,startedAt:t0,createdBy:myId||null,mods,prog:{}};stampTitle(majs[id]);
-  persist(id,"new");resolveNames();draft={mail:"",title:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""};setCur(id);
+  const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:myId||null,mods,prog:{}};stampTitle(majs[id]);
+  if(plan){const mm=majs[id];mm.dateDemande=plan.dateDemande;if(plan.perso){mm.datesPerso=true;mm.dateSiege=plan.dateSiege;mm.dateDeploiement=plan.dateDeploiement}}
+  persist(id,"new");resolveNames();draft={mail:"",title:"",group:"",site:"",parsed:null,msg:"",err:false,busy:false,fileName:""};setCur(id);if(plan&&plan.note)toast(plan.note);
 }
 
 /* ---- Vues ---- */
@@ -661,7 +789,7 @@ function viewHome(app){
   ["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("over")}));
   dz.addEventListener("drop",e=>{const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(f)loadFile(f)});
   const ac=$("div","actions");
-  const b=$("button","btn",draft.busy?"Analyse…":"Créer le suivi");b.disabled=draft.busy;b.onclick=async()=>{await analyse();await finishCreate()};ac.appendChild(b);
+  const b=$("button","btn",draft.busy?"Analyse…":"Créer le suivi");b.disabled=draft.busy;b.onclick=async()=>{await analyse();if(await reviewMail())await finishCreate()};ac.appendChild(b);
   if(draft.msg)ac.appendChild($("span","msg"+(draft.err?" err":""),draft.msg));
   p.append(dz,fi,$("div","or","ou colle le texte du mail"),l2,ta,ac);app.appendChild(p);
   if(draft.parsed){
@@ -878,14 +1006,22 @@ function viewLiens(app,m,id){
   rows.forEach(r=>body.appendChild(lienRow("Rapport d'intervention"+(r.label?" ("+r.label+")":""),r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v),"copy")));
   app.appendChild(box);
 }
+let xmlSort={k:"t",d:-1},xmlOpenId=null;
 function viewXmlLog(app,m){
-  const L=m.xmlLog||[];if(!L.length)return;
-  if(blocClosed.xmls===undefined)blocClosed.xmls=true;
+  const L0=m.xmlLog||[];if(!L0.length)return;
+  const fshow=e=>{const f=String(e.file||""),g=String(groupOf(m)||m.group||"").replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim(),pre=g?g+" - ":"";return pre&&f.startsWith(pre)?f.slice(pre.length):f};
+  const XC=[["t","Date",e=>e.t],["reg","Région",e=>e.reg||""],["mod","Module",e=>e.mod||""],["file","Fichier",fshow],["by","Par",e=>e.by?(who(e.by)||""):""]];
+  const xc=XC.find(z=>z[0]===xmlSort.k)||XC[0];
+  const L=L0.slice().sort((a,b)=>{const u=xc[2](a),v=xc[2](b);const r=typeof u==="number"&&typeof v==="number"?u-v:String(u).localeCompare(String(v),"fr",{numeric:true,sensitivity:"base"});return (r||(b.t-a.t))*(r?xmlSort.d:1)});
+  /* toujours réduit à l'ouverture d'une fiche : l'état ouvert n'est gardé que le temps de la visite */
+  const xOpen=xmlOpenId!==null&&xmlOpenId===cur;blocClosed.xmls=!xOpen;
   const box=$("section","bloc liensbox");
-  box.appendChild(blocHead("xmls","XML générés",L.length+" fichier"+(L.length>1?"s":"")));
-  const body=$("div","bloc-b");body.hidden=!!blocClosed.xmls;box.appendChild(body);
-  const tb=$("table","atab"),tbd=$("tbody");
-  L.forEach(e=>{const tr=$("tr");[new Date(e.t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}),e.reg||"-",e.mod||"-",e.file,e.by?(who(e.by)||""):""].forEach(x=>tr.appendChild($("td",null,x)));
+  const xh=blocHead("xmls","XML générés",L.length+" fichier"+(L.length>1?"s":""),true);xh.firstChild.onclick=()=>{xmlOpenId=xOpen?null:cur;render()};box.appendChild(xh);
+  const body=$("div","bloc-b");body.hidden=!xOpen;box.appendChild(body);
+  const tb=$("table","atab"),tbd=$("tbody"),th=$("thead"),hr=$("tr");
+  XC.forEach(([k,lab])=>{const h=$("th");h.scope="col";const b=$("button","athb",lab+(xmlSort.k===k?(xmlSort.d>0?" ▲":" ▼"):""));b.type="button";b.onclick=()=>{if(xmlSort.k===k)xmlSort.d*=-1;else{xmlSort.k=k;xmlSort.d=k==="t"?-1:1}render()};h.setAttribute("aria-sort",xmlSort.k===k?(xmlSort.d>0?"ascending":"descending"):"none");h.appendChild(b);hr.appendChild(h)});
+  hr.appendChild($("th"));th.appendChild(hr);tb.appendChild(th);
+  L.forEach(e=>{const tr=$("tr");[new Date(e.t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}),e.reg||"-",e.mod||"-",fshow(e),e.by?(who(e.by)||""):""].forEach(x=>tr.appendChild($("td",null,x)));
     const td=$("td");
     if(e.blob&&xcol){const b=$("button","chip","Télécharger");b.type="button";b.onclick=async()=>{b.disabled=true;b.textContent="…";
       try{const data=await fetchXml(e);let done=false;
@@ -962,7 +1098,7 @@ function showTeams(m,kind,id,onDone){
   const bs=$("button","btn","Envoyer dans Teams");bs.type="button";bs.hidden=!fu.value.trim();bs.onclick=send;ready();
   const bc=$("button","btn ghost","Copier le message");bc.type="button";bc.onclick=copy;
   const bar=$("div","actions");bar.append(bs,bc);
-  const rg=$("details");rg.style.marginTop="12px";if(!fu.value.trim())rg.open=true;const sm0=$("summary",null,"Réglages (flux Power Automate)");sm0.style.cursor="pointer";sm0.style.color="var(--muted)";rg.append(sm0);
+  const rg=$("details");rg.style.marginTop="12px";if(!fu.value.trim())rg.open=true;else rg.hidden=true;const sm0=$("summary",null,"Réglages (flux Power Automate)");sm0.style.cursor="pointer";sm0.style.color="var(--muted)";rg.append(sm0);
   const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
   rg.append(fl("URL du flux Power Automate (enregistrée dans ce navigateur)",fu));
   md.append(hd,$("p",null,"Message pour la conversation « Support SGC Automatisation » :"),fl("Message",ta),bar,st,rg);
@@ -972,9 +1108,9 @@ const mailKey2=t=>t==="5j"||t==="7j"?"prise":t;
 /*MAIL-END*/
 let blocClosed={};try{blocClosed=JSON.parse(localStorage.getItem("suivi-maj-bloc")||"{}")||{}}catch(e){}
 /* En-tête de bloc réductible : la case ouverte / fermée est mémorisée sur cet appareil */
-function blocHead(key,title,cnt){
+function blocHead(key,title,cnt,dflt){
   const h=$("h2","bloc-t"),b=$("button","bloc-h");b.type="button";
-  const open=!blocClosed[key];b.setAttribute("aria-expanded",String(open));
+  const open=key in blocClosed?!blocClosed[key]:!dflt;b.setAttribute("aria-expanded",String(open));
   b.append($("span","caret",open?"▾":"▸"),$("span","btl",title),$("span","cnt",cnt));
   b.onclick=()=>{blocClosed[key]=open;try{localStorage.setItem("suivi-maj-bloc",JSON.stringify(blocClosed))}catch(e){}render()};
   h.appendChild(b);return h;
@@ -1026,13 +1162,18 @@ function toast(msg){
   t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(560px,92vw);background:var(--band);color:var(--band-fg);border-bottom:3px solid var(--cta);padding:12px 18px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.35);z-index:1000;font-size:.92rem";
   document.body.appendChild(t);setTimeout(()=>{try{t.remove()}catch(e){}},8000);
 }
+const calBusy={};
 async function syncCalendar(id){
   const m=majs[id],u=calFlow();if(!m||!u)return "";
   const s=m.dateSiege,d=m.dateDeploiement;if(!s||!d)return "";
-  const key=s+"|"+d;if(m.calSent===key)return "";
+  const key=s+"|"+d;if(m.calSent===key||calBusy[id+key])return "";
+  calBusy[id+key]=true;try{return await syncCalendar2(id,m,u,s,d,key)}finally{delete calBusy[id+key]}
+}
+async function syncCalendar2(id,m,u,s,d,key){
   const g=groupOf(m)||m.title,changed=!!m.calSent;
   const cs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).map(r=>paysCode(r.label))))].filter(Boolean),sf=cs.length?" ("+cs.join(", ")+")":"";
-  const q={s1:g+" - MAJ siège"+sf,d1:s+"T00:00:00",e1:dayAfter(s)+"T00:00:00",s2:g+" - Déploiement MAJ "+(cs.length>1?"Internationale":"Nationale")+sf,d2:d+"T00:00:00",e2:dayAfter(d)+"T00:00:00",body:m.title};
+  const nm=(m.site||"").trim()?g+" - "+m.site.trim():g;
+  const q={s1:nm+" - MAJ siège"+sf,d1:s+"T00:00:00",e1:dayAfter(s)+"T00:00:00",s2:nm+" - Déploiement MAJ "+(cs.length>1?"Internationale":"Nationale")+sf,d2:d+"T00:00:00",e2:dayAfter(d)+"T00:00:00",body:m.title};
   const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
   let ok=false;
   try{await fetch(url,{method:"GET",mode:"no-cors"});ok=true}
@@ -1045,6 +1186,54 @@ function flushDates(id){
   const m=majs[id];if(!m||!dateDraft||dateDraft.id!==id)return false;let ch=false;
   ["dateDemande","dateSiege","dateDeploiement"].forEach(f=>{const v=dateDraft[f]||"";if(v!==(m[f]||"")){ch=true;if(v)m[f]=v;else delete m[f]}});
   if(ch)persist(id);return ch;
+}
+/* Ajout de modules à un suivi existant (quand l'analyse du mail en a oublié) */
+function openAddMods(id){
+  const m0=majs[id];if(!m0||document.getElementById("amdlg"))return;
+  const have=new Set(m0.mods.map(M=>fold(M.name)));
+  const regs=[],seenK=new Set(),seenL=new Set();
+  m0.mods.forEach(M=>M.regions.forEach(r=>{if(seenK.has(r.key))return;seenK.add(r.key);if(!r.concept)seenL.add(r.label);regs.push({key:r.key,label:r.label,concept:r.concept||""})}));
+  const selR=new Set(regs.map(r=>r.key));
+  REGIONS.forEach(l=>{if(!seenL.has(l)){const k=slug(l);if(!seenK.has(k)){seenK.add(k);regs.push({key:k,label:l,concept:""})}}});
+  const chosen=new Set(),extra=[];
+  const bg=$("div","modal-bg");bg.id="amdlg";bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","amt");
+  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const key=e=>{if(e.key==="Escape")close()};
+  const close=()=>{document.removeEventListener("keydown",key);bg.remove()};
+  document.addEventListener("keydown",key);bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+  const h=$("h2",null,"Ajouter des modules");h.id="amt";
+  const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;hd.append(h,x);
+  md.append(hd,$("p",null,"Pour un module que l'analyse du mail n'a pas relevé. Les régions déjà suivies sont cochées par défaut."));
+  const fi=$("input");fi.type="search";fi.placeholder="Rechercher un module";fi.setAttribute("aria-label","Rechercher un module");
+  const list=$("div","amlist");
+  const ex=$("div","actions");const ei=$("input");ei.type="text";ei.placeholder="Autre module (nom libre)";ei.maxLength=60;ei.setAttribute("aria-label","Ajouter un module qui n'est pas dans la liste");
+  const eb=$("button","btn ghost","Ajouter à la liste");eb.type="button";ex.append(ei,eb);
+  const rl=$("div","rpills");
+  const cnt=$("span","msg");const ok=$("button","btn","Ajouter au suivi");ok.type="button";const no=$("button","btn ghost","Annuler");no.type="button";
+  const paintM=()=>{
+    list.textContent="";const f=fold(fi.value);let any=false;
+    const row=(n,dis)=>{const l=$("label","chk");const c=$("input");c.type="checkbox";c.checked=chosen.has(n);c.disabled=dis;c.onchange=()=>{c.checked?chosen.add(n):chosen.delete(n);upd()};l.append(c,$("span",null,n+(dis?" (déjà dans le suivi)":"")));list.appendChild(l)};
+    if(extra.length){list.appendChild($("div","amcat","Ajoutés à la main"));extra.forEach(n=>row(n,false))}
+    CATALOG.forEach(([cat,names])=>{const vis=names.filter(n=>!f||fold(n).includes(f));if(!vis.length)return;any=true;list.appendChild($("div","amcat",cat));vis.forEach(n=>row(n,have.has(fold(n))))});
+    if(!any&&!extra.length)list.appendChild($("p","empty","Aucun module ne correspond : utilise « Autre module »."));
+  };
+  const paintR=()=>{rl.textContent="";regs.forEach(r=>{const b=$("button","rp");b.type="button";b.setAttribute("aria-pressed",String(selR.has(r.key)));b.append(r.label+(r.concept?" · "+r.concept:""));b.onclick=()=>{selR.has(r.key)?selR.delete(r.key):selR.add(r.key);paintR();upd()};rl.appendChild(b)})};
+  const upd=()=>{ok.disabled=!(chosen.size&&selR.size);cnt.textContent=chosen.size+" module"+(chosen.size>1?"s":"")+" · "+selR.size+" région"+(selR.size>1?"s":"")};
+  const addExtra=()=>{const v=ei.value.replace(/\s+/g," ").trim().slice(0,60);if(!v)return;if(have.has(fold(v))||extra.some(n=>fold(n)===fold(v))||CATALOG.some(([,a])=>a.some(n=>fold(n)===fold(v)))){ei.value="";return}extra.push(v);chosen.add(v);ei.value="";paintM();upd()};
+  eb.onclick=addExtra;ei.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addExtra()}};
+  fi.oninput=paintM;
+  no.onclick=close;
+  ok.onclick=()=>{
+    const mm=majs[id]||m0;if(!chosen.size||!selR.size)return;
+    const names=[...extra.filter(n=>chosen.has(n)),...CATALOG.flatMap(([,a])=>a).filter(n=>chosen.has(n))];
+    const rr=regs.filter(r=>selR.has(r.key));
+    names.forEach(n=>{const base="m"+mm.mods.length+"-"+slug(n);let idn=base,k=1;while(mm.mods.some(M=>M.id===idn))idn=base+"-"+(++k);
+      mm.mods.push({id:idn,name:n,gen:true,regions:rr.map(r=>r.concept?{key:r.key,label:r.label,concept:r.concept}:{key:r.key,label:r.label})})});
+    stampTitle(mm);persist(id);close();render();toast(names.length+" module"+(names.length>1?"s ajoutés":" ajouté")+" au suivi.");
+  };
+  const ac=$("div","actions");ac.append(ok,no,cnt);
+  md.append(fi,list,ex,$("small","mpt","Régions du ou des modules ajoutés"),rl,ac);
+  paintM();paintR();upd();setTimeout(()=>fi.focus(),0);
 }
 function viewMaj(app,id){
   const m=majs[id];
@@ -1074,10 +1263,23 @@ function viewMaj(app,id){
   }else{
     const rc=$("button","chip","Renommer la MAJ");rc.onclick=()=>{renaming=id;render()};hrow.appendChild(rc);
   }
+  if(siteEdit===id){
+    const sw=$("div","actions");
+    const si=$("input");si.type="text";si.id="sg";si.value=m.site||"";si.placeholder="Site ou concept (ex. Carrousel du Louvre (Brioche Dorée))";si.maxLength=80;si.setAttribute("aria-label","Site ou concept");si.setAttribute("list","sitelist");si.style.maxWidth="460px";si.style.width="100%";
+    const sok=$("button","btn","Enregistrer"),sno=$("button","btn ghost","Annuler");
+    const gos=()=>{const mm=majs[id]||m;mm.site=si.value.replace(/\s+/g," ").trim().slice(0,80);stampTitle(mm);persist(id);siteEdit=null;render()};
+    sok.onclick=gos;sno.onclick=()=>{siteEdit=null;render()};
+    si.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();gos()}else if(e.key==="Escape"){siteEdit=null;render()}};
+    sw.append(si,siteList(),sok,sno);app.appendChild(sw);setTimeout(()=>si.focus(),0);
+  }else{
+    const sc=$("button","chip",m.site?"Site : "+m.site:"Ajouter un site / concept");sc.title="Site ou concept visé par la MAJ (ajouté au nom)";sc.onclick=()=>{siteEdit=id;render()};hrow.appendChild(sc);
+  }
+  if(!m.archived){const am=$("button","chip","+ Ajouter un module");am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);hrow.appendChild(am)}
   {const dw=$("div","dates");if(!dateDraft||dateDraft.id!==id){dateDraft={id,dateDemande:m.dateDemande||"",dateSiege:m.dateSiege||"",dateDeploiement:m.dateDeploiement||""};const c0=!m.archived&&calcDates(m,m.dateDemande);if(c0)Object.assign(dateDraft,c0)}const dr=dateDraft;
-   const sv=$("button","btn","Enregistrer"),sm=$("span","msg"),inp={},lbs={};
+   const sv=$("button","btn","Enregistrer et envoyer dans Outlook"),sm=$("span","msg"),inp={},lbs={};sv.title="Enregistre les dates et envoie les événements « MAJ siège » et « Déploiement » dans le calendrier Outlook";
    const dirty=()=>dr.dateDemande!==(m.dateDemande||"")||dr.dateSiege!==(m.dateSiege||"")||dr.dateDeploiement!==(m.dateDeploiement||"");
-   const note=()=>{sv.disabled=!dirty();sm.textContent=dirty()?"Modifications non enregistrées":""};
+   const pend=()=>{const u=calFlow();return !!(u&&m.dateSiege&&m.dateDeploiement&&m.calSent!==m.dateSiege+"|"+m.dateDeploiement)};
+   const note=()=>{sv.disabled=!dirty()&&!pend();sm.textContent=dirty()?"Modifications non enregistrées":pend()?"Dates pas encore envoyées à Outlook":""};
    /* Déploiement = demande + délai (J-7 par défaut, J-5 pour certains groupements) en jours ouvrés ; siège = J-3 ouvrés */
    const recalc=()=>{const c=calcDates(m,dr.dateDemande);if(!c)return;Object.assign(dr,c);inp.dateDeploiement.value=dr.dateDeploiement;inp.dateSiege.value=dr.dateSiege};
    [["dateDemande","Date de la demande"],["dateSiege","Date de la mise à jour siège"],["dateDeploiement","Date de déploiement de la mise à jour"]].forEach(([f,lab])=>{
@@ -1092,9 +1294,21 @@ function viewMaj(app,id){
     l.appendChild(sl);dw.insertBefore(l,dw.children[1])}
    const sub=$("p","sub");
    const applyMode=()=>{const p=!!m.datesPerso;inp.dateSiege.disabled=inp.dateDeploiement.disabled=!p;lbs.dateSiege.textContent="Date de la mise à jour siège"+(p?"":" (calculée)");lbs.dateDeploiement.textContent="Date de déploiement de la mise à jour"+(p?"":" (calculée)");sub.textContent=p?"Dates personnalisées : choisis toi-même les dates de la mise à jour siège et du déploiement. Les mails de cette MAJ reprennent ces dates.":"La date de la demande et le délai de prévenance calculent la mise à jour siège (J-3) et le déploiement (J), en jours ouvrés (du lundi au vendredi)."};applyMode();
-   sv.disabled=!dirty();if(dirty())sm.textContent="Modifications non enregistrées";
-   sv.onclick=()=>{flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast)};
+   note();
+   sv.onclick=async()=>{
+     if(!(dr.dateSiege&&dr.dateDeploiement&&calFlow())){flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast);return}
+     const prev=!!m.calSent;
+     const r=await mailDialog({title:"Envoyer dans Outlook ?",close:"Annuler",step:"Calendrier support-sgc",body:(md,fin)=>{
+       const l1=$("p");l1.append("MAJ siège : ",$("b",null,fdate(dr.dateSiege)));const l2=$("p");l2.append("Déploiement : ",$("b",null,fdate(dr.dateDeploiement)));
+       md.append($("p",null,"Les dates seront enregistrées et deux événements seront créés dans le calendrier Outlook."),l1,l2);
+       if(prev){const w=$("p","warnmsg","⚠ Attention : des événements ont déjà été envoyés pour cette fiche. Cela peut entraîner des doublons dans Outlook : supprime manuellement les événements précédents dans le calendrier.");md.appendChild(w)}
+       const ac=$("div","actions");const ok=$("button","btn","Enregistrer et envoyer");ok.type="button";ok.onclick=()=>fin()({ok:true});
+       const no=$("button","btn ghost","Annuler");no.type="button";no.onclick=()=>fin()({cancel:true});ac.append(ok,no);md.appendChild(ac);
+     }});
+     if(r.cancel)return;
+     flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast)};
    const sw=$("div","datesave");sw.append(sv,sm);dw.appendChild(sw);
+   if(m.calSent){const wn=$("p","sub warnmsg","⚠ Attention : cela peut entraîner des doublons dans Outlook. Supprime manuellement les événements précédents dans le calendrier.");wn.style.gridColumn="1/-1";dw.appendChild(wn)}
    app.appendChild(dw);
    app.appendChild(sub)}
   const s=stats(m);
@@ -1116,7 +1330,7 @@ function viewMaj(app,id){
     ar.appendChild(un);foot=ar;
   }else{
     const va=$("div","actions");
-    const v=$("button","btn ok","Enregistrer");v.onclick=()=>{flushDates(id);persist(id);syncCalendar(id).then(toast);page="upcoming";backTo=null;setCur(null)};
+    const v=$("button","btn ok","Enregistrer");v.onclick=()=>{flushDates(id);persist(id);const mm=majs[id];if(mm&&calFlow()&&mm.dateSiege&&mm.dateDeploiement&&mm.calSent!==mm.dateSiege+"|"+mm.dateDeploiement)toast("Fiche enregistrée. Les dates ne sont pas encore envoyées à Outlook : utilise le bouton à côté des dates.");else toast("Fiche enregistrée.");page="upcoming";backTo=null;setCur(null)};
     va.appendChild(v);foot=va;
   }
   const bloc1=$("section","bloc");
@@ -1155,17 +1369,22 @@ function viewMaj(app,id){
         b.dataset.fid="s-"+k+"-"+i;
         if(p.s[i]&&p.s.slice(0,i).some(x=>!x)){b.classList.add("warn");warn=true}
         b.appendChild($("span","box",p.s[i]?"✓":""));b.appendChild($("span","stepname",S[1]));b.appendChild($("span",null,"Fait"));
-        b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||""};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&stepsOf(M).length===3)openXml(m,k,id)};
-        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);w.appendChild(gx);row.appendChild(w)}else row.appendChild(b);
+        b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&stepsOf(M).length===3)openXml(m,k,id)};
+        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);w.appendChild(gx);if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}else row.appendChild(b);
       });
       if(warn)row.appendChild($("div","warnmsg","Une étape est cochée alors qu'une étape précédente ne l'est pas. Vérifie l'ordre."));
       body.appendChild(row);
     });
-    const h=$("div","mod-h");h.appendChild($("h2",null,M.name));h.appendChild($("span","cnt",md+" / "+M.regions.length*stepsOf(M).length+" étapes"));
-    if(md===M.regions.length*stepsOf(M).length)sec.classList.add("done");
+    const allDone=md===M.regions.length*stepsOf(M).length,bk="mod_"+id+"_"+M.id;
+    const mOpen=bk in blocClosed?!blocClosed[bk]:true;
+    const h=$("div","mod-h modtog");h.setAttribute("role","button");h.tabIndex=0;h.setAttribute("aria-expanded",String(mOpen));h.title=mOpen?"Réduire ce module":"Développer ce module";
+    h.appendChild($("h2",null,(mOpen?"▾ ":"▸ ")+M.name));h.appendChild($("span","cnt",md+" / "+M.regions.length*stepsOf(M).length+" étapes"));
+    const togM=()=>{blocClosed[bk]=mOpen;try{localStorage.setItem("suivi-maj-bloc",JSON.stringify(blocClosed))}catch(e){}render()};
+    h.onclick=togM;h.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();togM()}};
+    if(allDone)sec.classList.add("done");
     const cols=$("div","cols"+(stepsOf(M).length===1?" one":"")+(stepsOf(M).length===2?" two":""));["Région",...stepsOf(M).map(x=>x[0])].forEach(x=>cols.appendChild($("div",null,x)));
-    sec.append(h,cols);
-    if(!body.children.length)sec.appendChild($("div","empty","Tout est fait pour ce module."));else sec.appendChild(body);
+    sec.appendChild(h);
+    if(mOpen){sec.appendChild(cols);if(!body.children.length)sec.appendChild($("div","empty","Tout est fait pour ce module."));else sec.appendChild(body)}
     body1.appendChild(sec);
   });
   if(foot){foot.style.marginTop="18px";app.appendChild(foot)}
@@ -1734,23 +1953,26 @@ function buildXml(name,rows,p,warns){
   if(excCat)warns.push(excN?`Boulangerie Ange : ${excN} produit(s) en « ${p.excCat} », IsDDM = ${p.excVal||'true'}`:`Boulangerie Ange coché mais aucune ligne n'a la catégorie « ${p.excCat} » : IsDDM = ${p.isddm||'false'} partout. Vérifie les intitulés de catégorie du fichier.`);
   return out.join(eol)+(m.bare?'':eol);
 }
+function listChanged(name,rows){const o=[];rows.forEach(r=>TRIM[name].forEach(t=>{if(r[t]){const c=cleanText(r[t]);if(c!==r[t])o.push({row:r._row,tag:t,from:r[t],to:c})}}));return o}
 function countChanged(name,rows){let n=0;TRIM[name].forEach(t=>rows.forEach(r=>{if(r[t]&&cleanText(r[t])!==r[t])n++}));return n}
 function generate(name,aoa,p,now,off){
   const res=readRows(name,aoa,off);
   const {rows,errs,warns}=res;
-  let xml=null,cleaned=0;const m=MODS[name];
+  let xml=null,cleaned=0,changes=[];const m=MODS[name];
   if(!errs.length&&rows.length){
     finalize(name,rows,errs,warns,now);
     if(m.params&&rows.some(r=>r.DateLimit!=='-1')&&(p.dltype===''||p.dltype==null||![-1,0,1,2,3].includes(Number(p.dltype))))errs.push('Type de DLC à choisir : des DateLimit autres que -1 sont présentes (-1, 0, 1, 2 ou 3)');
     if(name==='Service'&&rows.some(r=>r.Delete==='true'))warns.push('Service : Delete est toujours remis à false (règle de la skill)');
-    if(!errs.length){cleaned=countChanged(name,rows);xml=buildXml(name,rows,p,warns)}
+    if(!errs.length){cleaned=countChanged(name,rows);changes=listChanged(name,rows);xml=buildXml(name,rows,p,warns)}
   }else if(!errs.length&&!rows.length)errs.push('Aucune ligne de données dans cet onglet');
-  return {xml,errs,warns,count:rows.length,cleaned,file:m.out};
+  return {xml,errs,warns,count:rows.length,cleaned,changes,file:m.out};
 }
-const DIR_CODES={fr:'FR+LUX',befr:'BE-FR',italie:'IT',lareunion:'REUNION',reunion:'REUNION',antilles:'ANTILLES',nouvellecaledonie:'NC'};
+let LUX=false;const setLux=v=>{LUX=!!v};
+const DIR_CODES={befr:'BE-FR',italie:'IT',lareunion:'REUNION',reunion:'REUNION',antilles:'ANTILLES',nouvellecaledonie:'NC'};
 const gnorm=s=>String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
 function dirCode(name){
   const n=gnorm(name);
+  if(n==='fr'||n==='france'||n==='francelux'||n==='frlux')return LUX?'FR+LUX':'FR';
   if(DIR_CODES[n])return DIR_CODES[n];
   if(n.startsWith('benl'))return 'BE-NL';
   if(n.startsWith('befr'))return 'BE-FR';
@@ -1808,14 +2030,15 @@ function normalized(t,s,mp){
     if(src.length&&src.every(v=>v==null||String(v).trim()==='')){aoa.push(tags.map(()=>null));return}
     aoa.push(tags.map(x=>{
       let v=has(x)?r[idx[x]]:null;
-      if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x)){filled[x]=(filled[x]||0)+1;if(x==='DateLimit'||x==='Dlc')missing.push({tag:x,row:i+s.hdrRow+1,name:cellS(r,'Name'),cat:cellS(r,'Category')})}}
+      if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x)){if(x==='DateLimit'||x==='Dlc')missing.push({tag:x,row:i+s.hdrRow+1,name:cellS(r,'Name'),cat:cellS(r,'Category')});else filled[x]=(filled[x]||0)+1}}
       return v;
     }));
   });
   Object.keys(filled).forEach(x=>notes.push(`${x} : ${filled[x]} cellule(s) vide(s) remplacée(s) par -1`));
+  if(missing.length)errs.unshift(`DLC manquante sur ${missing.length} produit(s) : génération bloquée. Complète la DLC dans l'Excel (saisis -1 si le produit n'a pas de DLC).`);
   return {aoa,errs,notes,idx,missing};
 }
-return {MODS,generate,normalized,resolve,findHeader,dirCode,gnorm,nowFn,isDef};
+return {MODS,generate,normalized,resolve,findHeader,dirCode,setLux,gnorm,nowFn,isDef};
 })();
 /*GENX-END*/
 /*GENUI-START*/
@@ -1867,7 +2090,7 @@ function logXml(id,k,file,kind,bytes){
   const cm=majs[id];if(!(cm&&k&&file))return;
   let mod="",reg="";(cm.mods||[]).forEach(M=>(M.regions||[]).forEach(r=>{if(M.id+"_"+r.key===k){mod=M.name;reg=norm(r.label)}}));
   const L=(cm.xmlLog||[]).slice();
-  if(L.length&&L[0].file===file&&Date.now()-L[0].t<8000)return;
+  if(L.length&&L[0].file===file&&L[0].reg===reg&&Date.now()-L[0].t<8000)return;
   const e={t:Date.now(),file,mod,reg,kind:kind||"",by:myId||null};
   L.unshift(e);cm.xmlLog=L.slice(0,60);persist(id);
   if(bytes&&xcol&&bytes.length<=XMAX){
@@ -1878,11 +2101,12 @@ function logXml(id,k,file,kind,bytes){
 function openGen(m,k,id,M,r){
   if(genDlg)closeGen();
   const isAnge=/boulangerie\s+ange/i.test(m.group||m.title||"");
-  const st={type:guessType(M.name),sheets:[],file:"",sel:new Set(),map:{},dl:"0",dd:"false",ange:isAnge,res:null,msg:"",err:"",ticked:false};
+  const st={type:guessType(M.name),sheets:[],file:"",sel:new Set(),map:{},dl:"0",dd:"false",ange:isAnge,res:null,msg:"",err:"",ticked:false,open:{}};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","gt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeGen()};document.addEventListener("keydown",key);
   genDlg={bg,key};
+  {const cm0=majs[id];GENX.setLux(/o[\s.\-]*tacos/i.test(String((cm0&&(groupOf(cm0)||cm0.group))||m.group||m.title||"")))}
   const regLabel=r.label+(r.concept?" · "+r.concept:"");
   const field=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
   const sel=(opts,val,on)=>{const s=$("select");opts.forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===val)o.selected=true;s.appendChild(o)});s.onchange=()=>on(s.value);return s};
@@ -1909,7 +2133,7 @@ function openGen(m,k,id,M,r){
   }
   function run(){
     const t=st.type,p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true"},nf=GENX.nowFn(t);
-    st.msg="";st.ticked=false;
+    st.msg="";st.ticked=false;st.open={};
     st.res=[...st.sel].sort((a,b)=>a-b).map(i=>{
       const s=st.sheets[i],n=GENX.normalized(t,s,st.map);
       const g=n.errs.length?{xml:null,errs:n.errs,warns:[],count:0,cleaned:0,file:GENX.MODS[t].out}:GENX.generate(t,n.aoa,p,nf,s.hdrRow-1);
@@ -1917,21 +2141,58 @@ function openGen(m,k,id,M,r){
       g.missing=n.missing||[];
       return {sheet:s.name,dir:GENX.dirCode(s.name),g};
     });
-    paint();
+    flag();markOk();paint();
   }
-  function tick(fn,bytes){
-    logXml(id,k,fn,"Excel → XML",bytes);
+  const Mx0=()=>{const cm=majs[id];return cm&&(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k))};
+  const regOf=(Mx,sheet)=>{const sn=GENX.gnorm(sheet);return Mx.regions.find(rr=>sn===GENX.gnorm(rr.label+(rr.concept?" "+rr.concept:""))||sn===GENX.gnorm(rr.label)||GENX.dirCode(sheet)===GENX.dirCode(rr.label))};
+  function flag(){
+    const cm=majs[id],Mx=Mx0();if(!(cm&&Mx))return;let ch=false;
+    (st.res||[]).forEach(x=>{
+      const rr=regOf(Mx,x.sheet);if(!rr)return;const kk=Mx.id+"_"+rr.key;
+      const q=cm.prog[kk]||{s:[false,false,false],note:""};const miss=x.g.missing&&x.g.missing.length;
+      const iss=miss?"DLC manquante ("+x.g.missing.length+")":"";
+      if((q.issue||"")!==iss){cm.prog[kk]=Object.assign({},q,{issue:iss});persist(id,kk);ch=true}
+    });
+    if(ch)render();
+  }
+  /* coche « Fichier d'import » dès qu'un XML est généré sans erreur (le téléchargement n'est plus nécessaire) */
+  function markOk(){
+    const cm=majs[id],Mx=Mx0(),ok=okRes();if(!(cm&&Mx&&ok.length))return;
+    const keys=[];ok.forEach(x=>{const r2=regOf(Mx,x.sheet);if(r2){const kk=Mx.id+"_"+r2.key;if(!keys.includes(kk))keys.push(kk)}});
+    if(!keys.length&&ok.length===1)keys.push(k);
+    let n=0;
+    keys.forEach(kk=>{const q=cm.prog[kk]||{s:[false,false,false],note:""};if(q.s[0]&&!q.issue)return;
+      const ns=q.s.slice();ns[0]=true;cm.prog[kk]={s:ns,note:q.note||"",issue:""};n++;persist(id,kk)});
+    if(n){render();st.msg="Étape « Fichier d'import » cochée pour "+(n>1?n+" régions":"cette région")+"."}
+  }
+  function tick(fn,bytes,list){
     const cm=majs[id];if(!(k&&cm))return "";
-    const q=cm.prog[k]||{s:[false,false,false],note:""};
-    if(q.s[0])return "";
-    const ns=q.s.slice();ns[0]=true;cm.prog[k]={s:ns,note:q.note||""};render();persist(id,k);return " Étape « Fichier d'import » cochée.";
+    /* régions dont l'onglet a généré un XML sans erreur */
+    const Mx=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));
+    const keys=[],lost=[];
+    if(Mx&&list&&list.length)list.forEach(x=>{
+      const r2=regOf(Mx,x.sheet);
+      if(r2){const kk=Mx.id+"_"+r2.key;if(!keys.includes(kk))keys.push(kk)}else lost.push(x.sheet);
+    });
+    if(!keys.length){keys.push(k);lost.length=0}
+    let n=0,had=0;
+    keys.forEach((kk,i)=>{
+      logXml(id,kk,fn,"Excel → XML",i===0?bytes:null);
+      const q=cm.prog[kk]||{s:[false,false,false],note:""};
+      if(q.s[0]){had++;if(q.issue){cm.prog[kk]=Object.assign({},q,{issue:""});persist(id,kk);n=n||-1}return}
+      const ns=q.s.slice();ns[0]=true;cm.prog[kk]={s:ns,note:q.note||"",issue:""};n=(n<0?0:n)+1;persist(id,kk);
+    });
+    render();
+    let msg=n>1?" Étape « Fichier d'import » cochée pour "+n+" régions.":n===1?" Étape « Fichier d'import » cochée.":had?" Étape « Fichier d'import » déjà cochée.":"";
+    if(lost.length)msg+=" Onglet(s) sans région correspondante, non coché(s) : "+lost.join(", ")+".";
+    return msg;
   }
   const okRes=()=>(st.res||[]).filter(x=>x.g.xml);
   function zipOf(){
     const ok=okRes(),enc=new TextEncoder(),used=new Set(),files=[];
     ok.forEach(x=>{let d=x.dir,n=2;while(used.has(d))d=x.dir+"_"+(n++);used.add(d);files.push({name:(ok.length>1?d+"/":"")+x.g.file,data:enc.encode(x.g.xml)})});
     const part=(ok.length>1?"REGIONS":ok[0].dir).replace(/[^A-Za-z0-9_-]+/g,"-");
-    return {name:part+"_"+GENX.MODS[st.type].out.replace(/\.xml$/i,"")+".zip",bytes:makeZipMany(files)};
+    const ob=GENX.MODS[st.type].out.replace(/\.xml$/i,"");return {name:zipGroup(id)?zipName(id,ob):part+"_"+ob+".zip",bytes:makeZipMany(files)};
   }
   async function save(){
     st.msg="";
@@ -1939,23 +2200,24 @@ function openGen(m,k,id,M,r){
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"unavailable"};
-      await d.save({filename:z.name,data:z.bytes});done=true;st.msg="Fichier enregistré : "+z.name+"."+tick(z.name,z.bytes);
+      await d.save({filename:z.name,data:z.bytes});done=true;st.msg="Fichier enregistré : "+z.name+"."+tick(z.name,z.bytes,okRes());
     }catch(e){
       if(e&&e.code==="declined")st.msg="Enregistrement annulé.";
       else{
         try{
           const u=URL.createObjectURL(new Blob([z.bytes],{type:"application/zip"}));const a=$("a");a.href=u;a.download=z.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
-          st.msg="Téléchargement lancé : "+z.name+". Si rien n'arrive, utilise « Copier le XML »."+tick(z.name,z.bytes);
+          st.msg="Téléchargement lancé : "+z.name+". Si rien n'arrive, utilise « Copier le XML »."+tick(z.name,z.bytes,okRes());done=true;
         }catch(e2){st.msg="Enregistrement impossible"+(e&&e.code?" ("+e.code+")":"")+" : utilise « Copier le XML »."}
       }
     }
+    if(done){closeGen();toast(st.msg);return}
     paint();
   }
   async function copy(x){
     let ok=false;
     try{await navigator.clipboard.writeText(x.g.xml);ok=true}catch(e){}
     if(!ok){try{const ta=md.querySelector("textarea.xmlout");if(ta){ta.focus();ta.select();ok=document.execCommand("copy")}}catch(e){}}
-    st.msg=ok?"XML copié : colle-le dans un fichier « "+x.g.file+" » (Bloc-notes, enregistrer en UTF-8)."+tick(x.g.file):"Copie automatique impossible : sélectionne le texte ci-dessous (Ctrl+A puis Ctrl+C).";
+    st.msg=ok?"XML copié : colle-le dans un fichier « "+x.g.file+" » (Bloc-notes, enregistrer en UTF-8)."+tick(x.g.file,null,[x]):"Copie automatique impossible : sélectionne le texte ci-dessous (Ctrl+A puis Ctrl+C).";
     paint();
   }
   function paint(){
@@ -2030,7 +2292,12 @@ function openGen(m,k,id,M,r){
     if(st.res){
       st.res.forEach(x=>{
         const c=$("div","gcard");
-        const hh=$("div","gch");hh.append($("b",null,x.sheet),$("span","gbadge"+(x.g.xml?"":" bad"),x.g.xml?x.g.count+" produit(s)":"non généré"));c.appendChild(hh);
+        const bad=!x.g.xml||(x.g.errs&&x.g.errs.length)||(x.g.missing&&x.g.missing.length)||x.g.warns.some(w=>/doublon/i.test(w));
+        const isOpen=x.sheet in st.open?st.open[x.sheet]:!!bad;
+        const hh=$("button","gch gchb");hh.type="button";hh.setAttribute("aria-expanded",String(isOpen));hh.title=isOpen?"Réduire":"Développer";
+        const hb=$("b",null,(isOpen?"▾ ":"▸ ")+x.sheet);const bd=$("span","gbadge"+(bad?" bad":""),x.g.xml?x.g.count+" produit(s)"+(bad?" · à vérifier":""):"non généré");
+        hh.append(hb,bd);hh.onclick=()=>{st.open[x.sheet]=!isOpen;paint()};c.appendChild(hh);
+        const cb=$("div","gcb");cb.hidden=!isOpen;c.appendChild(cb);
         if(x.g.missing&&x.g.missing.length){
           const al=$("div","dlcalert");al.setAttribute("role","alert");
           al.appendChild($("strong",null,"⚠ DLC absente : "+x.g.missing.length+" produit"+(x.g.missing.length>1?"s":"")+" sans DLC dans l'onglet « "+x.sheet+" »"));
@@ -2038,15 +2305,43 @@ function openGen(m,k,id,M,r){
           x.g.missing.slice(0,15).forEach(q=>ul.appendChild($("li",null,"Ligne Excel "+q.row+" · "+(q.name||"(sans désignation)")+" · catégorie : "+(q.cat||"(aucune)"))));
           al.appendChild(ul);
           if(x.g.missing.length>15)al.appendChild($("div",null,"… et "+(x.g.missing.length-15)+" autre(s) ligne(s)"));
-          al.appendChild($("small",null,"La valeur -1 est appliquée à ces produits dans le XML : complète la DLC dans l'Excel du client si elle est attendue."));
-          c.appendChild(al);
+          al.appendChild($("small",null,"Génération bloquée : demande les DLC manquantes au siège (mail ci-dessous), puis relance. Si un produit n'a vraiment pas de DLC, saisis -1 dans l'Excel."));
+          cb.appendChild(al);
         }
-        x.g.errs.slice(0,8).forEach(e=>c.appendChild($("div","msg err",e)));if(x.g.errs.length>8)c.appendChild($("div","msg err","… et "+(x.g.errs.length-8)+" autre(s) erreur(s)"));
-        x.g.warns.slice(0,8).forEach(e=>c.appendChild($("div","gwarn",e)));
-        if(x.g.xml&&x.g.cleaned)c.appendChild($("div","gwarn",x.g.cleaned+" valeur(s) nettoyée(s) (espaces, ligatures Œ/Æ)"));
-        if(x.g.xml){const pre=$("pre","xres",x.g.xml.split(/\r?\n/).slice(0,10).join("\n")+"\n…");c.appendChild(pre)}
+        {const es=x.g.errs.filter(e=>!(x.g.missing&&x.g.missing.length&&/^DLC manquante/.test(e)));es.slice(0,8).forEach(e=>cb.appendChild($("div","msg err",e)));if(es.length>8)cb.appendChild($("div","msg err","… et "+(es.length-8)+" autre(s) erreur(s)"))}
+        x.g.warns.slice(0,8).forEach(e=>cb.appendChild($("div","gwarn",e)));
+        if(x.g.xml&&x.g.cleaned){
+          const dt=$("details","gwarn gclean");dt.open=false;
+          dt.appendChild($("summary",null,x.g.cleaned+" valeur(s) nettoyée(s) (espaces, ligatures Œ/Æ)"));
+          const vis=t=>String(t).replace(/^ +| +$/g,m=>"␣".repeat(m.length)).replace(/ {2,}/g,m=>"␣".repeat(m.length)).replace(/\t/g,"⇥").replace(/\u00a0/g,"⍽");
+          const ul=$("ul","gcl");
+          (x.g.changes||[]).slice(0,10).forEach(c=>{const li=$("li");li.append($("small",null,"Ligne "+c.row+" · "+c.tag+" : "),$("code",null,vis(c.from)),$("span",null," → "),$("code",null,c.to));ul.appendChild(li)});
+          if((x.g.changes||[]).length>10)ul.appendChild($("li",null,"… et "+(x.g.changes.length-10)+" autre(s)"));
+          dt.appendChild(ul);cb.appendChild(dt);
+        }
+        if(x.g.xml){const pre=$("pre","xres",x.g.xml.split(/\r?\n/).slice(0,10).join("\n")+"\n…");cb.appendChild(pre)}
         md.appendChild(c);
       });
+      const miss=st.res.filter(x=>x.g.missing&&x.g.missing.length);
+      if(miss.length){
+        const cm0=majs[id],gname=cm0?(groupOf(cm0)||cm0.group||""):"",site=cm0&&cm0.site?cm0.site:"";
+        const tot=miss.reduce((a,x)=>a+x.g.missing.length,0);
+        const bl=miss.map(x=>"Onglet « "+x.sheet+" » :\n"+x.g.missing.map(q=>"- ligne "+q.row+" : "+(q.name||"(sans désignation)")+(q.cat?" (catégorie : "+q.cat+")":"")).join("\n")).join("\n\n");
+        const subj="Mise à jour"+(gname?" "+gname:"")+(site?" - "+site:"")+" : DLC manquantes";
+        const txt="Bonjour,\n\nPour préparer la mise à jour"+(gname?" "+gname:"")+(site?" ("+site+")":"")+", nous avons relevé "+tot+" produit"+(tot>1?"s":"")+" sans DLC (durée de conservation) dans le fichier Excel transmis :\n\n"+bl+"\n\nMerci de nous transmettre la DLC de "+(tot>1?"ces produits":"ce produit")+" (ou de nous confirmer qu'il n'y en a pas). Nous ne pouvons pas générer les fichiers d'import sans cette information.\n\nCordialement,";
+        const box=$("div","dlcmail");
+        box.appendChild($("strong",null,"Mail au siège : DLC manquantes"));
+        const ta=$("textarea");ta.rows=10;ta.value=txt;ta.setAttribute("aria-label","Mail au siège");
+        const ms=$("span","msg");ms.setAttribute("role","status");
+        const cp=$("button","btn","Copier le mail");cp.type="button";
+        cp.onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
+          if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
+          ms.textContent=ok?"Mail copié.":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C."};
+        const ol=$("button","btn ghost","Ouvrir dans la messagerie");ol.type="button";
+        ol.onclick=()=>{try{const a=document.createElement("a");a.href="mailto:?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(ta.value);document.body.appendChild(a);a.click();a.remove()}catch(e){ms.textContent="Ouverture impossible : utilise Copier le mail."}};
+        const ac3=$("div","actions");ac3.append(cp,ol,ms);
+        box.append(ta,ac3);md.appendChild(box);
+      }
       const ok=okRes();
       if(ok.length){
         const a2=$("div","actions");
@@ -2054,7 +2349,7 @@ function openGen(m,k,id,M,r){
         if(ok.length===1){const cb=$("button","btn ghost","Copier le XML");cb.onclick=()=>copy(ok[0]);a2.appendChild(cb)}
         md.appendChild(a2);
         if(ok.length===1){const ta=$("textarea","xmlout");ta.value=ok[0].g.xml;ta.readOnly=true;ta.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px";md.appendChild(ta)}
-        md.appendChild($("p",null,"Le ZIP contient le fichier "+GENX.MODS[st.type].out+(ok.length>1?" dans un dossier par onglet":"")+". L'étape « Fichier d'import » se coche à l'enregistrement."));
+        md.appendChild($("p",null,"Le ZIP contient le fichier "+GENX.MODS[st.type].out+(ok.length>1?" dans un dossier par onglet":"")+". L'étape « Fichier d'import » se coche dès que l'XML est généré sans erreur."));
       }
     }
     if(st.msg){const e=$("p","msg",st.msg);e.setAttribute("role","status");md.appendChild(e)}
@@ -2090,7 +2385,7 @@ function openXml(m,k,id){
   const st={done:false,m,file:null,bytes:null,info:null,ref:null,refName:"",dl:"0",dd:isAnge?"ange":"false",auto:isAnge,adv:false,res:null,err:"",msg:""};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","xt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
-  const dismiss=()=>{closeXml();const cm=majs[id];if(!st.done&&k&&cm){const q=cm.prog[k];if(q&&q.s[1]){const ns=q.s.slice();ns[1]=false;cm.prog[k]={s:ns,note:q.note||""};render();persist(id,k)}}};
+  const dismiss=()=>{closeXml();const cm=majs[id];if(!st.done&&k&&cm){const q=cm.prog[k];if(q&&q.s[1]){const ns=q.s.slice();ns[1]=false;cm.prog[k]={s:ns,note:q.note||"",issue:q.issue||""};render();persist(id,k)}}};
   const key=e=>{if(e.key==="Escape")dismiss()};document.addEventListener("keydown",key);
   xmlDlg={bg,key};
   const readFile=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(new Uint8Array(r.result));r.onerror=()=>rej(r.error);r.readAsArrayBuffer(f)});
@@ -2129,11 +2424,11 @@ function openXml(m,k,id){
     const cm=majs[id];if(!(k&&cm))return "";
     const q=cm.prog[k]||{s:[false,false,false],note:""};
     if(q.s[2])return "";
-    const ns=q.s.slice();ns[2]=true;cm.prog[k]={s:ns,note:q.note||""};render();persist(id,k);return " Étape Moulinette Claude cochée.";
+    const ns=q.s.slice();ns[2]=true;cm.prog[k]={s:ns,note:q.note||"",issue:q.issue||""};render();persist(id,k);return " Étape Moulinette Claude cochée.";
   }
   async function dl(){
     const r=st.res;const name=r.outName||st.file;
-    const zname=name.replace(/\.xml$/i,"")+".zip";
+    const zname=zipName(id,name.replace(/\.xml$/i,""));
     st.msg="";
     try{
       const zip=makeZip(name,r.bytes);
@@ -2157,7 +2452,7 @@ function openXml(m,k,id){
     paint();
   }
   function dlAnchor(){
-    const r=st.res;const name=r.outName||st.file;const zname=name.replace(/\.xml$/i,"")+".zip";
+    const r=st.res;const name=r.outName||st.file;const zname=zipName(id,name.replace(/\.xml$/i,""));
     let zb=null;try{
       const blob=new Blob([zb=makeZip(name,r.bytes)],{type:"application/zip"});const u=URL.createObjectURL(blob);
       const a=document.createElement("a");a.href=u;a.download=zname;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
@@ -2365,12 +2660,42 @@ function viewHubNext(app){
   });
   sec.appendChild(ul);app.appendChild(sec);
 }
+const GUIDE_URL="https://epack.sharepoint.com/:w:/s/STU/IQCjoGGX1DYPTZdB1Q0bZkTXAYyEf-ieM83Spogw3WXgZMU?e=fFiepk";
+function openSettings(){
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","stt");
+  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const key=e=>{if(e.key==="Escape")close()};
+  const close=()=>{document.removeEventListener("keydown",key);bg.remove();if(page==="hub")render()};
+  document.addEventListener("keydown",key);
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+  const h=$("h2",null,"Paramètres");h.id="stt";
+  const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;hd.append(h,x);
+  md.append(hd,$("p",null,"Réglages obligatoires pour envoyer les messages Teams et créer les événements Outlook. Ils restent dans ce navigateur (non partagés avec les collègues). Les URL contiennent une clé secrète : ne les partage pas."));
+  const field=(title,desc,get,set)=>{
+    const w=$("div","setrow");const t=$("b",null,title);const d=$("small",null,desc);
+    const fi=$("input");fi.type="url";fi.placeholder="URL du flux Power Automate (https://…)";fi.value=get();fi.setAttribute("aria-label",title);
+    const st=$("span","msg");st.setAttribute("role","status");
+    const upd=()=>{st.textContent=fi.value.trim()?"Configuré":"À renseigner"};upd();
+    fi.oninput=()=>{set(fi.value.trim());upd()};
+    w.append(t,d,fi,st);return w};
+  md.append(
+    field("Flux Teams","Envoie les messages « Validation siège » et « Début de déploiement » dans Teams.",teamsFlow,v=>{try{localStorage.setItem("suivi-maj-flow",v)}catch(e){}}),
+    field("Flux calendrier Outlook","Crée les événements « MAJ siège » et « Déploiement MAJ » quand tu enregistres les dates.",calFlow,v=>{try{localStorage.setItem(LSCAL,v)}catch(e){}}));
+  const ac=$("div","actions");const ok=$("button","btn ok","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
+  setTimeout(()=>{const f=md.querySelector("input");if(f)f.focus()},0);
+}
 function viewHub(app){
   const hr=$("div","hubtop");hr.appendChild($("h1",null,"Accueil"));
   const rb=$("button","btn ghost","Actualisation");rb.title="Recharge la page : dernière version de l'outil et données à jour";
   rb.onclick=()=>{rb.disabled=true;rb.textContent="Actualisation…";try{location.reload()}catch(e){render();rb.disabled=false;rb.textContent="Actualisation"}};
   const sy=$("span","msg",syncTxt);sy.id="sync";
-  const rg=$("div","actions");rg.append(sy,rb);hr.appendChild(rg);app.appendChild(hr);
+  const gb=$("button","btn ghost gear");gb.type="button";gb.setAttribute("aria-label","Paramètres");gb.title="Paramètres";
+  gb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+  if(!teamsFlow()||!calFlow()){const dt=$("span","gdot");gb.appendChild(dt);gb.title="Paramètres (un réglage obligatoire manque)"}
+  gb.onclick=openSettings;
+  const gd=$("a","btn ghost gear");gd.href=GUIDE_URL;gd.target="_blank";gd.rel="noopener noreferrer";gd.setAttribute("aria-label","Guide d'utilisation");gd.title="Guide d'utilisation (SharePoint)";
+  gd.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
+  const rg=$("div","actions");rg.append(sy,gd,gb,rb);hr.appendChild(rg);app.appendChild(hr);
   app.appendChild($("p","sub",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).replace(/^./,c=>c.toUpperCase())+" · vue d'ensemble des MAJ de modules."));
   const all=Object.keys(majs).map(k=>({id:k,m:majs[k],s:stats(majs[k])}));
   const live=all.filter(x=>!x.m.archived),arch=all.filter(x=>x.m.archived);
@@ -2460,12 +2785,6 @@ app.appendChild(tl);
   const pr=Object.entries(p).sort((a,b)=>b[1]-a[1]).slice(0,7);
   grid.appendChild(card("MAJ préparées par collègue","Créateur du suivi (ou, à défaut, personne ayant archivé).",pr.length?barList(pr.map(([k,v])=>({label:k==="?"?"Non renseigné":(who(k)||"Un collègue"),v,text:String(v)})),{}):empty("Aucune MAJ.")));
   app.appendChild(grid);
-  {const rg=$("details","hubset");const sm=$("summary",null,"Réglages · Calendrier Outlook");rg.appendChild(sm);
-   rg.appendChild($("p","sub","Colle l'URL du flux Power Automate qui crée les événements. Quand tu enregistres une MAJ avec ses dates, les événements « MAJ siège » et « Déploiement MAJ » sont ajoutés à ton calendrier Outlook (journée entière)."));
-   const fi=$("input");fi.type="url";fi.placeholder="URL du flux Power Automate (https://…)";fi.value=calFlow();fi.setAttribute("aria-label","URL du flux Power Automate pour le calendrier");
-   const st=$("span","msg");
-   fi.onchange=()=>{try{localStorage.setItem(LSCAL,fi.value.trim())}catch(e){}st.textContent=fi.value.trim()?"Enregistré dans ce navigateur.":"Calendrier Outlook désactivé."};
-   rg.append(fi,st);app.appendChild(rg)}
   app.querySelectorAll(".kpi,.card").forEach(e=>e.classList.add("acc"));
 }
 /*HUB-END*/
@@ -2563,10 +2882,10 @@ function viewArchTable(app,rows){
     s.onchange=()=>{archF[key]=s.value;render()};l.appendChild(s);bar.appendChild(l)};
   mk("Enseigne","g",gs);mk("Langue","l",ls);
   app.appendChild(bar);
-  const COLS=[["g","Enseigne",x=>groupOf(x.m)||""],["t","MAJ",x=>x.m.title||""],["l","Langues",x=>R(x).join(", ")],["mo","Modules",x=>[...new Set(x.m.mods.map(M=>M.name))].join(", ")],["dem","Demande",x=>x.m.dateDemande||0],["dep","Déploiement",x=>x.m.dateDeploiement||0],["arch","Archivée le",x=>x.m.archivedAt||x.m.created||0],["dur","Durée",x=>durOf(x.m)]];
+  const COLS=[["g","Enseigne",x=>groupOf(x.m)||""],["s","Site",x=>x.m.site||""],["t","MAJ",x=>x.m.title||""],["l","Langues",x=>R(x).join(", ")],["mo","Modules",x=>[...new Set(x.m.mods.map(M=>M.name))].join(", ")],["dem","Demande",x=>x.m.dateDemande||0],["dep","Déploiement",x=>x.m.dateDeploiement||0],["arch","Archivée le",x=>x.m.archivedAt||x.m.created||0],["dur","Durée",x=>durOf(x.m)]];
   const fmt={dem:v=>v?fdate(v):"-",dep:v=>v?fdate(v):"-",arch:v=>v?fdate(v):"-",dur:v=>fmtDur(v)};
   let data=rows.filter(x=>(!archF.g||groupOf(x.m)===archF.g)&&(!archF.l||R(x).includes(archF.l)));
-  const c=COLS.find(z=>z[0]===archSort.k)||COLS[6];
+  const c=COLS.find(z=>z[0]===archSort.k)||COLS.find(z=>z[0]==="arch");
   data.sort((a,b)=>{const u=c[2](a),v=c[2](b);const r=typeof u==="number"&&typeof v==="number"?u-v:String(u).localeCompare(String(v),"fr",{numeric:true});return r*archSort.d});
   if(!data.length){app.appendChild($("p","empty","Aucune MAJ ne correspond aux filtres."));return}
   const wrap=$("div","atabw panel acc"),tb=$("table","atab"),th=$("thead"),hr=$("tr");
@@ -2577,6 +2896,7 @@ function viewArchTable(app,rows){
     COLS.forEach(([k,,f])=>{const v=f(x),td=$("td",null,"");
       if(k==="l"){String(v).split(", ").filter(Boolean).forEach(c=>td.appendChild($("span","lchip",c)))}
       else if(k==="g"){td.appendChild($("strong","gname",v||"-"))}
+      else if(k==="s"){td.textContent=v||"-"}
       else{td.textContent=fmt[k]?fmt[k](v):v;if(k==="dur"||k==="dem"||k==="dep"||k==="arch")td.className="num"}
       tr.appendChild(td)});
     const go=()=>{backTo="archived";setCur(x.id)};tr.onclick=go;tr.onkeydown=e=>{if(e.key==="Enter")go()};tbd.appendChild(tr)});
