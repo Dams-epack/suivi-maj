@@ -2729,7 +2729,7 @@ function viewHub(app){
   const t7=startOfToday(),lim=new Date(t7.getTime()+7*86400000);
   const dueN=majEvents().filter(e=>nextStep(e)&&e.date<=lim).length;
   const tiles=$("div","kpis");
-  [["En cours",live.length,"MAJ à traiter"],["Échéances à traiter",dueN,"dans les 7 jours ou en retard"],["Archivées",arch.length,"MAJ terminées"],["Avancement moyen",live.length?avg+" %":"-",live.length?"des MAJ en cours":"aucune MAJ en cours"],["Durée moyenne",arch.length?fmtDur(arch.reduce((a,x)=>a+durOf(x.m),0)/arch.length):"-","de préparation (archivées)"]].forEach(([a,v,c],i)=>{
+  [["En cours",live.length,"MAJ à traiter"],["MAJ à venir",dueN,"dans les 7 jours ou en retard"],["Archivées",arch.length,"MAJ terminées"],["Avancement moyen",live.length?avg+" %":"-",live.length?"des MAJ en cours":"aucune MAJ en cours"],["Durée moyenne",arch.length?fmtDur(arch.reduce((a,x)=>a+durOf(x.m),0)/arch.length):"-","de préparation (archivées)"]].forEach(([a,v,c],i)=>{
     const t=$("div","kpi");t.append($("small",null,a),$("b",null,String(v)),$("span",null,c));
     if(i===3&&live.length){t.classList.add(avg>=100?"full":avg>=50?"mid":"low")}
     if(i<3){const go=i===0?openLive:i===1?openUpcoming:openArch;t.classList.add("link");t.setAttribute("role","button");t.tabIndex=0;t.title=i===0?"Voir les MAJ en cours":i===1?"Voir les MAJ à venir":"Voir les MAJ archivées";t.appendChild($("em",null,"Voir la liste →"));t.onclick=go;t.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}}
@@ -2742,9 +2742,6 @@ function viewHub(app){
   const tl=$("div","tools");
   const tb=$("button","tool");tb.append($("strong",null,"Créer un suivi de MAJ"),$("span",null,"Importer le mail client, suivre les étapes par module et par région, générer les XML depuis l'Excel."),$("small",null,live.length+" en cours · "+arch.length+" archivées"));
   tb.onclick=openTool;tl.appendChild(tb);
-  {const ub=$("button","tool");const ev=majEvents(),t0=startOfToday();const nx=ev.filter(e=>e.date>=t0).length;
-   ub.append($("strong",null,"MAJ à venir"),$("span",null,"Voir les mises à jour siège et les déploiements prévus, d'après les dates saisies dans les suivis."),$("small",null,nx+" date"+(nx>1?"s":"")+" à venir"));
-   ub.onclick=openUpcoming;tl.appendChild(ub)}
   const sb=$("button","tool");sb.append($("strong",null,"Recherche de MAJ"),$("span",null,"Retrouver une MAJ par mot-clé, groupement, module, région, collègue, date ou durée."),$("small",null,(live.length+arch.length)+" MAJ indexées"));
   sb.onclick=openSearch;tl.appendChild(sb);
 app.appendChild(tl);
