@@ -140,6 +140,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .datef select,.datef input{font:inherit;font-weight:400;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
 .cols.two,.row.two{grid-template-columns:minmax(120px,1.3fr) repeat(2,minmax(0,1fr))}
 .pill-bad{align-self:center;font-size:.76rem;font-weight:700;padding:2px 10px;border-radius:999px;background:#D11A1A;color:#fff;white-space:nowrap}
+.appver{text-align:center;font-size:.75rem;color:var(--muted);padding:6px 16px 18px;user-select:text}
 .stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
 .row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
@@ -357,6 +358,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 </style>
 <div class="brandbar"><i></i><b>ePackPro</b><span>Outils support</span></div>
 <div class="wrap" id="app"></div>
+<div class="appver" id="appver"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const STEPS=[["Fichier d'import","Import"],["Configurateur (XML)","XML"],["Moulinette Claude","Moulinette Claude"]];
@@ -3353,7 +3355,9 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
 }
 /*CUSTOM-END*/
 
+const APP_VERSION="v182",APP_DATE="19/10/2026";
 function render(){
+  {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
   const keepY=window.scrollY;
   app.textContent="";
