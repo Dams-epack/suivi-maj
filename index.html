@@ -522,6 +522,28 @@ function proseModules(mail){
   }
   return out;
 }
+/* Lecture locale (sans IA) : message du client seul, sans le mail transféré ou cité en dessous */
+function topMessage(mail){
+  const i=mail.search(/^[ \t>]*(?:-{3,}\s*(?:forwarded|message transf|original)|de\s*:\s|from\s*:\s|le .{5,80}a écrit|on .{5,80}wrote)/im);
+  const t=i>20?mail.slice(0,i):mail;return t.trim();
+}
+const MOD_ALIASES=[
+  [/etiquet\w*\s+(?:de\s+)?produits?|product\s*stickers?|dlc\s+secondaires?/,"Étiquettes produits"],
+  [/etiquetage\s+personnalis\w*|etiquettes?\s+personnalis\w*/,"Étiquetage personnalisé"],
+  [/etiquet\w*\s+(?:de\s+)?livraisons?/,"Étiquettes de livraison"],
+  [/mise\s+en\s+temperature/,"Mise en température"],[/mise\s+en\s+congelation/,"Mise en congélation"],[/decongelation/,"Décongélation"],
+  [/temperatures?\s+de\s+service/,"Température de service"],[/refroidissement/,"Refroidissement"],
+  [/plats?\s+temoins?/,"Plats témoins"],[/tracabilite/,"Traçabilité"],[/reception\s+marchandises?|\breceptions?\b/,"Réception Marchandises"]
+];
+function catalogModules(text){
+  const f=" "+fold(text)+" ",out=[];
+  MOD_ALIASES.forEach(([rx,name])=>{if(rx.test(f)&&!out.some(x=>x.name===name))out.push({name,regions:["FR"]})});
+  return out;
+}
+function localSite(text){
+  const m=text.match(/^\s*pour\s+((?:le|la|les|l['’])\s*)?([A-ZÀ-Ý][\p{L}'’ .-]{1,30})\s*$/mu);
+  return m?((m[1]||"")+m[2]).trim().replace(/\s+/g," "):"";
+}
 function localGroup(mail){
   const m=mail.match(/(?:[Gg]roupement|[Gg]roupe|[Ee]nseigne)\s*[:\-]?\s+([A-ZÀ-Ý][^\n,.;()]{1,40})/);
   return m?m[1].trim():"";
@@ -737,9 +759,14 @@ async function analyse(){
   if(!mods||!mods.length){
     const lp=localParse(mail),bl=lp.filter(m=>m.b);
     if(bl.length)mods=bl;
-    else{const pr=proseModules(mail);mods=pr.length?pr:lp}
+    else{
+      const top=topMessage(mail),cm=catalogModules(top),pr=proseModules(top);
+      pr.forEach(x=>{if(!cm.some(y=>fold(y.name)===fold(x.name)))cm.push(x)});
+      mods=cm.length?cm:(pr.length?pr:lp);
+      if(cm.length&&!draft.site)draft.site=localSite(top).slice(0,80);
+    }
   }
-  if(!group)group=localGroup(mail)||domainGroup(mail);
+  if(!group){const top=topMessage(mail);group=localGroup(top)||detectGroupsInText(top)[0]||domainGroup(top)||localGroup(mail)||domainGroup(mail)}
   {const dom=domainGroup(mail);if(dom&&group&&dom.toLowerCase().includes(group.toLowerCase())&&dom.length>group.length)group=dom}
   draft.group=group.replace(/\s+/g," ").trim().slice(0,60).toUpperCase();
   mods=mods.map(m=>({name:m.name,regions:m.regions.map(norm)}));

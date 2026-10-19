@@ -16,7 +16,7 @@ Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation d
 - **Liens de la MAJ** : les liens saisis sont affichés et modifiables sur la page de la MAJ.
 - **ZIP** : nommé « NOM DU GROUPEMENT - Nom du fichier XML.zip », avec un dossier par région (FR, BE-FR, BE-NL, IT, REUNION, ANTILLES, NC ; FR+LUX uniquement pour O TACOS).
 - **XML générés** : chaque ZIP enregistré est historisé sur la fiche (date, région, module, fichier, auteur) dans un tableau triable, réduit à l'ouverture de la fiche ; le ZIP est conservé dans la base partagée pour être retéléchargé.
-- **Analyse du mail client** : détection du groupement, du site ou concept, des modules et des régions ; pop-ups pour chaque point flou et mail de retour proposé au client ; contrôle du délai J+7 ouvrés avec nouveau rétroplanning ; ajout de modules après coup (« + Ajouter un module »).
+- **Analyse du mail client** : détection du groupement, du site ou concept, des modules et des régions ; pop-ups pour chaque point flou et mail de retour proposé au client ; contrôle du délai J+7 ouvrés avec nouveau rétroplanning ; ajout de modules après coup (« + Ajouter un module »). Hors claude.ai (GitHub), l'IA n'est pas disponible : l'outil bascule sur une lecture locale par mots-clés (modules connus, groupement reconnu dans le message du client, site après « pour … »), moins fiable, à vérifier et compléter avec « + Ajouter un module ».
 - **Accueil** : indicateurs, bloc « Prochaines échéances » (prochaine étape de chaque MAJ, retards en rouge), outils et graphiques.
 - **MAJ archivées** : tableau triable par enseigne, langue (codes région) et date.
 - **Calendrier Outlook** : le bouton « Enregistrer et envoyer dans Outlook » à côté des dates demande confirmation puis envoie deux événements en journée entière (MAJ siège, Déploiement MAJ Nationale ou Internationale, avec codes pays) à un second flux Power Automate. L'URL se saisit dans la roue crantée (Paramètres), jamais dans le dépôt. Un avertissement rappelle de supprimer à la main les événements précédents (risque de doublons).
@@ -24,7 +24,7 @@ Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation d
 - **Enregistrer** (bas de la page de la MAJ) : enregistre la fiche dans la base commune et revient à « MAJ à venir ». Il n'envoie rien vers Outlook.
 
 ## Utilisation
-Conçu pour tourner comme Artifact claude.ai (stockage partagé via la base de l'Artifact). Ouvert hors de claude.ai, il retombe sur le stockage local du navigateur (`localStorage`), donc les données ne sont pas partagées entre postes.
+Conçu pour tourner comme Artifact claude.ai (analyse du mail par l'IA, stockage partagé via la base de l'Artifact, téléchargement des ZIP). Ouvert hors de claude.ai, il retombe sur le stockage local du navigateur (`localStorage`), donc les données ne sont pas partagées entre postes.
 
 ## Dépendances
 - SheetJS (`xlsx` 0.18.5) chargé depuis cdnjs pour lire les fichiers Excel.
