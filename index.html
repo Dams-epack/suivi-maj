@@ -38,6 +38,31 @@ h2{font-size:1.05rem;margin:0;font-weight:600}
 .btn.danger{border-color:var(--warn);color:var(--warn);background:transparent}
 .btn[disabled]{opacity:.5;cursor:default}
 .btn:focus-visible,.step:focus-visible,input:focus-visible,textarea:focus-visible,.chip:focus-visible,.item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.setm{max-width:620px}
+.setnote{display:flex;gap:10px;align-items:flex-start;margin:6px 0 14px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--fg);font-size:.86rem;line-height:1.4}
+.setnote svg{width:18px;height:18px;flex:none;margin-top:1px;color:var(--warn)}
+.setlist{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.setcard{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:10px;border-left:4px solid var(--cta)}
+.settop{display:flex;gap:12px;align-items:flex-start}
+.setico{flex:none;width:38px;height:38px;border-radius:10px;background:var(--cta);color:var(--cta-fg);display:grid;place-items:center}
+.setico svg{width:20px;height:20px}
+.settx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.settx b{font-size:1rem}
+.settx small{color:var(--muted);line-height:1.35}
+.setpill{flex:none;font-size:.76rem;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.setpill::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:currentColor;vertical-align:1px}
+.setpill.on{background:var(--ok-soft);color:var(--ok)}
+.setpill.off{background:var(--warn-soft);color:var(--warn)}
+.setrow2{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.seturl{flex:1 1 220px;min-width:0;font:inherit;font-family:var(--mono,monospace);font-size:.84rem;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box}
+.seturl.hide{-webkit-text-security:disc}
+.seturl:focus{outline:2px solid var(--cta);outline-offset:1px}
+.seteye{font:inherit;font-size:.82rem;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:0 12px;cursor:pointer}
+.seteye:hover{color:var(--fg);border-color:var(--muted)}
+.setrow2 .btn{padding:9px 16px}
+.setrow2 .btn:disabled{opacity:.45;cursor:default}
+.setst{margin:0;font-size:.84rem;color:var(--muted)}.setst:empty{display:none}
+.setst.ok{color:var(--ok)}.setst.warn{color:var(--warn)}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
 label{font-size:.85rem;color:var(--muted)}
 textarea,input[type=text]{font:inherit;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
@@ -992,9 +1017,11 @@ function openMail(id,type,only){
 /* Validation siège : copie « NOM - Maj. validée par le siège » et propose d'ouvrir le canal Teams « Support SGC Automatisation » */
 let teamsDlg=null;
 function closeTeams(){if(teamsDlg){const cb=teamsDlg.onClose;teamsDlg.bg.remove();document.removeEventListener("keydown",teamsDlg.key);teamsDlg=null;if(cb)setTimeout(cb,0)}}
+/* Nettoie une URL collée depuis un PDF : espaces, retours à la ligne et tiret perdu de api-version */
+const cleanUrl=v=>String(v||"").replace(/[\s\u00a0\u200b-\u200d\ufeff]+/g,"").replace(/([?&])apiversion=/i,"$1api-version=");
 const memFlow={};
-const getFlow=k=>{let v="";try{v=localStorage.getItem(k)||""}catch(e){}return v||memFlow[k]||""};
-const setFlow=(k,v)=>{memFlow[k]=v;try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);return localStorage.getItem(k)===(v||null)||(!v&&!localStorage.getItem(k))}catch(e){return false}};
+const getFlow=k=>{let v="";try{v=localStorage.getItem(k)||""}catch(e){}return cleanUrl(v||memFlow[k]||"")};
+const setFlow=(k,v)=>{v=cleanUrl(v);memFlow[k]=v;try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);return localStorage.getItem(k)===(v||null)||(!v&&!localStorage.getItem(k))}catch(e){return false}};
 const teamsFlow=()=>getFlow("suivi-maj-flow");
 const LSDEB="suivi-maj-flow-debut";
 function askLink(step,total,title,label,value){
@@ -1135,11 +1162,11 @@ function showTeams(m,kind,id,onDone){
     if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
     st.textContent=ok?"Message copié : colle-le dans le canal (Ctrl+V puis Entrée).":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C."};
   const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=deb?(getFlow(LSDEB)||teamsFlow()):teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
-  fu.oninput=()=>{setFlow(deb?LSDEB:"suivi-maj-flow",fu.value.trim());bs.hidden=!fu.value.trim()};
+  fu.oninput=()=>{setFlow(deb?LSDEB:"suivi-maj-flow",fu.value);bs.hidden=!fu.value.trim()};
   const ready=()=>{};
   const toHtml=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1">$1</a>').replace(/\r?\n/g,"<br>");
   const flowUrl=u=>{const ps=ta.value.split(/\r?\n/),hd0=ps[0]||"",tl=ps.slice(1).join("\n").replace(/^\s+/,"");return u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toHtml(hd0))+"&tail="+encodeURIComponent(toHtml(tl))+(qmMail?"&qm="+encodeURIComponent(qmMail):"")};
-  const send=async()=>{const u=fu.value.trim();if(!u)return;st.textContent="Envoi dans Teams…";
+  const send=async()=>{const u=cleanUrl(fu.value);if(!u)return;st.textContent="Envoi dans Teams…";
     try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans la conversation Teams."}
     catch(e){await copy();
       let w=null;try{w=window.open(flowUrl(u),"_blank");if(w){try{w.opener=null}catch(e3){}setTimeout(()=>{try{w.close()}catch(e4){}},3000)}}catch(e2){}
@@ -2715,29 +2742,46 @@ function viewHubNext(app){
 const GUIDE_URL="https://epack.sharepoint.com/:b:/s/STU/IQBPVSVJmXdfTbCvYmpKZitGAd-HbygD5V1_TOYR01T_2gc?e=cwdSLB";
 function openSettings(){
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","stt");
-  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const md=$("div","modal xml setm");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")close()};
   const close=()=>{document.removeEventListener("keydown",key);bg.remove();if(page==="hub")render()};
   document.addEventListener("keydown",key);
   bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
   const h=$("h2",null,"Paramètres");h.id="stt";
   const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;hd.append(h,x);
-  md.append(hd,$("p",null,"Réglages obligatoires pour envoyer les messages Teams et créer les événements Outlook. Ils restent dans ce navigateur (non partagés avec les collègues). Les URL contiennent une clé secrète : ne les partage pas."));
-  const field=(title,desc,get,set)=>{
-    const w=$("div","setrow");const t=$("b",null,title);const d=$("small",null,desc);
-    const fi=$("input");fi.type="url";fi.placeholder="URL du flux Power Automate (https://…)";fi.value=get();fi.setAttribute("aria-label",title);
-    const st=$("span","msg");st.setAttribute("role","status");
-    const upd=()=>{st.textContent=get()?"Configuré":"À renseigner"};upd();
-    const sb=$("button","btn ok","Enregistrer");sb.type="button";
-    const sv=()=>{const ok=set(fi.value.trim());st.textContent=!fi.value.trim()?"URL supprimée.":ok?"Enregistré dans ce navigateur.":"Enregistré pour cette session seulement : ce navigateur refuse de garder l'URL, il faudra la ressaisir après rechargement."};
-    fi.oninput=()=>{set(fi.value.trim());st.textContent="Pas encore enregistré : clique sur Enregistrer."};sb.onclick=sv;fi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sv()}};
-    const row=$("div","actions");row.append(sb,st);
-    w.append(t,d,fi,row);return w};
-  md.append(
-    field("Flux Teams","Envoie les messages « Validation siège » et « Début de déploiement » dans Teams.",teamsFlow,v=>setFlow("suivi-maj-flow",v)),
-    field("Flux Teams : début de déploiement","Message « Début de déploiement » (sans mention du QM). S'il est vide, le flux Teams ci-dessus est utilisé.",()=>getFlow(LSDEB),v=>setFlow(LSDEB,v)),
-    field("Flux calendrier Outlook","Crée les événements « MAJ siège » et « Déploiement MAJ » quand tu enregistres les dates.",calFlow,v=>setFlow(LSCAL,v)));
-  const ac=$("div","actions");const ok=$("button","btn ok","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
+  const note=$("div","setnote");note.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  note.appendChild($("span",null,"Les trois liens ci-dessous restent dans ce navigateur, jamais partagés avec les collègues. Ils contiennent une clé secrète : ne les diffuse pas."));
+  md.append(hd,note);
+  const ICO={
+   teams:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11.5l2.2 2.2 4.3-4.4"/></svg>',
+   rocket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="M12 15l-3-3a22 22 0 0 1 2-4 12.9 12.9 0 0 1 11-6c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1 5 0 5 0M12 15v5s3-.6 4-2c1-1.6 0-5 0-5"/></svg>',
+   cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 15l2 2 4-4"/></svg>'};
+  const field=(ico,title,desc,get,set)=>{
+    const w=$("section","setcard");
+    const top=$("div","settop");const ib=$("span","setico");ib.innerHTML=ICO[ico];
+    const tx=$("div","settx");tx.append($("b",null,title),$("small",null,desc));
+    const pill=$("span","setpill");top.append(ib,tx,pill);
+    const row=$("div","setrow2");
+    const fi=$("input");fi.type="text";fi.className="seturl hide";fi.placeholder="Colle ici l'URL du flux Power Automate";fi.value=get();fi.setAttribute("aria-label",title);fi.autocomplete="off";fi.spellcheck=false;
+    const eye=$("button","seteye","Afficher");eye.type="button";eye.onclick=()=>{const h=fi.classList.toggle("hide");eye.textContent=h?"Afficher":"Masquer"};
+    const sb=$("button","btn","Enregistrer");sb.type="button";
+    row.append(fi,eye,sb);
+    const st=$("p","setst");st.setAttribute("role","status");
+    let saved=get();
+    const upd=()=>{const on=!!get();pill.className="setpill "+(on?"on":"off");pill.textContent=on?"Configuré":"À renseigner"};upd();
+    const dirty=()=>cleanUrl(fi.value)!==saved;
+    const refresh=()=>{sb.disabled=!dirty()};refresh();
+    const sv=()=>{const v=cleanUrl(fi.value),ok=set(v);fi.value=v;saved=v;upd();refresh();st.className="setst "+(ok?"ok":"warn");st.textContent=!v?"URL supprimée.":ok?"Enregistré dans ce navigateur.":"Gardée pour cette session seulement : ce navigateur refuse de la mémoriser, il faudra la ressaisir après rechargement."};
+    fi.oninput=()=>{set(fi.value);upd();refresh();if(dirty()){st.className="setst";st.textContent="Modification non enregistrée."}};
+    sb.onclick=sv;fi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();if(dirty())sv()}};
+    w.append(top,row,st);return w};
+  const list=$("div","setlist");
+  list.append(
+    field("teams","Validation siège","Utilisé quand tu coches « Validation siège ». Envoie dans Teams le nom du groupe, le QM mentionné et le lien des ressources.",teamsFlow,v=>setFlow("suivi-maj-flow",v)),
+    field("rocket","Début de déploiement","Utilisé quand tu coches « Début de déploiement ». Envoie le titre de la MAJ, les ressources et les rapports, sans mentionner le QM. Si ce champ est vide, c'est l'URL de « Validation siège » qui sert.",()=>getFlow(LSDEB),v=>setFlow(LSDEB,v)),
+    field("cal","Calendrier Outlook","Utilisé par le bouton « Enregistrer et envoyer dans Outlook ». Crée les événements « MAJ siège » et « Déploiement MAJ » dans le calendrier.",calFlow,v=>setFlow(LSCAL,v)));
+  md.appendChild(list);
+  const ac=$("div","actions");ac.style.justifyContent="flex-end";const ok=$("button","btn ghost","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
   setTimeout(()=>{const f=md.querySelector("input");if(f)f.focus()},0);
 }
 function viewHub(app){
@@ -3386,7 +3430,7 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
 }
 /*CUSTOM-END*/
 
-const APP_VERSION="v192",APP_DATE="19/10/2026";
+const APP_VERSION="v195",APP_DATE="19/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
