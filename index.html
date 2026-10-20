@@ -420,6 +420,18 @@ function groupOf(m){
   const t=String(m.baseTitle||m.title||"");const x=/^(.+?)\s+-\s+maj\b/i.exec(t);
   const g=x?x[1]:(m.group||"");return String(g).replace(/\s+/g," ").trim().toUpperCase()||"";
 }
+/* Répartition des groupements par CSM, et QM associé à chaque CSM */
+const CSM_QM={"Cynthia LOBET":"Marion LE STANG","Lauriane GOUISSEM":"Nathan LAFFEZ","Guillaume TAVERNIERS":"Sylvain HAMELIN","Gerda MEVEL":""};
+const GROUP_CSM={"Cynthia LOBET":["O TACOS","DOMINOS","CHAMAS TACOS","DEL ARTE","ALL PIZZA PASTA","EMERA","ATELIER PAPILLES","MUSIAM","COTE ET LARETE","BRIOCHE DOREE"],
+"Lauriane GOUISSEM":["BOULANGERIE ANGE","BERTRAND","BECAM","COLUMBUS","TACOS AVENUE","BOUCHERIE","SOPHIE LE BRUEILLY","MIE DE PAIN","VVF","TOA SUSHI/TOANE","TAO BENTO"],
+"Gerda MEVEL":["CIRCLE K"],"Guillaume TAVERNIERS":[]};
+/* Groupes de Guillaume TAVERNIERS (congé maternité), répartis sur d'autres CSM mais gardant son QM */
+const GROUPES_GT=["O TACOS","DOMINOS","CHAMAS TACOS","DEL ARTE","ALL PIZZA PASTA","BOULANGERIE ANGE","BERTRAND","BECAM","COLUMBUS","TACOS AVENUE","BOUCHERIE","SOPHIE LE BRUEILLY","MIE DE PAIN","EMERA"];
+const akey=n=>String(n||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+const CSM_OF={};Object.entries(GROUP_CSM).forEach(([c,l])=>l.forEach(g=>{CSM_OF[akey(g)]=c}));
+const QM_MAIL={"Marion LE STANG":"m.lestang@epack-hygiene.fr","Nathan LAFFEZ":"n.laffez@epack-hygiene.fr","Sylvain HAMELIN":"s.hamelin@epack-hygiene.fr"};
+const GT_SET=new Set(GROUPES_GT.map(akey));
+function csmOf(m){const g=groupOf(m)||m.group||"";const c=CSM_OF[akey(g)];return c?{csm:c,qm:GT_SET.has(akey(g))?CSM_QM["Guillaume TAVERNIERS"]:(CSM_QM[c]||"")}:null}
 function renameMaj(id,t){
   const m=majs[id];t=String(t).replace(/\s+/g," ").trim().slice(0,120);if(!t)return;
   m.baseTitle=t;stampTitle(m);
@@ -984,6 +996,7 @@ const memFlow={};
 const getFlow=k=>{let v="";try{v=localStorage.getItem(k)||""}catch(e){}return v||memFlow[k]||""};
 const setFlow=(k,v)=>{memFlow[k]=v;try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);return localStorage.getItem(k)===(v||null)||(!v&&!localStorage.getItem(k))}catch(e){return false}};
 const teamsFlow=()=>getFlow("suivi-maj-flow");
+const LSDEB="suivi-maj-flow-debut";
 function askLink(step,total,title,label,value){
   return new Promise(res=>{
     const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","alt");
@@ -1089,19 +1102,24 @@ function openFin(m,id){
 }
 function openTeams(m,kind,id,onDone){
   if(kind==="debut"){(async()=>{
-    const langs=majLangs(m),multi=langs.length>1,total=1+(multi?langs.length:1),old=m.liens||{};
-    const a=await askLink(1,total,"Début de déploiement","Copier/coller le lien d'accès aux ressources de la MAJ",old.ressources||"");if(a===null){if(onDone)onDone();return}
+    const langs=majLangs(m),multi=langs.length>1,total=multi?langs.length:1,old=m.liens||{};
+    const a=old.ressources||"";
     let b="",rap=Object.assign({},old.rapports);
-    if(multi){for(let i=0;i<langs.length;i++){const [c,n]=langs[i];const v=await askLink(i+2,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention - "+n.toUpperCase(),rap[c]||"");if(v===null){if(onDone)onDone();return}rap[c]=v}}
-    else{b=await askLink(2,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention"+(langs.length?" - "+langs[0][1].toUpperCase():""),old.rapport||"");if(b===null){if(onDone)onDone();return}}
+    if(multi){for(let i=0;i<langs.length;i++){const [c,n]=langs[i];const v=await askLink(i+1,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention - "+n.toUpperCase(),rap[c]||"");if(v===null){if(onDone)onDone();return}rap[c]=v}}
+    else{b=await askLink(1,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention"+(langs.length?" - "+langs[0][1].toUpperCase():""),old.rapport||"");if(b===null){if(onDone)onDone();return}}
     const mm=(id&&majs[id])||m;mm.liens=Object.assign({},mm.liens,{ressources:a,rapport:multi?(old.rapport||""):b,rapports:rap});if(id)persist(id);
     showTeams(mm,kind,id,onDone)})();return}
-  showTeams(m,kind,id,onDone);
+  (async()=>{
+    const old=m.liens||{};
+    const a=await askLink(1,1,"Validation siège","Copier/coller le lien SharePoint des ressources de la MAJ",old.ressources||"");if(a===null){if(onDone)onDone();return}
+    const mm=(id&&majs[id])||m;mm.liens=Object.assign({},mm.liens,{ressources:a});if(id)persist(id);
+    showTeams(mm,kind,id,onDone)})();
 }
 function showTeams(m,kind,id,onDone){
   closeTeams();const deb=kind==="debut";
   const nom=String(groupOf(m)||m.group||m.baseTitle||m.title||"").replace(/\s+/g," ").trim().toUpperCase();
-  const msg=nom+" - Maj. validée par le siège";
+  const qmc=csmOf(m),qmName=!deb&&qmc&&qmc.qm||"",qmMail=QM_MAIL[qmName]||"";
+  const msg=nom+" - Maj. validée par le siège\nRessources : "+((m.liens&&m.liens.ressources)||"…");
   const L=Object.assign({ressources:"",rapport:""},m.liens);
   const langs=majLangs(m),multi=langs.length>1,R=Object.assign({},(m.liens||{}).rapports);
   const build=()=>String(m.title||nom).trim()+"\n\nRessources : "+(L.ressources||"…")+"\n"+(multi?langs.map(([c,n])=>"Rapport d'intervention ("+n+") : "+(R[c]||"…")).join("\n"):"Rapport d'intervention : "+(L.rapport||"…"));
@@ -1111,16 +1129,16 @@ function showTeams(m,kind,id,onDone){
   bg.addEventListener("mousedown",e=>{if(e.target===bg)closeTeams()});
   const h=$("h2",null,deb?"Message Teams : début de déploiement":"Message Teams : validation siège");h.id="tmt";
   const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeTeams;hd.append(h,x);
-  const ta=deb?$("textarea"):$("input");if(deb)ta.rows=5;else ta.type="text";ta.value=deb?build():msg;ta.setAttribute("aria-label","Message à envoyer");
+  const ta=$("textarea");ta.rows=deb?5:3;ta.value=deb?build():msg;ta.setAttribute("aria-label","Message à envoyer");
   const st=$("span","msg");st.setAttribute("role","status");
   const copy=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
     if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
     st.textContent=ok?"Message copié : colle-le dans le canal (Ctrl+V puis Entrée).":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C."};
-  const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
-  fu.oninput=()=>{setFlow("suivi-maj-flow",fu.value.trim());bs.hidden=!fu.value.trim()};
+  const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=deb?(getFlow(LSDEB)||teamsFlow()):teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
+  fu.oninput=()=>{setFlow(deb?LSDEB:"suivi-maj-flow",fu.value.trim());bs.hidden=!fu.value.trim()};
   const ready=()=>{};
   const toHtml=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1">$1</a>').replace(/\r?\n/g,"<br>");
-  const flowUrl=u=>u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toHtml(ta.value));
+  const flowUrl=u=>{const ps=ta.value.split(/\r?\n/),hd0=ps[0]||"",tl=ps.slice(1).join("\n").replace(/^\s+/,"");return u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toHtml(hd0))+"&tail="+encodeURIComponent(toHtml(tl))+(qmMail?"&qm="+encodeURIComponent(qmMail):"")};
   const send=async()=>{const u=fu.value.trim();if(!u)return;st.textContent="Envoi dans Teams…";
     try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans la conversation Teams."}
     catch(e){await copy();
@@ -1132,7 +1150,9 @@ function showTeams(m,kind,id,onDone){
   const rg=$("details");rg.style.marginTop="12px";if(!fu.value.trim())rg.open=true;else rg.hidden=true;const sm0=$("summary",null,"Réglages (flux Power Automate)");sm0.style.cursor="pointer";sm0.style.color="var(--muted)";rg.append(sm0);
   const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
   rg.append(fl("URL du flux Power Automate (enregistrée dans ce navigateur)",fu));
-  md.append(hd,$("p",null,"Message pour la conversation « Support SGC Automatisation » :"),fl("Message",ta),bar,st,rg);
+  md.append(hd,$("p",null,deb?"Message pour Teams (début de déploiement) :":"Message pour la conversation « Support SGC Automatisation » :"),fl("Message",ta));
+  if(qmMail)md.appendChild($("p","sub","QM mentionné dans Teams, sous la première ligne : "+qmName));
+  md.append(bar,st,rg);
   st.textContent=fu.value.trim()?"Vérifie le message, puis clique sur « Envoyer dans Teams ».":"Aucun flux configuré : copie le message ou renseigne l'URL du flux dans les réglages.";
 }
 const mailKey2=t=>t==="5j"||t==="7j"?"prise":t;
@@ -1275,6 +1295,7 @@ function viewMaj(app,id){
   top.append(back,sy);app.appendChild(top);
   const hrow=$("div","hrow");hrow.appendChild($("h1",null,m.title));app.appendChild(hrow);
   app.appendChild($("p","sub","Créée le "+fdate(m.created)+(m.createdBy?" par "+who(m.createdBy):"")));
+  {const c=csmOf(m);if(c)app.appendChild($("p","sub","CSM du groupe : "+c.csm+" · QM : "+(c.qm||"aucun")))}
   {const tp=$("p","timer");tp.setAttribute("role","timer");
    const tb=$("b");
    if(m.archived){tb.textContent=fmtClock(durOf(m));tp.append("Durée de préparation : ",tb)}
@@ -2714,6 +2735,7 @@ function openSettings(){
     w.append(t,d,fi,row);return w};
   md.append(
     field("Flux Teams","Envoie les messages « Validation siège » et « Début de déploiement » dans Teams.",teamsFlow,v=>setFlow("suivi-maj-flow",v)),
+    field("Flux Teams : début de déploiement","Message « Début de déploiement » (sans mention du QM). S'il est vide, le flux Teams ci-dessus est utilisé.",()=>getFlow(LSDEB),v=>setFlow(LSDEB,v)),
     field("Flux calendrier Outlook","Crée les événements « MAJ siège » et « Déploiement MAJ » quand tu enregistres les dates.",calFlow,v=>setFlow(LSCAL,v)));
   const ac=$("div","actions");const ok=$("button","btn ok","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
   setTimeout(()=>{const f=md.querySelector("input");if(f)f.focus()},0);
@@ -3364,7 +3386,7 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
 }
 /*CUSTOM-END*/
 
-const APP_VERSION="v186",APP_DATE="19/10/2026";
+const APP_VERSION="v192",APP_DATE="19/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");

@@ -11,7 +11,7 @@ Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation d
 - **Générateur XML** : import de l'Excel du client et génération de l'XML selon le module (Mise en température, Service, Production, Étiquetage, etc.), un onglet par région. Une DLC vide bloque la génération de l'onglet concerné (plus de -1 par défaut) : une pastille rouge s'affiche sur la région et un mail au siège est proposé avec la liste des produits. Les onglets sans erreur cochent « Fichier d'import » dès la génération. Chaque bloc de langue est réductible (réduit par défaut si aucune erreur) et le détail des valeurs nettoyées est consultable.
 - **MAJ à venir** : deux blocs (MAJ siège, MAJ nationale), boutons ON/OFF d'envoi des mails, génération des mails types à copier.
 - **Mails** : chaque bouton ON/OFF ouvre le mail correspondant (01 prise en charge 5j/7j, 02 MAJ siège, 03 début de déploiement, 04a/04b fin de déploiement, 05 seconde passe).
-- **Teams** : Validation siège et Début de déploiement préparent un message (liens ressources et rapports demandés en popup, un rapport par langue), envoyé seulement au clic sur « Envoyer dans Teams » via un flux Power Automate (URL saisie dans la roue crantée, jamais dans le dépôt).
+- **Teams** : « Validation siège » demande le lien SharePoint des ressources puis prépare « NOM - Maj. validée par le siège », le QM du groupe (mentionné via le paramètre `qm` du flux) et les ressources ; « Début de déploiement » demande les rapports (un par langue) et part par un flux dédié, sans mention. Envoi seulement au clic sur « Envoyer dans Teams ».
 - **Fin de déploiement** : rappel du rapport d'intervention final, question « seconde passe ? » et switch « 2nde passe ».
 - **Liens de la MAJ** : les liens saisis sont affichés et modifiables sur la page de la MAJ.
 - **ZIP** : nommé « NOM DU GROUPEMENT - Nom du fichier XML.zip », avec un dossier par région (FR, BE-FR, BE-NL, IT, REUNION, ANTILLES, NC ; FR+LUX uniquement pour O TACOS).
@@ -30,4 +30,4 @@ Conçu pour tourner comme Artifact claude.ai (analyse du mail par l'IA, stockage
 - SheetJS (`xlsx` 0.18.5) chargé depuis cdnjs pour lire les fichiers Excel.
 
 ## Sécurité
-Aucune clé ni URL de flux n'est dans le code : les URL Power Automate (Teams et calendrier) sont saisies dans l'outil et conservée dans le navigateur.
+Aucune clé ni URL de flux n'est dans le code : les trois URL Power Automate (Teams validation siège, Teams début de déploiement, calendrier) sont saisies dans Paramètres (bouton Enregistrer) et conservées dans le navigateur. Le CSM et le QM de chaque groupe sont affichés sur la fiche (tables `CSM_QM`, `GROUP_CSM`, `QM_MAIL` dans le code).
