@@ -31,3 +31,6 @@ Conçu pour tourner comme Artifact claude.ai (analyse du mail par l'IA, stockage
 
 ## Sécurité
 Aucune clé ni URL de flux n'est dans le code : les trois URL Power Automate (Teams validation siège, Teams début de déploiement, calendrier) sont saisies dans Paramètres (bouton Enregistrer) et conservées dans le navigateur. Le CSM et le QM de chaque groupe sont affichés sur la fiche (tables `CSM_QM`, `GROUP_CSM`, `QM_MAIL` dans le code).
+
+## Partage entre postes sur GitHub Pages
+Sans la base de claude.ai, les MAJ peuvent être partagées via un fichier JSON SharePoint : un flux Power Automate (POST `op=read` / `op=write`, avec l'en-tête `Access-Control-Allow-Origin: *`) lit et écrit le fichier. L'URL du flux se saisit dans Paramètres, « Partage SharePoint », et reste dans le navigateur. L'outil relit le fichier toutes les minutes et fusionne par MAJ (la modification la plus récente gagne). Les XML générés restent locaux.
