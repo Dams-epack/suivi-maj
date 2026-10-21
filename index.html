@@ -4,7 +4,7 @@
 /* Layout: accueil (coller le mail + liste des MAJ), puis suivi d'une MAJ : une table par module, une ligne par région, étapes */
 :root{
   --bg:#F6F0EA; --surface:#ffffff; --fg:#1d3331; --muted:#5b6f6c; --line:#e1d8cd;
-  --bad:#D11A1A; --mid:#E8590C; --accent:#305754; --accent-fg:#ffffff; --accent-soft:#E0EBFF;
+  --bad:#D11A1A; --today:#273A80; --today-soft:#E3E9FB; --mid:#E8590C; --accent:#305754; --accent-fg:#ffffff; --accent-soft:#E0EBFF;
   --cta:#9BF944; --cta-fg:#305754; --hov:#305754; --hov-fg:#ffffff;
   --ok:#1a8a45; --ok-fg:#ffffff; --ok-soft:#e1f5e8; --warn:#9a5b00; --warn-fg:#ffffff; --warn-soft:#fdf0d3;
   --band:#305754; --band-fg:#ffffff; --s1:#4A78D0; --s2:#305754;
@@ -12,13 +12,13 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#13211f; --surface:#1c2e2c; --fg:#eef3f2; --muted:#9fb5b2; --line:#2c4542;
-  --bad:#ff6b5e; --mid:#ff9a52; --accent:#9BF944; --accent-fg:#305754; --accent-soft:#243b39;
+  --bad:#ff6b5e; --today:#8FB0FF; --today-soft:#22304f; --mid:#ff9a52; --accent:#9BF944; --accent-fg:#305754; --accent-soft:#243b39;
   --cta:#9BF944; --cta-fg:#305754; --hov:#273A80; --hov-fg:#ffffff;
   --ok:#4ade80; --ok-fg:#06290f; --ok-soft:#1b3a2a; --warn:#F7B32B; --warn-fg:#2b1d00; --warn-soft:#3a2d0c;
   --band:#0e1a19; --band-fg:#ffffff; --s1:#7FA6FF; --s2:#9BF944; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#13211f; --surface:#1c2e2c; --fg:#eef3f2; --muted:#9fb5b2; --line:#2c4542;
-  --bad:#ff6b5e; --mid:#ff9a52; --accent:#9BF944; --accent-fg:#305754; --accent-soft:#243b39;
+  --bad:#ff6b5e; --today:#8FB0FF; --today-soft:#22304f; --mid:#ff9a52; --accent:#9BF944; --accent-fg:#305754; --accent-soft:#243b39;
   --cta:#9BF944; --cta-fg:#305754; --hov:#273A80; --hov-fg:#ffffff;
   --ok:#4ade80; --ok-fg:#06290f; --ok-soft:#1b3a2a; --warn:#F7B32B; --warn-fg:#2b1d00; --warn-soft:#3a2d0c;
   --band:#0e1a19; --band-fg:#ffffff; --s1:#7FA6FF; --s2:#9BF944; color-scheme:dark}
@@ -250,6 +250,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .nmid{display:flex;flex-direction:column;flex:1;min-width:0}.nmid small{color:var(--muted)}
 .badge.late{color:var(--bad);border-color:var(--bad)}
 .nrow:has(.badge.late){border-left-color:var(--bad)}
+.nrow.today{border-left-color:var(--today);background:var(--today-soft)}.nrow.today .ndate b,.nrow.today .ndate small{color:var(--today);font-weight:700}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .timer{margin:0;color:var(--muted)}.timer b{font-family:var(--mono);font-weight:500;color:var(--fg);font-size:1.05rem}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
@@ -3649,7 +3650,7 @@ function viewHubNext(app){
       const d=Math.round((e.date-t0)/86400000);
       const when=d===0?"Aujourd'hui":d===1?"Demain":d>1?"Dans "+d+" jours":d===-1?"Hier":"Il y a "+(-d)+" jours";
       const lt=isLateEv(e,n,t0),wv=isWaitValid(e,n)&&!lt;
-      const r=$("button","nrow");r.type="button";
+      const r=$("button","nrow"+(d===0?" today":""));r.type="button";
       const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString(LOC(),{day:"2-digit",month:"short"})),$("small",null,when));if(lt)dt.classList.add("late");
       const mid=$("span","nmid");mid.append($("strong",null,e.m.title),$("small",null,n[0]));
       const bd=$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":wv?"En attente du siège":"À traiter");
@@ -4425,7 +4426,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v218",APP_DATE="21/10/2026";
+const APP_VERSION="v219",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
