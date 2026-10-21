@@ -27,6 +27,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px
 .brandbar b{font-size:1rem;letter-spacing:.02em}
 .brandbar span{opacity:.75;font-size:.88rem}
 .brandbar i{width:10px;height:10px;border-radius:2px;background:var(--cta);flex:none}
+.wrap.wide{max-width:min(1500px,100%)}
 .wrap{max-width:900px;margin:0 auto;padding-inline:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
 h1{font-size:1.5rem;margin:0;font-weight:600;text-wrap:balance}
 h2{font-size:1.05rem;margin:0;font-weight:600}
@@ -306,7 +307,8 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .donebadge.wait{background:var(--warn-soft);color:var(--warn);border-color:var(--warn);white-space:normal}
 .atabw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
 .atab{width:100%;border-collapse:collapse;font-size:14px}
-.atab th,.atab td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.atab .lchip{white-space:nowrap}
+.atab th,.atab td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
 .atab th{background:var(--band);color:var(--band-fg);position:sticky;top:0;white-space:nowrap}
 .athb{all:unset;cursor:pointer;font-weight:700;color:var(--band-fg)}.athb:hover,.athb:focus-visible{color:var(--cta);outline:none}
 .atab tbody tr{cursor:pointer}.atab tbody tr:hover,.atab tbody tr:focus-visible{background:var(--accent-soft);outline:none}
@@ -2352,8 +2354,8 @@ function viewMaj(app,id){
   else{
     del.appendChild($("span","msg err","Supprimer définitivement ce suivi ?"));
     const y=$("button","btn danger","Oui, supprimer");y.onclick=()=>{
-      purgeXml(majs[id]);delete majs[id];try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
-      if(col)col.doc(id).delete().catch(()=>{});spDel(id);setCur(null)};
+      const wasArch=!!(majs[id]&&majs[id].archived);purgeXml(majs[id]);delete majs[id];try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
+      if(col)col.doc(id).delete().catch(()=>{});spDel(id);if(backTo){page=backTo;backTo=null}else if(wasArch)page="archived";setCur(null)};
     const n=$("button","btn ghost","Annuler");n.onclick=()=>{confirmDel=false;render()};
     del.append(y,n);
   }
@@ -4392,10 +4394,11 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v212",APP_DATE="21/10/2026";
+const APP_VERSION="v214",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
+  app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");
   const keepY=window.scrollY;
   app.textContent="";
   if(cur&&majs[cur])viewMaj(app,cur);else if(page==='hub')viewHub(app);else if(page==='search')viewSearch(app);else if(page==='live')viewLive(app,false);else if(page==='archived')viewLive(app,true);else if(page==='upcoming')viewUpcoming(app);else viewHome(app);
