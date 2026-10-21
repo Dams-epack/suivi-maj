@@ -1149,7 +1149,14 @@ Lien incomplet ⇒ Incomplete link
 Le lien doit commencer par https:// ⇒ The link must start with https://
 Lien incomplet : « api-version= » manque ⇒ Incomplete link: "api-version=" is missing
 Lien incomplet : la clé « sig= » est absente ou coupée ⇒ Incomplete link: the "sig=" key is missing or truncated
-Recopie le lien complet depuis le guide. ⇒ Copy the full link again from the guide.`;
+Recopie le lien complet depuis le guide. ⇒ Copy the full link again from the guide.
+Renvoyer dans Outlook ⇒ Resend to Outlook
+Déjà envoyé : tu peux renvoyer les événements ⇒ Already sent: you can resend the events
+Nouveau concept ou site (ex. Carrousel du Louvre (Brioche Dorée)) ⇒ New concept or site (e.g. Carrousel du Louvre (Brioche Dorée))
+Ajoute un concept : une ligne de suivi par module et par pays, comme à la création ⇒ Adds a concept: one tracking row per module and country, as at creation
+Échéances MAJ siège ⇒ HQ update deadlines
+Échéances MAJ nationale / internationale ⇒ National / international update deadlines
+MAJ nationale / internationale ⇒ National / international update`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
 function i18nBuild(){
   const keys=[];
@@ -2232,21 +2239,34 @@ function viewMaj(app,id){
   }
   if(siteEdit===id){
     const sw=$("div","actions");
-    const si=$("input");si.type="text";si.id="sg";si.value=m.site||"";si.placeholder="Site ou concept (ex. Carrousel du Louvre (Brioche Dorée))";si.maxLength=80;si.setAttribute("aria-label","Site ou concept");si.setAttribute("list","sitelist");si.style.maxWidth="460px";si.style.width="100%";
+    const si=$("input");si.type="text";si.id="sg";si.value="";si.placeholder="Nouveau concept ou site (ex. Carrousel du Louvre (Brioche Dorée))";si.maxLength=80;si.setAttribute("aria-label","Site ou concept");si.setAttribute("list","sitelist");si.style.maxWidth="460px";si.style.width="100%";
     const sok=$("button","btn","Enregistrer"),sno=$("button","btn ghost","Annuler");
-    const gos=()=>{const mm=majs[id]||m;mm.site=si.value.replace(/\s+/g," ").trim().slice(0,80);stampTitle(mm);persist(id);siteEdit=null;render()};
+    const gos=()=>{const mm=majs[id]||m;const v=si.value.replace(/\s+/g," ").trim().slice(0,80);
+      if(v&&(mm.mods||[]).length){
+        const had=(mm.mods||[]).some(M=>(M.regions||[]).some(r=>r.concept===v));
+        if(!had){
+          mm.mods=mm.mods.map(M=>{
+            const base=[],seen=new Set();(M.regions||[]).forEach(r=>{if(!seen.has(r.label)){seen.add(r.label);base.push(r.label)}});
+            const add=base.map(l=>({key:slug(l+"-"+v),label:l,concept:v})).filter(n=>!(M.regions||[]).some(r=>r.key===n.key));
+            return Object.assign({},M,{regions:[...(M.regions||[]),...add]});
+          });
+        }
+        const parts=(mm.site||"").split(" / ").filter(Boolean);if(!parts.includes(v))parts.push(v);mm.site=parts.join(" / ").slice(0,120);
+      }else mm.site=v;
+      stampTitle(mm);persist(id);siteEdit=null;render()};
     sok.onclick=gos;sno.onclick=()=>{siteEdit=null;render()};
     si.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();gos()}else if(e.key==="Escape"){siteEdit=null;render()}};
     sw.append(si,siteList(),sok,sno);app.appendChild(sw);setTimeout(()=>si.focus(),0);
   }else{
-    const sc=$("button","chip",m.site?"Site : "+m.site:"Ajouter un site / concept");sc.title="Site ou concept visé par la MAJ (ajouté au nom)";sc.onclick=()=>{siteEdit=id;render()};hrow.appendChild(sc);
+    const sc=$("button","chip",m.site?"Site : "+m.site:"Ajouter un site / concept");sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};hrow.appendChild(sc);
   }
   if(!m.archived){const am=$("button","chip","+ Ajouter un module");am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);hrow.appendChild(am)}
   {const dw=$("div","dates");if(!dateDraft||dateDraft.id!==id){dateDraft={id,dateDemande:m.dateDemande||"",dateSiege:m.dateSiege||"",dateDeploiement:m.dateDeploiement||""};const c0=!m.archived&&calcDates(m,m.dateDemande);if(c0)Object.assign(dateDraft,c0)}const dr=dateDraft;
    const sv=$("button","btn","Enregistrer et envoyer dans Outlook"),sm=$("span","msg"),inp={},lbs={};sv.title="Enregistre les dates et envoie les événements « MAJ siège » et « Déploiement » dans le calendrier Outlook";
    const dirty=()=>dr.dateDemande!==(m.dateDemande||"")||dr.dateSiege!==(m.dateSiege||"")||dr.dateDeploiement!==(m.dateDeploiement||"");
    const pend=()=>{const u=calFlow();return !!(u&&m.dateSiege&&m.dateDeploiement&&m.calSent!==m.dateSiege+"|"+m.dateDeploiement)};
-   const note=()=>{sv.disabled=!dirty()&&!pend();sm.textContent=dirty()?"Modifications non enregistrées":pend()?"Dates pas encore envoyées à Outlook":""};
+   const canResend=()=>!!(calFlow()&&m.dateSiege&&m.dateDeploiement&&m.calSent===m.dateSiege+"|"+m.dateDeploiement);
+   const note=()=>{const rs=!dirty()&&!pend()&&canResend();sv.disabled=!dirty()&&!pend()&&!rs;sv.textContent=rs?"Renvoyer dans Outlook":"Enregistrer et envoyer dans Outlook";sm.textContent=dirty()?"Modifications non enregistrées":pend()?"Dates pas encore envoyées à Outlook":rs?"Déjà envoyé : tu peux renvoyer les événements":""};
    /* Déploiement = demande + délai (J-7 par défaut, J-5 pour certains groupements) en jours ouvrés ; siège = J-3 ouvrés */
    const recalc=()=>{const c=calcDates(m,dr.dateDemande);if(!c)return;Object.assign(dr,c);inp.dateDeploiement.value=dr.dateDeploiement;inp.dateSiege.value=dr.dateSiege};
    [["dateDemande","Date de la demande"],["dateSiege","Date de la mise à jour siège"],["dateDeploiement","Date de déploiement de la mise à jour"]].forEach(([f,lab])=>{
@@ -2264,7 +2284,7 @@ function viewMaj(app,id){
    note();
    sv.onclick=async()=>{
      if(!(dr.dateSiege&&dr.dateDeploiement&&calFlow())){flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast);return}
-     const prev=!!m.calSent;
+     const prev=!!m.calSent,resend=!dirty()&&!pend();
      const r=await mailDialog({title:"Envoyer dans Outlook ?",close:"Annuler",step:"Calendrier support-sgc",body:(md,fin)=>{
        const l1=$("p");l1.append("MAJ siège : ",$("b",null,fdate(dr.dateSiege)));const l2=$("p");l2.append("Déploiement : ",$("b",null,fdate(dr.dateDeploiement)));
        md.append($("p",null,"Les dates seront enregistrées et deux événements seront créés dans le calendrier Outlook."),l1,l2);
@@ -2273,7 +2293,7 @@ function viewMaj(app,id){
        const no=$("button","btn ghost","Annuler");no.type="button";no.onclick=()=>fin()({cancel:true});ac.append(ok,no);md.appendChild(ac);
      }});
      if(r.cancel)return;
-     flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast)};
+     flushDates(id);if(resend)m.calSent=null;sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast)};
    const sw=$("div","datesave");sw.append(sv,sm);dw.appendChild(sw);
    if(m.calSent){const wn=$("p","sub warnmsg","⚠ Attention : cela peut entraîner des doublons dans Outlook. Supprime manuellement les événements précédents dans le calendrier.");wn.style.gridColumn="1/-1";dw.appendChild(wn)}
    app.appendChild(dw);
@@ -3614,26 +3634,31 @@ function isLateEv(e,n,t0){
   if(isWaitValid(e,n)){const D=parseD(e.m.dateDeploiement);return !!(D&&D<t0)}
   return true;
 }
+const isIntl=m=>new Set((m.mods||[]).flatMap(M=>(M.regions||[]).map(r=>paysCode(r.label))).filter(Boolean)).size>1;
 function viewHubNext(app){
   const t0=startOfToday(),ev=majEvents().map(e=>({e,n:nextStep(e)})).filter(x=>x.n);
-  const late=ev.filter(x=>x.e.date<t0).reverse(),soon=ev.filter(x=>x.e.date>=t0);
-  const rows=[...late.slice(0,3),...soon].slice(0,6);
-  const sec=$("section","panel acc");
-  const hd=$("div","hubtop");hd.appendChild($("h2",null,"Prochaines échéances"));
-  const all=$("button","chip","Tout voir →");all.type="button";all.onclick=openUpcoming;hd.appendChild(all);sec.appendChild(hd);
-  if(!rows.length){sec.appendChild($("p","empty","Rien à traiter pour le moment : aucune échéance en attente."));app.appendChild(sec);return}
-  const ul=$("div","nextlist");
-  rows.forEach(({e,n})=>{
-    const d=Math.round((e.date-t0)/86400000);
-    const when=d===0?"Aujourd'hui":d===1?"Demain":d>1?"Dans "+d+" jours":d===-1?"Hier":"Il y a "+(-d)+" jours";
-    const lt=isLateEv(e,n,t0),wv=isWaitValid(e,n)&&!lt;
-    const r=$("button","nrow");r.type="button";
-    const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString(LOC(),{day:"2-digit",month:"short"})),$("small",null,when));if(lt)dt.classList.add("late");
-    const mid=$("span","nmid");mid.append($("strong",null,e.m.title),$("small",null,(e.kind==="dateSiege"?"MAJ siège":"MAJ nationale")+" · "+n[0]));
-    const bd=$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":wv?"En attente du siège":"À traiter");
-    r.append(dt,mid,bd);r.onclick=()=>{focusEv={id:e.id,kind:e.kind};openUpcoming()};ul.appendChild(r);
-  });
-  sec.appendChild(ul);app.appendChild(sec);
+  const part=(title,kind,first)=>{
+    const L=ev.filter(x=>x.e.kind===kind),late=L.filter(x=>x.e.date<t0).reverse(),soon=L.filter(x=>x.e.date>=t0);
+    const rows=[...late.slice(0,2),...soon].slice(0,4);
+    const sec=$("section","panel acc");
+    const hd=$("div","hubtop");hd.appendChild($("h2",null,title));
+    const all=$("button","chip","Tout voir →");all.type="button";all.onclick=openUpcoming;hd.appendChild(all);sec.appendChild(hd);
+    if(!rows.length){sec.appendChild($("p","empty","Rien à traiter pour le moment : aucune échéance en attente."));app.appendChild(sec);return}
+    const ul=$("div","nextlist");
+    rows.forEach(({e,n})=>{
+      const d=Math.round((e.date-t0)/86400000);
+      const when=d===0?"Aujourd'hui":d===1?"Demain":d>1?"Dans "+d+" jours":d===-1?"Hier":"Il y a "+(-d)+" jours";
+      const lt=isLateEv(e,n,t0),wv=isWaitValid(e,n)&&!lt;
+      const r=$("button","nrow");r.type="button";
+      const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString(LOC(),{day:"2-digit",month:"short"})),$("small",null,when));if(lt)dt.classList.add("late");
+      const mid=$("span","nmid");mid.append($("strong",null,e.m.title),$("small",null,n[0]));
+      const bd=$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":wv?"En attente du siège":"À traiter");
+      r.append(dt,mid,bd);r.onclick=()=>{focusEv={id:e.id,kind:e.kind};openUpcoming()};ul.appendChild(r);
+    });
+    sec.appendChild(ul);app.appendChild(sec);
+  };
+  part("Échéances MAJ siège","dateSiege");
+  part("Échéances MAJ nationale / internationale","dateDeploiement");
 }
 const GUIDE_URL="https://epack.sharepoint.com/:b:/s/STU/IQATmqvcQ70JS6VNkUE34PnwAcXxZw0SHKQFE_3U6iHZNcY?e=rm49ra";
 function openSettings(){
@@ -3872,7 +3897,7 @@ function viewUpcoming(app){
     sec.appendChild(box);app.appendChild(sec);
   };
   block("MAJ siège","dateSiege");
-  block("MAJ nationale","dateDeploiement");
+  block("MAJ nationale / internationale","dateDeploiement");
   if(focusEv){const fk=focusEv.id+"|"+focusEv.kind;focusEv=null;setTimeout(()=>{const el=[...document.querySelectorAll(".sitem")].find(x=>x.dataset.ev===fk);if(el){el.scrollIntoView({block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),2200)}},30)}
   if(undated)app.appendChild($("p","sub",undated+" MAJ en cours "+(undated>1?"n'ont":"n'a")+" aucune date renseignée."));
 }
@@ -4400,7 +4425,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v215",APP_DATE="21/10/2026";
+const APP_VERSION="v218",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
