@@ -1157,7 +1157,14 @@ Nouveau concept ou site (ex. Carrousel du Louvre (Brioche Dorée)) ⇒ New conce
 Ajoute un concept : une ligne de suivi par module et par pays, comme à la création ⇒ Adds a concept: one tracking row per module and country, as at creation
 Échéances MAJ siège ⇒ HQ update deadlines
 Échéances MAJ nationale / internationale ⇒ National / international update deadlines
-MAJ nationale / internationale ⇒ National / international update`;
+MAJ nationale / internationale ⇒ National / international update
+Dossiers SharePoint ⇒ SharePoint folders
+Utilisé à la création d'un suivi : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE. ⇒ Used when a tracking is created: creates the YYYY-MM-DD folder (deployment start date) with "0. SOURCES" and "REPLACE" in SUPPORT CLIENT / SGC / group / TECHNIQUE.
+Créer les dossiers SharePoint ⇒ Create the SharePoint folders
+Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement ⇒ Creates the YYYY-MM-DD folder (deployment start date) with 0. SOURCES and REPLACE in the group's SharePoint
+Création des dossiers impossible : la date de début de déploiement n'est pas encore connue. ⇒ Folder creation impossible: the deployment start date is not known yet.
+Création des dossiers impossible : le groupement n'est pas renseigné. ⇒ Folder creation impossible: the group is not set.
+Vérifie l'URL du flux dans les paramètres. ⇒ Check the flow URL in the settings.`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
 function i18nBuild(){
   const keys=[];
@@ -1716,6 +1723,7 @@ function createMaj(){
   const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:meKey(),mods,prog:{}};stampTitle(majs[id]);
   if(plan){const mm=majs[id];mm.dateDemande=plan.dateDemande;if(plan.perso){mm.datesPerso=true;mm.dateSiege=plan.dateSiege;mm.dateDeploiement=plan.dateDeploiement}}
   persist(id,"new");resolveNames();draft={mail:"",title:"",group:"",site:"",parsed:null,msg:"",err:false,busy:false,fileName:""};setCur(id);if(plan&&plan.note)toast(plan.note);
+  syncDirs(id).then(r=>{if(r){setTimeout(()=>toast(r),plan&&plan.note?4000:0);render()}});
 }
 
 /* ---- Vues ---- */
@@ -2154,6 +2162,27 @@ async function syncCalendar2(id,m,u,s,d,key){
   m.calSent=key;persist(id);
   return changed?"Événements envoyés à Outlook. Les dates ont changé : supprime les anciens événements dans ton calendrier.":"Événements « MAJ siège » et « Déploiement MAJ » envoyés à Outlook.";
 }
+/* Dossiers SharePoint : un flux Power Automate crée SUPPORT CLIENT/SGC/<groupe>/TECHNIQUE/<AAAA-MM-JJ>/{0. SOURCES, REPLACE} */
+const LSDIR="suivi-maj-dir";
+const dirFlow=()=>getFlow(LSDIR);
+const effDeploy=m=>m.dateDeploiement||((calcDates(m,m.dateDemande)||{}).dateDeploiement)||"";
+const dirBusy={};
+async function syncDirs(id,force){
+  const m=majs[id],u=dirFlow();if(!m||!u)return "";
+  const d=effDeploy(m);if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
+  if(!force&&m.dirSent===d)return "";if(dirBusy[id])return "";
+  const g=String(groupOf(m)||m.group||"").trim();if(!g)return force?"Création des dossiers impossible : le groupement n'est pas renseigné.":"";
+  dirBusy[id]=true;
+  const q={groupe:g,date:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};
+  const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
+  let ok=false,err="";
+  try{try{await fetch(url,{method:"GET",mode:"no-cors"});ok=true}
+  catch(e){err=" ("+(e&&e.name?e.name+" : ":"")+(e&&e.message||"")+")";try{const w=window.open(url,"_blank");if(w){try{w.opener=null}catch(x){}setTimeout(()=>{try{w.close()}catch(x){}},3000);ok=true}}catch(x){}}}
+  finally{delete dirBusy[id]}
+  if(!ok)return "Création des dossiers SharePoint impossible : le navigateur a bloqué la requête"+err+". Vérifie l'URL du flux dans les paramètres.";
+  m.dirSent=d;persist(id);
+  return "Demande envoyée : dossier "+d+" (avec 0. SOURCES et REPLACE) en cours de création dans le SharePoint de "+g+".";
+}
 function flushDates(id){
   const m=majs[id];if(!m||!dateDraft||dateDraft.id!==id)return false;let ch=false;
   ["dateDemande","dateSiege","dateDeploiement"].forEach(f=>{const v=dateDraft[f]||"";if(v!==(m[f]||"")){ch=true;if(v)m[f]=v;else delete m[f]}});
@@ -2261,6 +2290,7 @@ function viewMaj(app,id){
   }else{
     const sc=$("button","chip",m.site?"Site : "+m.site:"Ajouter un site / concept");sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};hrow.appendChild(sc);
   }
+  if(!m.archived&&dirFlow()){const dc=$("button","chip",m.dirSent?"Dossiers SharePoint créés ("+fdate(m.dirSent)+")":"Créer les dossiers SharePoint");dc.type="button";dc.title="Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement";dc.onclick=()=>{dc.disabled=true;syncDirs(id,true).then(r=>{toast(r);render()})};hrow.appendChild(dc)}
   if(!m.archived){const am=$("button","chip","+ Ajouter un module");am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);hrow.appendChild(am)}
   {const dw=$("div","dates");if(!dateDraft||dateDraft.id!==id){dateDraft={id,dateDemande:m.dateDemande||"",dateSiege:m.dateSiege||"",dateDeploiement:m.dateDeploiement||""};const c0=!m.archived&&calcDates(m,m.dateDemande);if(c0)Object.assign(dateDraft,c0)}const dr=dateDraft;
    const sv=$("button","btn","Enregistrer et envoyer dans Outlook"),sm=$("span","msg"),inp={},lbs={};sv.title="Enregistre les dates et envoie les événements « MAJ siège » et « Déploiement » dans le calendrier Outlook";
@@ -3679,6 +3709,7 @@ function openSettings(){
    teams:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11.5l2.2 2.2 4.3-4.4"/></svg>',
    rocket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="M12 15l-3-3a22 22 0 0 1 2-4 12.9 12.9 0 0 1 11-6c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1 5 0 5 0M12 15v5s3-.6 4-2c1-1.6 0-5 0-5"/></svg>',
    cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 1 0-.9-8.9A6 6 0 0 0 5 12a3.5 3.5 0 0 0 .5 7z"/><path d="M12 12v6M9.5 14.5L12 12l2.5 2.5"/></svg>',
+   folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg>',
    cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 15l2 2 4-4"/></svg>'};
   const field=(ico,title,desc,get,set)=>{
     const w=$("section","setcard");
@@ -3711,6 +3742,7 @@ function openSettings(){
     field("teams","Validation siège","Utilisé quand tu coches « Validation siège ». Envoie dans Teams le nom du groupe, le QM mentionné et le lien des ressources.",teamsFlow,v=>setFlow("suivi-maj-flow",v)),
     field("rocket","Début de déploiement","Utilisé quand tu coches « Début de déploiement ». Envoie le titre de la MAJ, les ressources et les rapports, sans mentionner le QM. Si ce champ est vide, c'est l'URL de « Validation siège » qui sert.",()=>getFlow(LSDEB),v=>setFlow(LSDEB,v)),
     field("cloud","Partage SharePoint","Pour l'adresse GitHub : partage les MAJ et les groupements entre postes via un fichier JSON SharePoint. Inutile sur claude.ai, qui a sa propre base.",()=>getFlow(LSSP),v=>{const ok=setFlow(LSSP,v);setTimeout(()=>{if(spOn()){if(!spStarted)spInit();else spLoad()}},60);return ok}),
+    field("folder","Dossiers SharePoint","Utilisé à la création d'un suivi : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE.",dirFlow,v=>setFlow(LSDIR,v)),
     field("cal","Calendrier Outlook","Utilisé par le bouton « Enregistrer et envoyer dans Outlook ». Crée les événements « MAJ siège » et « Déploiement MAJ » dans le calendrier.",calFlow,v=>setFlow(LSCAL,v)));
   md.appendChild(list);
   const ac=$("div","actions");ac.style.justifyContent="flex-end";const ok=$("button","btn ghost","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
@@ -4426,7 +4458,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v219",APP_DATE="21/10/2026";
+const APP_VERSION="v220",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
