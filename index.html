@@ -1159,12 +1159,13 @@ Ajoute un concept : une ligne de suivi par module et par pays, comme à la créa
 Échéances MAJ nationale / internationale ⇒ National / international update deadlines
 MAJ nationale / internationale ⇒ National / international update
 Dossiers SharePoint ⇒ SharePoint folders
-Utilisé à la création d'un suivi : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE. ⇒ Used when a tracking is created: creates the YYYY-MM-DD folder (deployment start date) with "0. SOURCES" and "REPLACE" in SUPPORT CLIENT / SGC / group / TECHNIQUE.
+Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE. ⇒ Used when you save the update dates (together with Outlook): creates the YYYY-MM-DD folder (deployment start date) with "0. SOURCES" and "REPLACE" in SUPPORT CLIENT / SGC / group / TECHNIQUE.
 Créer les dossiers SharePoint ⇒ Create the SharePoint folders
 Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement ⇒ Creates the YYYY-MM-DD folder (deployment start date) with 0. SOURCES and REPLACE in the group's SharePoint
 Création des dossiers impossible : la date de début de déploiement n'est pas encore connue. ⇒ Folder creation impossible: the deployment start date is not known yet.
 Création des dossiers impossible : le groupement n'est pas renseigné. ⇒ Folder creation impossible: the group is not set.
-Vérifie l'URL du flux dans les paramètres. ⇒ Check the flow URL in the settings.`;
+Vérifie l'URL du flux dans les paramètres. ⇒ Check the flow URL in the settings.
+Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint). ⇒ SharePoint folders not created: the flow URL is not set in this browser (home gear > Settings > SharePoint folders).`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
 function i18nBuild(){
   const keys=[];
@@ -1723,7 +1724,6 @@ function createMaj(){
   const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:meKey(),mods,prog:{}};stampTitle(majs[id]);
   if(plan){const mm=majs[id];mm.dateDemande=plan.dateDemande;if(plan.perso){mm.datesPerso=true;mm.dateSiege=plan.dateSiege;mm.dateDeploiement=plan.dateDeploiement}}
   persist(id,"new");resolveNames();draft={mail:"",title:"",group:"",site:"",parsed:null,msg:"",err:false,busy:false,fileName:""};setCur(id);if(plan&&plan.note)toast(plan.note);
-  syncDirs(id).then(r=>{if(r){setTimeout(()=>toast(r),plan&&plan.note?4000:0);render()}});
 }
 
 /* ---- Vues ---- */
@@ -2143,7 +2143,13 @@ function toast(msg){
   document.body.appendChild(t);setTimeout(()=>{try{t.remove()}catch(e){}},8000);
 }
 const calBusy={};
+/* Enregistrer les dates : événements Outlook + création des dossiers SharePoint (même geste) */
 async function syncCalendar(id){
+  const r1=await syncCalendarCore(id);let r2="";try{r2=await syncDirs(id)}catch(e){}
+  if(r2)render();
+  return [r1,r2].filter(Boolean).join(" ");
+}
+async function syncCalendarCore(id){
   const m=majs[id],u=calFlow();if(m&&!u&&m.dateSiege&&m.dateDeploiement)return "Aucun envoi à Outlook : l'URL du flux calendrier n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres).";if(!m||!u)return "";
   const s=m.dateSiege,d=m.dateDeploiement;if(!s||!d)return "";
   const key=s+"|"+d;if(m.calSent===key||calBusy[id+key])return "";
@@ -2168,7 +2174,8 @@ const dirFlow=()=>getFlow(LSDIR);
 const effDeploy=m=>m.dateDeploiement||((calcDates(m,m.dateDemande)||{}).dateDeploiement)||"";
 const dirBusy={};
 async function syncDirs(id,force){
-  const m=majs[id],u=dirFlow();if(!m||!u)return "";
+  const m=majs[id],u=dirFlow();if(!m)return "";
+  if(!u)return effDeploy(m)?"Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint).":"";
   const d=effDeploy(m);if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
   if(!force&&m.dirSent===d)return "";if(dirBusy[id])return "";
   const g=String(groupOf(m)||m.group||"").trim();if(!g)return force?"Création des dossiers impossible : le groupement n'est pas renseigné.":"";
@@ -3742,7 +3749,7 @@ function openSettings(){
     field("teams","Validation siège","Utilisé quand tu coches « Validation siège ». Envoie dans Teams le nom du groupe, le QM mentionné et le lien des ressources.",teamsFlow,v=>setFlow("suivi-maj-flow",v)),
     field("rocket","Début de déploiement","Utilisé quand tu coches « Début de déploiement ». Envoie le titre de la MAJ, les ressources et les rapports, sans mentionner le QM. Si ce champ est vide, c'est l'URL de « Validation siège » qui sert.",()=>getFlow(LSDEB),v=>setFlow(LSDEB,v)),
     field("cloud","Partage SharePoint","Pour l'adresse GitHub : partage les MAJ et les groupements entre postes via un fichier JSON SharePoint. Inutile sur claude.ai, qui a sa propre base.",()=>getFlow(LSSP),v=>{const ok=setFlow(LSSP,v);setTimeout(()=>{if(spOn()){if(!spStarted)spInit();else spLoad()}},60);return ok}),
-    field("folder","Dossiers SharePoint","Utilisé à la création d'un suivi : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE.",dirFlow,v=>setFlow(LSDIR,v)),
+    field("folder","Dossiers SharePoint","Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE.",dirFlow,v=>setFlow(LSDIR,v)),
     field("cal","Calendrier Outlook","Utilisé par le bouton « Enregistrer et envoyer dans Outlook ». Crée les événements « MAJ siège » et « Déploiement MAJ » dans le calendrier.",calFlow,v=>setFlow(LSCAL,v)));
   md.appendChild(list);
   const ac=$("div","actions");ac.style.justifyContent="flex-end";const ok=$("button","btn ghost","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
@@ -4458,7 +4465,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v220",APP_DATE="21/10/2026";
+const APP_VERSION="v222",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
