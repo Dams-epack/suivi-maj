@@ -953,8 +953,18 @@ const MAIL_TYPES=[
 ];
 let mailType="5j",mailDlg=null;
 function closeMail(){if(mailDlg){mailDlg.bg.remove();document.removeEventListener("keydown",mailDlg.key);mailDlg=null}}
-/* Jours ouvrés : du lundi au vendredi (jours fériés non exclus) */
-const isOuvre=d=>d.getDay()!==0&&d.getDay()!==6;
+/* Jours ouvrés : du lundi au vendredi, hors jours fériés français (fêtes fixes, lundi de Pâques, Ascension, lundi de Pentecôte) */
+const FERIES_CACHE={};
+function feriesFR(y){
+  if(FERIES_CACHE[y])return FERIES_CACHE[y];
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
+  const p=new Date(y,mo-1,da),plus=n=>{const x=new Date(p);x.setDate(x.getDate()+n);return x};
+  const set=new Set(["0-1","4-1","4-8","6-14","7-15","10-1","10-11","11-25"]);
+  [1,39,50].forEach(n=>{const x=plus(n);set.add(x.getMonth()+"-"+x.getDate())});
+  return FERIES_CACHE[y]=set;
+}
+const isFerie=d=>feriesFR(d.getFullYear()).has(d.getMonth()+"-"+d.getDate());
+const isOuvre=d=>d.getDay()!==0&&d.getDay()!==6&&!isFerie(d);
 function addOuvres(d,n){const x=new Date(d),st=n<0?-1:1;let k=Math.abs(n);while(k>0){x.setDate(x.getDate()+st);if(isOuvre(x))k--}return x}
 function mailDraft(m,type){
   const J=parseD(m.dateDeploiement),S=parseD(m.dateSiege),miss=new Set(),perso=!!m.datesPerso;
@@ -1373,7 +1383,7 @@ function viewMaj(app,id){
     sl.onchange=()=>{if(sl.value==="perso")setPerso(m,id,true);else{setPerso(m,id,false);setDelay(m,id,+sl.value);recalc()}applyMode();note()};
     l.appendChild(sl);dw.insertBefore(l,dw.children[1])}
    const sub=$("p","sub");
-   const applyMode=()=>{const p=!!m.datesPerso;inp.dateSiege.disabled=inp.dateDeploiement.disabled=!p;lbs.dateSiege.textContent="Date de la mise à jour siège"+(p?"":" (calculée)");lbs.dateDeploiement.textContent="Date de déploiement de la mise à jour"+(p?"":" (calculée)");sub.textContent=p?"Dates personnalisées : choisis toi-même les dates de la mise à jour siège et du déploiement. Les mails de cette MAJ reprennent ces dates.":"La date de la demande et le délai de prévenance calculent la mise à jour siège (J-3) et le déploiement (J), en jours ouvrés (du lundi au vendredi)."};applyMode();
+   const applyMode=()=>{const p=!!m.datesPerso;inp.dateSiege.disabled=inp.dateDeploiement.disabled=!p;lbs.dateSiege.textContent="Date de la mise à jour siège"+(p?"":" (calculée)");lbs.dateDeploiement.textContent="Date de déploiement de la mise à jour"+(p?"":" (calculée)");sub.textContent=p?"Dates personnalisées : choisis toi-même les dates de la mise à jour siège et du déploiement. Les mails de cette MAJ reprennent ces dates.":"La date de la demande et le délai de prévenance calculent la mise à jour siège (J-3) et le déploiement (J), en jours ouvrés (du lundi au vendredi, hors jours fériés)."};applyMode();
    note();
    sv.onclick=async()=>{
      if(!(dr.dateSiege&&dr.dateDeploiement&&calFlow())){flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast);return}
@@ -2720,6 +2730,13 @@ function nextStep(e){
   if(e.m.secondPass&&!k.pass2)return ["Faire la seconde passe",0];
   return ["Archiver la MAJ",1];
 }
+/* Une MAJ siège déjà déposée attend la validation du siège : elle n'est en retard que si la date de déploiement est passée sans validation */
+function isWaitValid(e,n){return e.kind==="dateSiege"&&n&&n[0]==="Attendre la validation du siège"}
+function isLateEv(e,n,t0){
+  if(e.date>=t0)return false;
+  if(isWaitValid(e,n)){const D=parseD(e.m.dateDeploiement);return !!(D&&D<t0)}
+  return true;
+}
 function viewHubNext(app){
   const t0=startOfToday(),ev=majEvents().map(e=>({e,n:nextStep(e)})).filter(x=>x.n);
   const late=ev.filter(x=>x.e.date<t0).reverse(),soon=ev.filter(x=>x.e.date>=t0);
@@ -2732,10 +2749,11 @@ function viewHubNext(app){
   rows.forEach(({e,n})=>{
     const d=Math.round((e.date-t0)/86400000);
     const when=d===0?"Aujourd'hui":d===1?"Demain":d>1?"Dans "+d+" jours":d===-1?"Hier":"Il y a "+(-d)+" jours";
+    const lt=isLateEv(e,n,t0),wv=isWaitValid(e,n)&&!lt;
     const r=$("button","nrow");r.type="button";
-    const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})),$("small",null,when));if(d<0)dt.classList.add("late");
+    const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})),$("small",null,when));if(lt)dt.classList.add("late");
     const mid=$("span","nmid");mid.append($("strong",null,e.m.title),$("small",null,(e.kind==="dateSiege"?"MAJ siège":"MAJ nationale")+" · "+n[0]));
-    const bd=$("span","badge "+(n[1]?"ready":d<0?"late":"live"),n[1]?"Prête à archiver":d<0?"En retard":"À traiter");
+    const bd=$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":wv?"En attente du siège":"À traiter");
     r.append(dt,mid,bd);r.onclick=()=>{focusEv={id:e.id,kind:e.kind};openUpcoming()};ul.appendChild(r);
   });
   sec.appendChild(ul);app.appendChild(sec);
@@ -2805,7 +2823,7 @@ function viewHub(app){
   const todo=live.filter(x=>x.s.pct===100);
   const avg=live.length?Math.round(live.reduce((a,x)=>a+x.s.pct,0)/live.length):0;
   const t7=startOfToday(),lim=new Date(t7.getTime()+7*86400000);
-  const dueN=majEvents().filter(e=>nextStep(e)&&e.date<=lim).length;
+  const dueN=majEvents().filter(e=>{const n=nextStep(e);return n&&e.date<=lim&&!(isWaitValid(e,n)&&!isLateEv(e,n,startOfToday())&&e.date<startOfToday())}).length;
   const tiles=$("div","kpis");
   [["En cours",live.length,"MAJ à traiter"],["MAJ à venir",dueN,"dans les 7 jours ou en retard"],["Archivées",arch.length,"MAJ terminées"],["Avancement moyen",live.length?avg+" %":"-",live.length?"des MAJ en cours":"aucune MAJ en cours"],["Durée moyenne",arch.length?fmtDur(arch.reduce((a,x)=>a+durOf(x.m),0)/arch.length):"-","de préparation (archivées)"]].forEach(([a,v,c],i)=>{
     const t=$("div","kpi");t.append($("small",null,a),$("b",null,String(v)),$("span",null,c));
@@ -3497,7 +3515,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v196",APP_DATE="20/10/2026";
+const APP_VERSION="v198",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
