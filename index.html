@@ -43,7 +43,12 @@ h2{font-size:1.05rem;margin:0;font-weight:600}
 .setnote svg{width:18px;height:18px;flex:none;margin-top:1px;color:var(--warn)}
 .setlist{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
 .setcard{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:10px;border-left:4px solid var(--cta)}
-.settop{display:flex;gap:12px;align-items:flex-start}
+.settop{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.settop:focus-visible{outline:2px solid var(--cta);outline-offset:3px;border-radius:8px}
+.setchev{flex:none;width:18px;height:18px;margin-top:3px;transition:transform .15s;color:var(--muted)}
+.setcard.shut .setchev{transform:rotate(-90deg)}
+.setcard.shut>:not(.settop){display:none}
+.setcard.shut{gap:0}
 .setico{flex:none;width:38px;height:38px;border-radius:10px;background:var(--cta);color:var(--cta-fg);display:grid;place-items:center}
 .setico svg{width:20px;height:20px}
 .settx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
@@ -412,10 +417,31 @@ const slug=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[
 
 const seen=new Set();
 const fdate=t=>new Date(t).toLocaleDateString("fr-FR");
-const who=uid=>uid?(names[uid]||"…"):"";
+const LSME="suivi-maj-nom";
+const myName=()=>{try{return(localStorage.getItem(LSME)||"").trim()}catch(e){return""}};
+const setMyName=v=>{v=String(v||"").replace(/\s+/g," ").trim().slice(0,60);try{if(v)localStorage.setItem(LSME,v);else localStorage.removeItem(LSME)}catch(e){}return v};
+const meKey=()=>{const n=myName();return n?"n:"+n:(myId||null)};
+const who=uid=>uid?(String(uid).startsWith("n:")?String(uid).slice(2):(names[uid]||"…")):"";
+function askName(){
+  return new Promise(res=>{
+    const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","anm");
+    const md=$("div","modal xml");md.style.maxWidth="480px";bg.appendChild(md);document.body.appendChild(bg);
+    let done=false;const fin=v=>{if(done)return;done=true;document.removeEventListener("keydown",key);bg.remove();res(v)};
+    const key=e=>{if(e.key==="Escape")fin("")};document.addEventListener("keydown",key);
+    const h=$("h2",null,"Qui prépare cette MAJ ?");h.id="anm";
+    const i=$("input");i.type="text";i.placeholder="Prénom Nom";i.autocomplete="name";i.setAttribute("aria-label","Ton nom");
+    const l=$("label","fld");l.append($("span",null,"Ton nom (enregistré dans ce navigateur, modifiable dans Paramètres)"),i);
+    const ok=$("button","btn","Enregistrer");ok.type="button";const no=$("button","btn ghost","Passer");no.type="button";
+    const upd=()=>{ok.disabled=!i.value.trim()};i.oninput=upd;upd();
+    ok.onclick=()=>fin(setMyName(i.value));no.onclick=()=>fin("");
+    i.onkeydown=e=>{if(e.key==="Enter"&&i.value.trim()){e.preventDefault();fin(setMyName(i.value))}};
+    const bar=$("div","actions");bar.append(ok,no);
+    md.append(h,$("p","sub","Ce nom sera affiché sur la fiche, dans les listes et l'export."),l,bar);setTimeout(()=>i.focus(),0);
+  });
+}
 function resolveNames(){
   if(!userApi)return;
-  const ids=new Set();Object.values(majs).forEach(m=>{if(m.createdBy)ids.add(m.createdBy);if(m.archivedBy)ids.add(m.archivedBy)});
+  const ids=new Set();Object.values(majs).forEach(m=>{if(m.createdBy&&!String(m.createdBy).startsWith("n:"))ids.add(m.createdBy);if(m.archivedBy&&!String(m.archivedBy).startsWith("n:"))ids.add(m.archivedBy)});
   const miss=[...ids].filter(i=>!names[i]);if(!miss.length)return;
   userApi.profiles(miss).then(ps=>{
     miss.forEach(i=>{const pr=ps&&ps[i];names[i]=pr?((pr.name||"Un collègue")+(pr.isMe?" (moi)":"")):"Un collègue"});
@@ -477,7 +503,7 @@ function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;const rs=[...new Set(
 /* Nom des ZIP : NOM DU GROUPEMENT - Nom du fichier XML */
 const zipGroup=id=>{const m=majs[id];const g=m?(groupOf(m)||m.group||""):"";return String(g).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim()};
 const zipName=(id,base)=>{const g=zipGroup(id);return (g?g+" - ":"")+base+".zip"};
-function archiveMaj(id){flushDates(id);const m=majs[id];stampTitle(m);m.archived=true;m.archivedAt=Date.now();if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,m.archivedAt-m.pausedAt);m.pausedAt=null}m.archivedBy=myId||null;persist(id);resolveNames()}
+function archiveMaj(id){flushDates(id);const m=majs[id];stampTitle(m);m.archived=true;m.archivedAt=Date.now();if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,m.archivedAt-m.pausedAt);m.pausedAt=null}m.archivedBy=meKey();persist(id);resolveNames()}
 const wq={};
 function mergeMaj(l,r){
   if(!l)return r;
@@ -824,14 +850,15 @@ async function finishCreate(){
     if(!g){draft.msg="Création annulée : le nom du groupement est nécessaire.";draft.err=true;render();return}
     draft.group=g.toUpperCase();
   }
-  createMaj();
+  ensureName().then(createMaj);
 }
 function closeModal(val){const m=draft.modal;draft.modal=null;render();if(m)m.resolve(val)}
+async function ensureName(){if(!myName())await askName()}
 function createMaj(){
   const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,gen:true,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
   const id="maj-"+Date.now();
   const title=baseTitleFor(draft.group);
-  const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:myId||null,mods,prog:{}};stampTitle(majs[id]);
+  const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:meKey(),mods,prog:{}};stampTitle(majs[id]);
   if(plan){const mm=majs[id];mm.dateDemande=plan.dateDemande;if(plan.perso){mm.datesPerso=true;mm.dateSiege=plan.dateSiege;mm.dateDeploiement=plan.dateDeploiement}}
   persist(id,"new");resolveNames();draft={mail:"",title:"",group:"",site:"",parsed:null,msg:"",err:false,busy:false,fileName:""};setCur(id);if(plan&&plan.note)toast(plan.note);
 }
@@ -1332,7 +1359,9 @@ function viewMaj(app,id){
   const sy=$("span","msg",syncTxt);sy.id="sync";
   top.append(back,sy);app.appendChild(top);
   const hrow=$("div","hrow");hrow.appendChild($("h1",null,m.title));app.appendChild(hrow);
-  app.appendChild($("p","sub","Créée le "+fdate(m.created)+(m.createdBy?" par "+who(m.createdBy):"")));
+  {const sp=$("p","sub","Créée le "+fdate(m.created)+(m.createdBy?" par "+who(m.createdBy):""));
+   if(!m.createdBy){const b=$("button","btn ghost","Indiquer qui l'a préparée");b.type="button";b.style.marginLeft="8px";b.onclick=async()=>{await ensureName();const k=meKey();if(!k)return;m.createdBy=k;persist(id);render()};sp.appendChild(b)}
+   app.appendChild(sp)}
   {const c=csmOf(m);if(c)app.appendChild($("p","sub","CSM du groupe : "+c.csm+" · QM : "+(c.qm||"aucun")))}
   {const tp=$("p","timer");tp.setAttribute("role","timer");
    const tb=$("b");
@@ -2181,7 +2210,7 @@ function logXml(id,k,file,kind,bytes){
   let mod="",reg="";(cm.mods||[]).forEach(M=>(M.regions||[]).forEach(r=>{if(M.id+"_"+r.key===k){mod=M.name;reg=norm(r.label)}}));
   const L=(cm.xmlLog||[]).slice();
   if(L.length&&L[0].file===file&&L[0].reg===reg&&Date.now()-L[0].t<8000)return;
-  const e={t:Date.now(),file,mod,reg,kind:kind||"",by:myId||null};
+  const e={t:Date.now(),file,mod,reg,kind:kind||"",by:meKey()};
   L.unshift(e);cm.xmlLog=L.slice(0,60);persist(id);
   if(bytes&&xcol&&bytes.length<=XMAX){
     const bid="x"+e.t.toString(36)+Math.random().toString(36).slice(2,6);
@@ -2794,8 +2823,25 @@ function openSettings(){
     const sv=()=>{const v=cleanUrl(fi.value),ok=set(v);fi.value=v;saved=v;upd();refresh();st.className="setst "+(ok?"ok":"warn");st.textContent=!v?"URL supprimée.":ok?"Enregistré dans ce navigateur.":"Gardée pour cette session seulement : ce navigateur refuse de la mémoriser, il faudra la ressaisir après rechargement."};
     fi.oninput=()=>{set(fi.value);upd();refresh();if(dirty()){st.className="setst";st.textContent="Modification non enregistrée."}};
     sb.onclick=sv;fi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();if(dirty())sv()}};
-    w.append(top,row,st);return w};
+    w.append(top,row,st);const setS=fold2(w,top,pill);w._shut=setS;return w};
+  const fold2=(w,top,pill)=>{
+    const ch=document.createElement("span");ch.className="setchev";ch.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';top.appendChild(ch);
+    top.setAttribute("role","button");top.tabIndex=0;
+    const setS=v=>{w.classList.toggle("shut",v);top.setAttribute("aria-expanded",v?"false":"true")};
+    top.onclick=()=>setS(!w.classList.contains("shut"));
+    top.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setS(!w.classList.contains("shut"))}};
+    setS(pill.classList.contains("on"));return setS};
   const list=$("div","setlist");
+  {const w=$("section","setcard");const top=$("div","settop");const ib=$("span","setico");ib.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
+    const tx=$("div","settx");tx.append($("b",null,"Mon nom"),$("small",null,"Affiché comme « préparée par » sur les MAJ que tu crées ou archives. Propre à ce navigateur."));
+    const pill=$("span","setpill");top.append(ib,tx,pill);
+    const row=$("div","setrow2");const fi=$("input");fi.type="text";fi.className="seturl";fi.placeholder="Prénom Nom";fi.value=myName();fi.setAttribute("aria-label","Mon nom");fi.autocomplete="name";
+    const sb=$("button","btn","Enregistrer");sb.type="button";row.append(fi,sb);const st=$("p","setst");st.setAttribute("role","status");
+    let saved=myName();const upd=()=>{const on=!!myName();pill.className="setpill "+(on?"on":"off");pill.textContent=on?"Configuré":"À renseigner"};upd();
+    const refresh=()=>{sb.disabled=fi.value.trim().replace(/\s+/g," ")===saved};refresh();
+    const sv=()=>{saved=setMyName(fi.value);fi.value=saved;upd();refresh();st.className="setst ok";st.textContent=saved?"Enregistré dans ce navigateur.":"Nom supprimé."};
+    fi.oninput=refresh;sb.onclick=sv;fi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();if(!sb.disabled)sv()}};
+    w.append(top,row,st);fold2(w,top,pill);list.appendChild(w)}
   list.append(
     field("teams","Validation siège","Utilisé quand tu coches « Validation siège ». Envoie dans Teams le nom du groupe, le QM mentionné et le lien des ressources.",teamsFlow,v=>setFlow("suivi-maj-flow",v)),
     field("rocket","Début de déploiement","Utilisé quand tu coches « Début de déploiement ». Envoie le titre de la MAJ, les ressources et les rapports, sans mentionner le QM. Si ce champ est vide, c'est l'URL de « Validation siège » qui sert.",()=>getFlow(LSDEB),v=>setFlow(LSDEB,v)),
@@ -3002,7 +3048,7 @@ function viewArchTable(app,rows){
     s.onchange=()=>{archF[key]=s.value;render()};l.appendChild(s);bar.appendChild(l)};
   mk("Enseigne","g",gs);mk("Langue","l",ls);
   app.appendChild(bar);
-  const COLS=[["g","Enseigne",x=>groupOf(x.m)||""],["s","Site",x=>x.m.site||""],["t","MAJ",x=>x.m.title||""],["l","Langues",x=>R(x).join(", ")],["mo","Modules",x=>[...new Set(x.m.mods.map(M=>M.name))].join(", ")],["dem","Demande",x=>x.m.dateDemande||0],["dep","Déploiement",x=>x.m.dateDeploiement||0],["arch","Archivée le",x=>x.m.archivedAt||x.m.created||0],["dur","Durée",x=>durOf(x.m)]];
+  const COLS=[["g","Enseigne",x=>groupOf(x.m)||""],["s","Site",x=>x.m.site||""],["t","MAJ",x=>x.m.title||""],["l","Langues",x=>R(x).join(", ")],["mo","Modules",x=>[...new Set(x.m.mods.map(M=>M.name))].join(", ")],["dem","Demande",x=>x.m.dateDemande||0],["dep","Déploiement",x=>x.m.dateDeploiement||0],["arch","Archivée le",x=>x.m.archivedAt||x.m.created||0],["by","Créé par",x=>who(x.m.createdBy)],["dur","Durée",x=>durOf(x.m)]];
   const fmt={dem:v=>v?fdate(v):"-",dep:v=>v?fdate(v):"-",arch:v=>v?fdate(v):"-",dur:v=>fmtDur(v)};
   let data=rows.filter(x=>(!archF.g||groupOf(x.m)===archF.g)&&(!archF.l||R(x).includes(archF.l)));
   const c=COLS.find(z=>z[0]===archSort.k)||COLS.find(z=>z[0]==="arch");
@@ -3016,7 +3062,7 @@ function viewArchTable(app,rows){
     COLS.forEach(([k,,f])=>{const v=f(x),td=$("td",null,"");
       if(k==="l"){String(v).split(", ").filter(Boolean).forEach(c=>td.appendChild($("span","lchip",c)))}
       else if(k==="g"){td.appendChild($("strong","gname",v||"-"))}
-      else if(k==="s"){td.textContent=v||"-"}
+      else if(k==="s"||k==="by"){td.textContent=v||"-"}
       else{td.textContent=fmt[k]?fmt[k](v):v;if(k==="dur"||k==="dem"||k==="dep"||k==="arch")td.className="num"}
       tr.appendChild(td)});
     const go=()=>{backTo="archived";setCur(x.id)};tr.onclick=go;tr.onkeydown=e=>{if(e.key==="Enter")go()};tbd.appendChild(tr)});
@@ -3195,7 +3241,7 @@ function registerGroup(n){
   n=cleanG(n);if(!n)return null;const k=gkey(n);if(!k)return null;
   const ex=Object.values(gmap).find(x=>gkey(x)===k);if(ex)return ex;
   gmap[k]=n;try{localStorage.setItem(LSG,JSON.stringify(gmap))}catch(e){}
-  if(gcol)gcol.doc(k).set({name:n,addedBy:myId||null,addedAt:Date.now()}).catch(()=>{});
+  if(gcol)gcol.doc(k).set({name:n,addedBy:meKey(),addedAt:Date.now()}).catch(()=>{});
   spQueue();
   return n;
 }
@@ -3444,7 +3490,7 @@ const FLAGS={FR:"linear-gradient(90deg,#1f3f9a 33%,#fff 33% 66%,#d62b3b 66%)","L
     const regs=[...REGIONS,...st.extra].filter(r=>st.regs.has(r));
     const cons=st.concepts.filter(c=>st.csel.has(c));
     draft.group=g;draft.parsed=names.map(n=>({name:n,regions:cons.length?cons.flatMap(c=>regs.map(r=>({label:r,concept:c}))):regs.slice()}));
-    closeCustom();createMaj();
+    closeCustom();ensureName().then(createMaj);
   };
   cdlg.refresh=()=>{if(open)paintCombo()};
   paintRegs();paintConcepts();paintMods();check();
@@ -3515,7 +3561,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v198",APP_DATE="21/10/2026";
+const APP_VERSION="v201",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
