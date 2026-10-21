@@ -1144,7 +1144,12 @@ Une seconde passe est-elle nécessaire ? ⇒ Is a second pass needed?
 Ajouter des modules ⇒ Add modules
 Pour un module que l'analyse du mail n'a pas relevé. Les régions déjà suivies sont cochées par défaut. ⇒ For a module the email analysis did not pick up. Regions already tracked are checked by default.
 Nettoyage de postes ⇒ Workstation cleaning
-Suivi des huiles ⇒ Oil tracking`;
+Suivi des huiles ⇒ Oil tracking
+Lien incomplet ⇒ Incomplete link
+Le lien doit commencer par https:// ⇒ The link must start with https://
+Lien incomplet : « api-version= » manque ⇒ Incomplete link: "api-version=" is missing
+Lien incomplet : la clé « sig= » est absente ou coupée ⇒ Incomplete link: the "sig=" key is missing or truncated
+Recopie le lien complet depuis le guide. ⇒ Copy the full link again from the guide.`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
 function i18nBuild(){
   const keys=[];
@@ -1898,6 +1903,7 @@ function openMail(id,type,only){
 let teamsDlg=null;
 function closeTeams(){if(teamsDlg){const cb=teamsDlg.onClose;teamsDlg.bg.remove();document.removeEventListener("keydown",teamsDlg.key);teamsDlg=null;if(cb)setTimeout(cb,0)}}
 /* Nettoie une URL collée depuis un PDF : espaces, retours à la ligne et tiret perdu de api-version */
+const urlBad=v=>{v=String(v||"");if(!v)return"";if(!/^https:\/\//i.test(v))return"Le lien doit commencer par https://";if(!/[?&]api-version=/.test(v))return"Lien incomplet : « api-version= » manque";if(!/[?&]sig=[^&]{20,}/.test(v))return"Lien incomplet : la clé « sig= » est absente ou coupée";return""};
 const cleanUrl=v=>String(v||"").replace(/[\s\u00a0\u200b-\u200d\ufeff]+/g,"").replace(/([?&])apiversion=/i,"$1api-version=");
 const memFlow={};
 const getFlow=k=>{let v="";try{v=localStorage.getItem(k)||""}catch(e){}return cleanUrl(v||memFlow[k]||"")};
@@ -3660,10 +3666,10 @@ function openSettings(){
     row.append(fi,eye,sb);
     const st=$("p","setst");st.setAttribute("role","status");
     let saved=get();
-    const upd=()=>{const on=!!get();pill.className="setpill "+(on?"on":"off");pill.textContent=on?"Configuré":"À renseigner"};upd();
+    const upd=()=>{const g=get(),on=!!g,bad=on&&urlBad(g);pill.className="setpill "+(on&&!bad?"on":"off");pill.textContent=bad?"Lien incomplet":on?"Configuré":"À renseigner";if(bad){st.className="setst warn";st.textContent=bad+". Recopie le lien complet depuis le guide."}else if(on&&st.classList.contains("warn")){st.className="setst";st.textContent=""}};
     const dirty=()=>cleanUrl(fi.value)!==saved;
     const refresh=()=>{sb.disabled=!dirty()};refresh();
-    const sv=()=>{const v=cleanUrl(fi.value),ok=set(v);fi.value=v;saved=v;upd();refresh();st.className="setst "+(ok?"ok":"warn");st.textContent=!v?"URL supprimée.":ok?"Enregistré dans ce navigateur.":"Gardée pour cette session seulement : ce navigateur refuse de la mémoriser, il faudra la ressaisir après rechargement."};
+    const sv=()=>{const v=cleanUrl(fi.value),ok=set(v);fi.value=v;saved=v;upd();refresh();st.className="setst "+(ok?"ok":"warn");st.textContent=!v?"URL supprimée.":ok?"Enregistré dans ce navigateur.":"Gardée pour cette session seulement : ce navigateur refuse de la mémoriser, il faudra la ressaisir après rechargement.";{const bd=urlBad(v);if(bd){st.className="setst warn";st.textContent=bd+". Recopie le lien complet depuis le guide."}}};
     fi.oninput=()=>{set(fi.value);upd();refresh();if(dirty()){st.className="setst";st.textContent="Modification non enregistrée."}};
     sb.onclick=sv;fi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();if(dirty())sv()}};
     w.append(top,row,st);const setS=fold2(w,top,pill);w._shut=setS;return w};
@@ -4394,7 +4400,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v214",APP_DATE="21/10/2026";
+const APP_VERSION="v215",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
