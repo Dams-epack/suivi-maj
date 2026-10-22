@@ -1375,7 +1375,17 @@ function mergeMaj(l,r){
   const keys=new Set([...Object.keys(l.prog||{}),...Object.keys(r.prog||{})]);
   base.prog={};
   keys.forEach(k=>{const a=(l.prog||{})[k],b=(r.prog||{})[k];base.prog[k]=!a?b:!b?a:((b.t||0)>(a.t||0)?b:a)});
+  /* Mails envoyés : fusion case par case (le dernier geste sur chaque case l'emporte), pour qu'une copie plus récente d'un autre poste n'efface pas une case cochée ici */
+  {const nv=v=>typeof v==="number"?v:(v?1:0),lm=l.mails||{},rm=r.mails||{},lo=l.mailsOff||{},ro=r.mailsOff||{};
+   const ks=new Set([...Object.keys(lm),...Object.keys(rm),...Object.keys(lo),...Object.keys(ro)]),mails={},off={};
+   ks.forEach(k=>{const on=Math.max(nv(lm[k]),nv(rm[k])),of=Math.max(nv(lo[k]),nv(ro[k]));if(on&&on>=of)mails[k]=on===1?(lm[k]&&nv(lm[k])===1?lm[k]:rm[k]):on;else if(of)off[k]=of});
+   base.mails=mails;if(Object.keys(off).length)base.mailsOff=off;else delete base.mailsOff}
   return base;
+}
+function setMail(m,k,on){
+  m.mails=Object.assign({},m.mails);m.mailsOff=Object.assign({},m.mailsOff);
+  if(on){m.mails[k]=Date.now();delete m.mailsOff[k]}else{delete m.mails[k];m.mailsOff[k]=Date.now()}
+  if(!Object.keys(m.mailsOff).length)delete m.mailsOff;
 }
 function persist(id,what){
   const m=majs[id];syncDone(m);
@@ -2109,7 +2119,7 @@ function viewMailTrack(app,id){
     if(done&&typeof m.mails[k]==="number")t.appendChild($("small",null,"Envoyé le "+fdate(m.mails[k])));
     const b=$("button","step");b.type="button";b.setAttribute("role","checkbox");b.setAttribute("aria-checked",String(done));b.setAttribute("aria-label",lab+" : envoyé");b.dataset.fid="mail-"+k;
     b.append($("span","box",done?"✓":""),$("span",null,"Envoyé"));
-    b.onclick=()=>{m.mails=Object.assign({},m.mails);if(m.mails[k])delete m.mails[k];else m.mails[k]=Date.now();persist(id);render()};
+    b.onclick=()=>{setMail(m,k,!m.mails[k]);persist(id);render()};
     const o=$("button","chip","Ouvrir le mail");o.type="button";o.onclick=()=>openMail(id,type==="5j"?(delayOf(m)===5?"5j":"7j"):type);
     row.append(t,b,o);ls.appendChild(row);
   });
@@ -3900,7 +3910,7 @@ function viewUpcoming(app){
       const sw=$("button","tgl"+(on?" on":""));sw.type="button";sw.setAttribute("role","switch");sw.setAttribute("aria-checked",String(on));
       const vs=k==="validSiege";sw.setAttribute("aria-label",lab+(vs?" : validée par le client":" : mail envoyé"));sw.title=on?(typeof e.m.mails[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(e.m.mails[k]):(vs?"Validée":"Mail envoyé")):(vs?"Pas encore validée":"Mail non envoyé");
       sw.append($("span","tgt"),$("span","tgl2",lab));
-      sw.onclick=()=>{const m=e.m,was=!!(m.mails&&m.mails[k]);m.mails=Object.assign({},m.mails);if(was)delete m.mails[k];else m.mails[k]=Date.now();persist(e.id);render();if(was)return;
+      sw.onclick=()=>{const m=e.m,was=!!(m.mails&&m.mails[k]);setMail(m,k,!was);persist(e.id);render();if(was)return;
         if(k==="validSiege")openTeams(m);
         else if(k==="prise")openMail(e.id,delayOf(m)===5?"5j":"7j",["5j","7j"]);
         else if(k==="siege")openMail(e.id,"siege",["siege"]);
@@ -4465,7 +4475,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v222",APP_DATE="21/10/2026";
+const APP_VERSION="v223",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   const app=document.getElementById("app");
