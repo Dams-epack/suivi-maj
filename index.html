@@ -31,8 +31,33 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px
 .brandbar>span{display:flex;align-items:center;gap:14px;font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--band-fg);opacity:.88}
 .brandbar>span::before{content:"";width:1px;height:20px;background:linear-gradient(transparent,var(--cta),transparent)}
 .brandbar{flex-wrap:wrap}
+body.fixmode::before{content:"";position:fixed;left:0;right:0;top:0;height:340px;z-index:1;pointer-events:none;background:radial-gradient(ellipse 70% 100% at 50% 0%,rgba(255,138,40,.30),rgba(255,138,40,.10) 45%,transparent 75%);animation:fixglow 4s ease-in-out infinite alternate}
+body.fixmode .brandbar::after{background:linear-gradient(90deg,#FF8A28,rgba(255,138,40,.25))}
+body.fixmode .brandbar{border-bottom-color:#FF8A28;box-shadow:0 8px 30px -8px rgba(255,138,40,.85)}
+body.depmode::before{content:"";position:fixed;left:0;right:0;top:0;height:340px;z-index:1;pointer-events:none;background:radial-gradient(ellipse 70% 100% at 50% 0%,rgba(155,249,68,.24),rgba(155,249,68,.08) 45%,transparent 75%);animation:fixglow 4s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){body.depmode::before{animation:none}}
+@keyframes fixglow{from{opacity:.65}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){body.fixmode::before{animation:none}}
 .cog svg{transition:transform .6s cubic-bezier(.3,.7,.3,1)}.cog:hover svg{transform:rotate(90deg)}.cog.turn svg{animation:cogturn .8s cubic-bezier(.3,.7,.3,1)}@keyframes cogturn{from{transform:rotate(90deg)}to{transform:rotate(450deg)}}
 .guide svg{transition:transform .35s cubic-bezier(.3,1.6,.5,1)}.guide:hover svg{transform:rotate(-12deg) scale(1.18)}.guide.flip svg{animation:bookflip .7s cubic-bezier(.3,.7,.3,1)}@keyframes bookflip{0%{transform:perspective(60px) rotateY(0) scale(1.18)}60%{transform:perspective(60px) rotateY(200deg) scale(1.3)}100%{transform:perspective(60px) rotateY(360deg) scale(1)}}
+.typeseg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface);gap:2px;align-self:flex-start}
+.typeseg button{font:inherit;border:0;background:transparent;color:var(--fg);padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.88rem}
+.typeseg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.typeseg button.cor[aria-pressed="true"]{background:var(--mid);color:#fff}
+.typeseg button:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
+.chip.fixchip{border-color:var(--mid);color:var(--mid);font-weight:700}
+.gpill.fix{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
+.tbar{display:flex;height:12px;border-radius:999px;overflow:hidden;background:var(--line);margin:6px 0 4px}.tbar i{display:block;height:100%}.tbar i.n{background:var(--ok)}.tbar i.c{background:var(--mid)}
+.h1edit{flex:1 1 320px;min-width:200px;font:inherit;font-size:inherit;font-weight:700;font-size:1.6rem;line-height:1.25;padding:2px 10px;border-radius:10px;border:2px solid #9BF944;background:transparent;color:inherit}.h1ok{background:#9BF944!important;color:#1b2a28!important;border-color:#9BF944!important;font-weight:700}
+.amenu{width:auto;min-width:250px;padding:6px;gap:2px}
+.amitem{font:inherit;text-align:left;background:transparent;border:0;color:inherit;padding:9px 12px;border-radius:8px;cursor:pointer}
+.amitem{--c:#9BF944;border-left:3px solid color-mix(in srgb,var(--c) 45%,transparent);transition:background .15s,color .15s,border-color .15s,padding-left .15s}
+.amitem.fixit{--c:#FF8A28}.amitem.fixit:hover,.amitem.fixit:focus-visible{background:rgba(255,138,40,.18)!important;color:#FF8A28!important;border-left-color:#FF8A28!important}
+.amitem:hover,.amitem:focus-visible{background:color-mix(in srgb,#305754 70%,transparent);border-left-color:var(--c);color:var(--c);padding-left:16px;outline:none}
+:root[data-theme="light"] .amitem:hover,:root[data-theme="light"] .amitem:focus-visible{background:rgba(155,249,68,.28);color:#305754;border-left-color:#305754}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .amitem:hover,:root:not([data-theme="dark"]) .amitem:focus-visible{background:rgba(155,249,68,.28);color:#305754;border-left-color:#305754}}
+.actbtn{font-size:1.15rem;line-height:1;padding:4px 13px;font-weight:800;letter-spacing:.08em}
+.typebadge{font-size:.76rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 11px;border-radius:999px;background:color-mix(in srgb,var(--mid) 16%,transparent);color:var(--mid);border:1px solid var(--mid)}
 .refresh svg{transition:transform .5s cubic-bezier(.3,.7,.3,1)}.refresh:hover svg{transform:rotate(180deg)}.refresh.spin svg{animation:rfspin .8s linear infinite}@keyframes rfspin{to{transform:rotate(360deg)}}
 .brandright{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
 .brandright:empty{display:none}
@@ -271,7 +296,20 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .nrow:has(.badge.late){border-left-color:var(--bad)}
 .nrow.today{border-left-color:var(--today);background:var(--today-soft)}.nrow.today .ndate b,.nrow.today .ndate small{color:var(--today);font-weight:700}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.timer{margin:0;color:var(--muted)}.timer b{font-family:var(--mono);font-weight:500;color:var(--fg);font-size:1.05rem}
+.fixdd{font:inherit;display:inline-flex;align-items:center;gap:10px;max-width:min(520px,100%);padding:7px 12px 7px 14px;border-radius:999px;border:1px solid #FF8A28;background:rgba(255,138,40,.10);color:#FF8A28;font-weight:600;cursor:pointer;transition:background .15s,box-shadow .15s}
+.fixdd:hover,.fixdd:focus-visible{background:rgba(255,138,40,.22);box-shadow:0 0 14px -2px rgba(255,138,40,.7);outline:none}
+.fixdd.empty{font-weight:500;opacity:.9;border-style:dashed}.fixdd .fdl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fixdd .fdc{font-size:.8rem}
+.fixmenu{width:auto;padding:8px;gap:2px;max-width:calc(100vw - 16px)}
+.fixq{margin:2px 2px 6px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit}
+.fixq:focus{outline:none;border-color:#FF8A28;box-shadow:0 0 0 3px rgba(255,138,40,.25)}
+.fixlist{display:flex;flex-direction:column;gap:2px;max-height:340px;overflow:auto}
+.fixgh{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:10px 10px 4px;font-weight:700}
+.fixit2{font:inherit;text-align:left;display:grid;grid-template-columns:18px 1fr auto;align-items:center;gap:8px;background:transparent;border:0;border-left:3px solid transparent;color:inherit;padding:8px 12px 8px 8px;border-radius:8px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.fixit2 small{color:var(--muted);font-size:.78rem}.fixit2 .fck{color:#FF8A28;font-weight:800}
+.fixit2:hover,.fixit2:focus-visible{background:rgba(255,138,40,.16);border-left-color:#FF8A28;color:#FF8A28;outline:none}
+.fixit2:hover small,.fixit2:focus-visible small{color:inherit;opacity:.8}.fixit2.sel{background:rgba(255,138,40,.10)}
+.fixref{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:4px 0 10px}.fixref select{max-width:min(520px,100%);width:auto}
+.metarow{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;margin:6px 0}.metarow>p{margin:0}.timer{margin:0;color:var(--muted)}.timer b{font-family:var(--mono);font-weight:500;color:var(--fg);font-size:1.05rem}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
 .kpi small{color:var(--muted);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase}
 .kpi b{font-size:2rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
@@ -463,7 +501,7 @@ const STEPS=[["Fichier d'import","Import"],["Configurateur (XML)","XML"],["Mouli
 const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dépôt SharePoint"]];
 const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?STEPS2:STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
-let userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
+let userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
 /* MAJ en cours créées avec l'ancien flux (Configurateur + Moulinette) : passage aux 2 étapes, la coche Import est conservée */
 function upgradeMaj(m){
   if(!m||m.archived||!Array.isArray(m.mods))return false;let ch=false;
@@ -1186,7 +1224,23 @@ Création des dossiers impossible : le groupement n'est pas renseigné. ⇒ Fold
 Vérifie l'URL du flux dans les paramètres. ⇒ Check the flow URL in the settings.
 Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint). ⇒ SharePoint folders not created: the flow URL is not set in this browser (home gear > Settings > SharePoint folders).
 Outil Support Grands Comptes ⇒ Key Accounts Support Tool
-Retour à l'accueil ⇒ Back to home`;
+Retour à l'accueil ⇒ Back to home
+Ouvrir le dossier ⇒ Open the folder
+Ouvrir le rapport ⇒ Open the report
+Type de MAJ ⇒ Update type
+Correctif ⇒ Fix
+Correctif (oubli, erreur) : pas d'événement Outlook, dossier SharePoint suffixé CORRECTIF ⇒ Fix (omission, error): no Outlook event, SharePoint folder suffixed CORRECTIF
+Type : Correctif ⇒ Type: Fix
+Type : Déploiement ⇒ Type: Deployment
+Changer le type de MAJ (déploiement ou correctif) ⇒ Change the update type (deployment or fix)
+Enregistrer les dates ⇒ Save the dates
+Déploiements et correctifs ⇒ Deployments and fixes
+Répartition des MAJ (en cours et archivées) par enseigne. ⇒ Split of updates (in progress and archived) per brand.
+Présélectionné d'après le mail. Modifiable. ⇒ Preselected from the email. Editable.
+Passer en correctif ⇒ Switch to fix
+Repasser en déploiement ⇒ Switch back to deployment
+Ajouter un module ⇒ Add a module
+Actions sur cette MAJ ⇒ Actions for this update`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
 function i18nBuild(){
   const keys=[];
@@ -1269,6 +1323,24 @@ try{const t=localStorage.getItem(LSTH);if(t==="dark"||t==="light")document.docum
 const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 function pmClose(pm){if(!pm||pm.classList.contains("out"))return;if(matchMedia("(prefers-reduced-motion:reduce)").matches){pm.remove();return}pm.classList.add("out");setTimeout(()=>pm.remove(),170)}
+/* Menu « ⋯ » des actions de la fiche : évite une rangée de boutons sous le titre */
+function actMenu(row,acts){
+  if(!acts.length)return;
+  const b=$("button","chip actbtn","⋯");b.type="button";b.title="Actions sur cette MAJ";b.setAttribute("aria-label","Actions sur cette MAJ");b.setAttribute("aria-haspopup","menu");
+  b.onclick=()=>{
+    const old=document.getElementById("amenu");if(old){pmClose(old);return}
+    const pm=$("div","pmenu amenu");pm.id="amenu";pm.setAttribute("role","menu");
+    const end=()=>{pmClose(pm);document.removeEventListener("mousedown",away);document.removeEventListener("keydown",esc)};
+    acts.forEach(a=>{const it=$("button","amitem",a.textContent);it.type="button";if(a.dataset&&a.dataset.fix)it.classList.add("fixit");it.setAttribute("role","menuitem");if(a.title)it.title=a.title;it.onclick=()=>{end();a.onclick()};pm.appendChild(it)});
+    const r=b.getBoundingClientRect();pm.style.top=(r.bottom+window.scrollY+8)+"px";pm.style.left=Math.max(8,Math.min(r.left+window.scrollX,document.documentElement.clientWidth-270))+"px";pm.style.transformOrigin="top left";
+    document.body.appendChild(pm);
+    const away=e=>{if(!pm.contains(e.target)&&!b.contains(e.target))end()};
+    const esc=e=>{if(e.key==="Escape"){end();b.focus()}};
+    document.addEventListener("mousedown",away);document.addEventListener("keydown",esc);
+    setTimeout(()=>{const f=pm.querySelector(".amitem");if(f)f.focus()},0);
+  };
+  row.appendChild(b);
+}
 function profileMenu(anchor){
   const old=document.getElementById("pmenu");if(old){pmClose(old);return}
   const pm=$("div","pmenu");pm.id="pmenu";pm.setAttribute("role","dialog");pm.setAttribute("aria-label","Profil");
@@ -1383,7 +1455,7 @@ function paysCode(label){
   if(/^[A-Za-z]{2}(-[A-Za-z]{2})?$/.test(String(n).trim()))return String(n).trim().toUpperCase();
   return String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 }
-function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).map(r=>paysCode(r.label))))].filter(Boolean);const sx=m.site?" - "+m.site:"";m.title=m.baseTitle+sx+(rs.length>1?" - "+rs.join(", "):"")}
+function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).map(r=>paysCode(r.label))))].filter(Boolean);const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+(rs.length>1?" - "+rs.join(", "):"")}
 /* Nom des ZIP : NOM DU GROUPEMENT - Nom du fichier XML */
 const zipGroup=id=>{const m=majs[id];const g=m?(groupOf(m)||m.group||""):"";return String(g).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim()};
 const zipName=(id,base)=>{const g=zipGroup(id);return (g?g+" - ":"")+base+".zip"};
@@ -1752,9 +1824,9 @@ function createMaj(){
   const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,gen:true,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
   const id="maj-"+Date.now();
   const title=baseTitleFor(draft.group);
-  const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:meKey(),mods,prog:{}};stampTitle(majs[id]);
+  const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:meKey(),mods,prog:{}};if(draft.type==="correctif")majs[id].type="correctif";stampTitle(majs[id]);
   if(plan){const mm=majs[id];mm.dateDemande=plan.dateDemande;if(plan.perso){mm.datesPerso=true;mm.dateSiege=plan.dateSiege;mm.dateDeploiement=plan.dateDeploiement}}
-  persist(id,"new");resolveNames();draft={mail:"",title:"",group:"",site:"",parsed:null,msg:"",err:false,busy:false,fileName:""};setCur(id);if(plan&&plan.note)toast(plan.note);
+  persist(id,"new");resolveNames();draft={mail:"",title:"",type:"",group:"",site:"",parsed:null,msg:"",err:false,busy:false,fileName:""};setCur(id);if(plan&&plan.note)toast(plan.note);
 }
 
 /* ---- Vues ---- */
@@ -1765,7 +1837,7 @@ function viewHome(app){
   app.appendChild($("p","sub","Colle le mail du client ou dépose-le en fichier : je dresse la liste des modules et des régions à traiter, puis tu suis les étapes pour chacun."));
   const p=$("div","panel");
   const l2=$("label",null,"Mail du client");l2.htmlFor="mail";
-  const ta=$("textarea");ta.id="mail";ta.placeholder="Colle ici le mail, avec la liste des modules à modifier et leurs régions";ta.value=draft.mail;ta.oninput=()=>draft.mail=ta.value;
+  const ta=$("textarea");ta.id="mail";ta.placeholder="Colle ici le mail, avec la liste des modules à modifier et leurs régions";ta.value=draft.mail;ta.oninput=()=>{draft.mail=ta.value;autoFix()};
   const fi=$("input");fi.type="file";fi.id="mailfile";fi.accept=".eml,.msg,.txt,.html,.htm,.mht,message/rfc822,text/plain,text/html";fi.hidden=true;
   fi.onchange=()=>{loadFile(fi.files[0]);fi.value=""};
   const dz=$("button","drop");dz.type="button";
@@ -1778,7 +1850,11 @@ function viewHome(app){
   const ac=$("div","actions");
   const b=$("button","btn",draft.busy?"Analyse…":"Créer le suivi");b.disabled=draft.busy;b.onclick=async()=>{await analyse();if(await reviewMail())await finishCreate()};ac.appendChild(b);
   if(draft.msg)ac.appendChild($("span","msg"+(draft.err?" err":""),draft.msg));
-  p.append(dz,fi,$("div","or","ou colle le texte du mail"),l2,ta,ac);app.appendChild(p);
+  const tw=typeRow(()=>draft.type,v=>{draft.type=v;draft.typeSet=true;autoFix()});
+  const th=$("small","gmsg");tw.appendChild(th);
+  function autoFix(){if(!draft.typeSet){draft.type=detectFix(draft.mail)?"correctif":""}th.textContent=!draft.typeSet&&draft.type==="correctif"?"Présélectionné d'après le mail. Modifiable.":"";tw.paint()}
+  autoFix();
+  p.append(dz,fi,$("div","or","ou colle le texte du mail"),l2,ta,tw,ac);app.appendChild(p);
   if(draft.parsed){
     const pv=$("div","panel prev");
     pv.appendChild($("h2",null,"Liste établie : "+draft.parsed.length+" module"+(draft.parsed.length>1?"s":"")+", "+draft.parsed.reduce((a,m)=>a+m.regions.length,0)+" lignes"));
@@ -2082,14 +2158,14 @@ function showTeams(m,kind,id,onDone){
   const msg=tr(nom+" - Maj. validée par le siège\nRessources : "+((m.liens&&m.liens.ressources)||"…"));
   const L=Object.assign({ressources:"",rapport:""},m.liens);
   const langs=majLangs(m),multi=langs.length>1,R=Object.assign({},(m.liens||{}).rapports);
-  const build=()=>tr(String(m.title||nom).trim()+"\n\nRessources : "+(L.ressources||"…")+"\n"+(multi?langs.map(([c,n])=>"Rapport d'intervention ("+n+") : "+(R[c]||"…")).join("\n"):"Rapport d'intervention : "+(L.rapport||"…")));
+  const build=()=>tr(String(m.title||nom).trim()+"\n\nRessources : "+(L.ressources||"…")+"\n\n"+(multi?langs.map(([c,n])=>"Rapport d'intervention ("+n+") : "+(R[c]||"…")).join("\n\n"):"Rapport d'intervention : "+(L.rapport||"…")));
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","tmt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeTeams()};document.addEventListener("keydown",key);teamsDlg={bg,key,onClose:onDone};
   bg.addEventListener("mousedown",e=>{if(e.target===bg)closeTeams()});
   const h=$("h2",null,deb?"Message Teams : début de déploiement":"Message Teams : validation siège");h.id="tmt";
   const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeTeams;hd.append(h,x);
-  const ta=$("textarea");ta.rows=deb?5:3;ta.value=deb?build():msg;ta.setAttribute("aria-label","Message à envoyer");
+  const ta=$("textarea");ta.rows=deb?7:3;ta.value=deb?build():msg;ta.setAttribute("aria-label","Message à envoyer");
   const st=$("span","msg");st.setAttribute("role","status");
   const copy=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
     if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
@@ -2097,8 +2173,15 @@ function showTeams(m,kind,id,onDone){
   const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=deb?(getFlow(LSDEB)||teamsFlow()):teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
   fu.oninput=()=>{setFlow(deb?LSDEB:"suivi-maj-flow",fu.value);bs.hidden=!fu.value.trim()};
   const ready=()=>{};
-  const toHtml=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1">$1</a>').replace(/\r?\n/g,"<br>");
-  const flowUrl=u=>{const ps=ta.value.split(/\r?\n/),hd0=ps[0]||"",tl=ps.slice(1).join("\n").replace(/^\s+/,"");return u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toHtml(hd0))+"&tail="+encodeURIComponent(toHtml(tl))+(qmMail?"&qm="+encodeURIComponent(qmMail):"")};
+  const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  /* Mise en forme Teams : étiquette en gras, lien court cliquable (au lieu de l'URL complète) */
+  const toHtml=t=>String(t).split(/\r?\n/).map(l=>{
+    const e=esc(l),mm=/^([^:<]{1,70}:)\s*(https?:\/\/[^\s<]+)(.*)$/.exec(e);
+    if(mm){const lab=/^(Ressources|Resources)\b/i.test(mm[1])?tr("Ouvrir le dossier"):tr("Ouvrir le rapport");return "<b>"+mm[1]+"</b> <a href=\""+mm[2]+"\">"+lab+"</a>"+mm[3]}
+    return e.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1">$1</a>');
+  }).join("<br>");
+  const toTitle=t=>"<h3>"+esc(String(t))+"</h3>";
+  const flowUrl=u=>{const ps=ta.value.split(/\r?\n/),hd0=ps[0]||"",tl=ps.slice(1).join("\n").replace(/^\s+/,"");return u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toTitle(hd0))+"&tail="+encodeURIComponent(toHtml(tl))+(qmMail?"&qm="+encodeURIComponent(qmMail):"")};
   const send=async()=>{const u=cleanUrl(fu.value);if(!u)return;st.textContent="Envoi dans Teams…";
     try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans la conversation Teams."}
     catch(e){await copy();
@@ -2181,6 +2264,7 @@ async function syncCalendar(id){
   return [r1,r2].filter(Boolean).join(" ");
 }
 async function syncCalendarCore(id){
+  if(majs[id]&&majs[id].type==="correctif")return "";
   const m=majs[id],u=calFlow();if(m&&!u&&m.dateSiege&&m.dateDeploiement)return "Aucun envoi à Outlook : l'URL du flux calendrier n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres).";if(!m||!u)return "";
   const s=m.dateSiege,d=m.dateDeploiement;if(!s||!d)return "";
   const key=s+"|"+d;if(m.calSent===key||calBusy[id+key])return "";
@@ -2202,16 +2286,16 @@ async function syncCalendar2(id,m,u,s,d,key){
 /* Dossiers SharePoint : un flux Power Automate crée SUPPORT CLIENT/SGC/<groupe>/TECHNIQUE/<AAAA-MM-JJ>/{0. SOURCES, REPLACE} */
 const LSDIR="suivi-maj-dir";
 const dirFlow=()=>getFlow(LSDIR);
-const effDeploy=m=>m.dateDeploiement||((calcDates(m,m.dateDemande)||{}).dateDeploiement)||"";
+const effDeploy=m=>m.type==="correctif"?(()=>{const t=new Date(m.created||Date.now());return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")})():m.dateDeploiement||((calcDates(m,m.dateDemande)||{}).dateDeploiement)||"";
 const dirBusy={};
 async function syncDirs(id,force){
   const m=majs[id],u=dirFlow();if(!m)return "";
   if(!u)return effDeploy(m)?"Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint).":"";
-  const d=effDeploy(m);if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
+  const d0=effDeploy(m),d=d0?d0+(m.type==="correctif"?" CORRECTIF":""):"";if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
   if(!force&&m.dirSent===d)return "";if(dirBusy[id])return "";
   const g=String(groupOf(m)||m.group||"").trim();if(!g)return force?"Création des dossiers impossible : le groupement n'est pas renseigné.":"";
   dirBusy[id]=true;
-  const q={groupe:g,date:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};
+  const q={groupe:g,date:d0,dossier:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};
   const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
   let ok=false,err="";
   try{try{await fetch(url,{method:"GET",mode:"no-cors"});ok=true}
@@ -2280,10 +2364,17 @@ function viewMaj(app,id){
   const top=$("div","topbar");
   const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(backTo){page=backTo;backTo=null}setCur(null)};
   top.append(back);app.appendChild(top);
-  const hrow=$("div","hrow");hrow.appendChild($("h1",null,m.title));app.appendChild(hrow);
+  const hrow=$("div","hrow"),acts=[];if(renaming===id){const ri=$("input","h1edit");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");
+    const go=()=>{if(ri.value.trim()){renameMaj(id,ri.value);renaming=null;render()}};
+    const rok=$("button","chip h1ok","✓ Enregistrer"),rno=$("button","chip","Annuler");
+    rok.onclick=go;rno.onclick=()=>{renaming=null;render()};
+    ri.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}else if(e.key==="Escape"){renaming=null;render()}};
+    hrow.append(ri,rok,rno);setTimeout(()=>{ri.focus();ri.select()},0)}
+  else hrow.appendChild($("h1",null,m.title));app.appendChild(hrow);
+  const metarow=$("div","metarow");app.appendChild(metarow);
   {const sp=$("p","sub","Créée le "+fdate(m.created)+(m.createdBy?" par "+who(m.createdBy):""));
    if(!m.createdBy){const b=$("button","btn ghost","Indiquer qui l'a préparée");b.type="button";b.style.marginLeft="8px";b.onclick=async()=>{await ensureName();const k=meKey();if(!k)return;m.createdBy=k;persist(id);render()};sp.appendChild(b)}
-   app.appendChild(sp)}
+   metarow.appendChild(sp)}
   {const c=csmOf(m);if(c)app.appendChild($("p","sub","CSM du groupe : "+c.csm+" · QM : "+(c.qm||"aucun")))}
   {const tp=$("p","timer");tp.setAttribute("role","timer");
    const tb=$("b");
@@ -2292,17 +2383,44 @@ function viewMaj(app,id){
    else{tb.dataset.mid=id;tb.textContent=fmtClock(durOf(m));tp.append(m.pausedAt?"Temps de préparation (en pause) : ":"Temps de préparation : ",tb);
      const pb=$("button","chip",m.pausedAt?"▶ Reprendre":"⏸ Pause");pb.style.marginLeft="10px";pb.setAttribute("aria-label",m.pausedAt?"Reprendre le chronomètre":"Mettre le chronomètre en pause");pb.onclick=()=>togglePause(id);tp.append(pb);
      if(m.pausedAt){const ps=$("small",null," · en pause depuis le "+fdate(m.pausedAt)+" "+new Date(m.pausedAt).toLocaleTimeString(LOC(),{hour:"2-digit",minute:"2-digit"}));tp.append(ps)}}
-   app.appendChild(tp)}
-  if(renaming===id){
-    const rw=$("div","actions");
-    const ri=$("input");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");ri.style.maxWidth="460px";ri.style.width="100%";
-    const rok=$("button","btn","Enregistrer");const rno=$("button","btn ghost","Annuler");
-    const go=()=>{if(ri.value.trim()){renameMaj(id,ri.value);renaming=null;render()}};
-    rok.onclick=go;rno.onclick=()=>{renaming=null;render()};
-    ri.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}else if(e.key==="Escape"){renaming=null;render()}};
-    rw.append(ri,rok,rno);app.appendChild(rw);setTimeout(()=>ri.focus(),0);
-  }else{
-    const rc=$("button","chip","Renommer la MAJ");rc.onclick=()=>{renaming=id;render()};hrow.appendChild(rc);
+   metarow.appendChild(tp)}
+  /* Lien correctif -> MAJ d'origine, et inversement */
+  {const gk=groupOf(m),others=Object.keys(majs).filter(k=>k!==id&&majs[k]&&majs[k].type!=="correctif").sort((a,b)=>(majs[b].created||0)-(majs[a].created||0));
+   const lab=k=>majs[k].baseTitle||majs[k].title;
+   if(m.type==="correctif"){
+     const fr=$("p","sub fixref");
+     const same=others.filter(k=>groupOf(majs[k])===gk),rest=others.filter(k=>groupOf(majs[k])!==gk);
+     const go=$("button","chip","Ouvrir ↗");go.type="button";go.onclick=()=>setCur(m.fixOf);
+     const dd=$("button","fixdd");dd.type="button";dd.setAttribute("aria-haspopup","listbox");dd.setAttribute("aria-label","MAJ d'origine du correctif");
+     const paint=()=>{const k=majs[m.fixOf]?m.fixOf:"";dd.textContent="";dd.classList.toggle("empty",!k);dd.append($("span","fdl",k?lab(k):"Choisir la MAJ d'origine…"),$("span","fdc","▾"));go.hidden=!k};
+     const pick=k=>{if(k)m.fixOf=k;else delete m.fixOf;persist(id);paint()};
+     dd.onclick=()=>{
+       const old=document.getElementById("fixmenu");if(old){pmClose(old);return}
+       const pm=$("div","pmenu fixmenu");pm.id="fixmenu";pm.setAttribute("role","listbox");
+       const end=()=>{pmClose(pm);document.removeEventListener("mousedown",away);document.removeEventListener("keydown",key)};
+       let q=null;if(others.length>7){q=$("input");q.type="search";q.placeholder="Rechercher…";q.className="fixq";q.setAttribute("aria-label","Rechercher une MAJ");pm.appendChild(q)}
+       const list=$("div","fixlist");pm.appendChild(list);
+       const row=(k,t,sub)=>{const it=$("button","fixit2"+((m.fixOf||"")===k?" sel":""),null);it.type="button";it.setAttribute("role","option");it.dataset.k=k;it.dataset.t=(t+" "+(sub||"")).toLowerCase();
+         it.append($("span","fck",(m.fixOf||"")===k?"✓":""),$("span","fct",t));if(sub)it.appendChild($("small",null,sub));it.onclick=()=>{end();pick(k)};return it};
+       const sub=k=>fdate(majs[k].created)+(majs[k].archived?" · archivée":"");
+       const fill=()=>{list.textContent="";list.appendChild(row("","Aucune / non précisée"));
+         [[same,gk||"Même groupement"],[rest,"Autres groupements"]].forEach(([ks,t])=>{if(!ks.length)return;const h=$("div","fixgh",t);h.dataset.h="1";list.appendChild(h);ks.forEach(k=>list.appendChild(row(k,lab(k),sub(k))))});
+         if(!others.length)list.appendChild($("div","fixgh","Aucune autre MAJ pour le moment"))};
+       fill();
+       if(q)q.oninput=()=>{const v=q.value.trim().toLowerCase();list.querySelectorAll(".fixit2").forEach(b=>{b.hidden=!!v&&b.dataset.k!==""&&!b.dataset.t.includes(v)});list.querySelectorAll(".fixgh").forEach(h=>{let n=h.nextElementSibling,any=false;while(n&&!n.classList.contains("fixgh")){if(!n.hidden)any=true;n=n.nextElementSibling}h.hidden=!any&&!!v})};
+       const r=dd.getBoundingClientRect();pm.style.top=(r.bottom+window.scrollY+8)+"px";pm.style.left=Math.max(8,Math.min(r.left+window.scrollX,document.documentElement.clientWidth-Math.max(r.width,340)-8))+"px";pm.style.minWidth=Math.max(r.width,320)+"px";pm.style.transformOrigin="top left";
+       document.body.appendChild(pm);
+       const away=e=>{if(!pm.contains(e.target)&&!dd.contains(e.target))end()};
+       const key=e=>{if(e.key==="Escape"){end();dd.focus();return}
+         if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();const its=[...pm.querySelectorAll(".fixit2")].filter(b=>!b.hidden);const ix=its.indexOf(document.activeElement);const nx=e.key==="ArrowDown"?Math.min(its.length-1,ix+1):Math.max(0,ix-1);if(its[nx])its[nx].focus()}};
+       document.addEventListener("mousedown",away);document.addEventListener("keydown",key);
+       setTimeout(()=>{const f=q||pm.querySelector(".sel")||pm.querySelector(".fixit2");if(f)f.focus();const sl=pm.querySelector(".sel");if(sl)sl.scrollIntoView({block:"nearest"})},0)};
+     paint();
+     fr.append($("span",null,"Correctif de : "),dd,go);app.appendChild(fr)}
+   else{const fx=Object.keys(majs).filter(k=>majs[k]&&majs[k].type==="correctif"&&majs[k].fixOf===id);
+     if(fx.length){const fr=$("p","sub fixref");fr.append($("span",null,"Corrigée par : "));fx.forEach(k=>{const b=$("button","chip",(majs[k].baseTitle||majs[k].title)+" ↗");b.type="button";b.onclick=()=>setCur(k);fr.appendChild(b)});app.appendChild(fr)}}}
+  {
+    const rc=$("button","chip","Renommer la MAJ");rc.onclick=()=>{renaming=id;render()};if(renaming!==id)acts.push(rc);
   }
   if(siteEdit===id){
     const sw=$("div","actions");
@@ -2325,16 +2443,20 @@ function viewMaj(app,id){
     si.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();gos()}else if(e.key==="Escape"){siteEdit=null;render()}};
     sw.append(si,siteList(),sok,sno);app.appendChild(sw);setTimeout(()=>si.focus(),0);
   }else{
-    const sc=$("button","chip",m.site?"Site : "+m.site:"Ajouter un site / concept");sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};hrow.appendChild(sc);
+    const sc=$("button","chip","Ajouter un site / concept");sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};acts.push(sc);
   }
-  if(!m.archived&&dirFlow()){const dc=$("button","chip",m.dirSent?"Dossiers SharePoint créés ("+fdate(m.dirSent)+")":"Créer les dossiers SharePoint");dc.type="button";dc.title="Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement";dc.onclick=()=>{dc.disabled=true;syncDirs(id,true).then(r=>{toast(r);render()})};hrow.appendChild(dc)}
-  if(!m.archived){const am=$("button","chip","+ Ajouter un module");am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);hrow.appendChild(am)}
+  if(!m.archived){const tc=$("button","chip",m.type==="correctif"?"Repasser en déploiement":"Passer en correctif");if(m.type!=="correctif")tc.dataset.fix="1";tc.type="button";tc.title="Changer le type de MAJ (déploiement ou correctif)";tc.onclick=()=>{const mm=majs[id]||m;if(mm.type==="correctif")delete mm.type;else mm.type="correctif";stampTitle(mm);persist(id);render()};acts.push(tc)}
+  if(!m.archived&&dirFlow()){const dc=$("button","chip","Créer les dossiers SharePoint");dc.type="button";dc.title="Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement";dc.onclick=()=>{dc.disabled=true;syncDirs(id,true).then(r=>{toast(r);render()})};acts.push(dc)}
+  if(!m.archived){const am=$("button","chip","Ajouter un module");am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);acts.push(am)}
+  actMenu(hrow,acts);
+  if(m.type!=="correctif")
   {const dw=$("div","dates");if(!dateDraft||dateDraft.id!==id){dateDraft={id,dateDemande:m.dateDemande||"",dateSiege:m.dateSiege||"",dateDeploiement:m.dateDeploiement||""};const c0=!m.archived&&calcDates(m,m.dateDemande);if(c0)Object.assign(dateDraft,c0)}const dr=dateDraft;
    const sv=$("button","btn","Enregistrer et envoyer dans Outlook"),sm=$("span","msg"),inp={},lbs={};sv.title="Enregistre les dates et envoie les événements « MAJ siège » et « Déploiement » dans le calendrier Outlook";
    const dirty=()=>dr.dateDemande!==(m.dateDemande||"")||dr.dateSiege!==(m.dateSiege||"")||dr.dateDeploiement!==(m.dateDeploiement||"");
-   const pend=()=>{const u=calFlow();return !!(u&&m.dateSiege&&m.dateDeploiement&&m.calSent!==m.dateSiege+"|"+m.dateDeploiement)};
-   const canResend=()=>!!(calFlow()&&m.dateSiege&&m.dateDeploiement&&m.calSent===m.dateSiege+"|"+m.dateDeploiement);
-   const note=()=>{const rs=!dirty()&&!pend()&&canResend();sv.disabled=!dirty()&&!pend()&&!rs;sv.textContent=rs?"Renvoyer dans Outlook":"Enregistrer et envoyer dans Outlook";sm.textContent=dirty()?"Modifications non enregistrées":pend()?"Dates pas encore envoyées à Outlook":rs?"Déjà envoyé : tu peux renvoyer les événements":""};
+   const cal=()=>m.type==="correctif"?"":calFlow();
+   const pend=()=>{const u=cal();return !!(u&&m.dateSiege&&m.dateDeploiement&&m.calSent!==m.dateSiege+"|"+m.dateDeploiement)};
+   const canResend=()=>!!(cal()&&m.dateSiege&&m.dateDeploiement&&m.calSent===m.dateSiege+"|"+m.dateDeploiement);
+   const note=()=>{const rs=!dirty()&&!pend()&&canResend();sv.disabled=!dirty()&&!pend()&&!rs;sv.textContent=m.type==="correctif"?"Enregistrer les dates":rs?"Renvoyer dans Outlook":"Enregistrer et envoyer dans Outlook";sm.textContent=dirty()?"Modifications non enregistrées":pend()?"Dates pas encore envoyées à Outlook":rs?"Déjà envoyé : tu peux renvoyer les événements":""};
    /* Déploiement = demande + délai (J-7 par défaut, J-5 pour certains groupements) en jours ouvrés ; siège = J-3 ouvrés */
    const recalc=()=>{const c=calcDates(m,dr.dateDemande);if(!c)return;Object.assign(dr,c);inp.dateDeploiement.value=dr.dateDeploiement;inp.dateSiege.value=dr.dateSiege};
    [["dateDemande","Date de la demande"],["dateSiege","Date de la mise à jour siège"],["dateDeploiement","Date de déploiement de la mise à jour"]].forEach(([f,lab])=>{
@@ -2351,7 +2473,7 @@ function viewMaj(app,id){
    const applyMode=()=>{const p=!!m.datesPerso;inp.dateSiege.disabled=inp.dateDeploiement.disabled=!p;lbs.dateSiege.textContent="Date de la mise à jour siège"+(p?"":" (calculée)");lbs.dateDeploiement.textContent="Date de déploiement de la mise à jour"+(p?"":" (calculée)");sub.textContent=p?"Dates personnalisées : choisis toi-même les dates de la mise à jour siège et du déploiement. Les mails de cette MAJ reprennent ces dates.":"La date de la demande et le délai de prévenance calculent la mise à jour siège (J-3) et le déploiement (J), en jours ouvrés (du lundi au vendredi, hors jours fériés)."};applyMode();
    note();
    sv.onclick=async()=>{
-     if(!(dr.dateSiege&&dr.dateDeploiement&&calFlow())){flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast);return}
+     if(!(dr.dateSiege&&dr.dateDeploiement&&cal())){flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast);return}
      const prev=!!m.calSent,resend=!dirty()&&!pend();
      const r=await mailDialog({title:"Envoyer dans Outlook ?",close:"Annuler",step:"Calendrier support-sgc",body:(md,fin)=>{
        const l1=$("p");l1.append("MAJ siège : ",$("b",null,fdate(dr.dateSiege)));const l2=$("p");l2.append("Déploiement : ",$("b",null,fdate(dr.dateDeploiement)));
@@ -2385,7 +2507,7 @@ function viewMaj(app,id){
     ar.appendChild(un);foot=ar;
   }else{
     const va=$("div","actions");
-    const v=$("button","btn ok","Enregistrer");v.onclick=()=>{flushDates(id);persist(id);const mm=majs[id];if(mm&&calFlow()&&mm.dateSiege&&mm.dateDeploiement&&mm.calSent!==mm.dateSiege+"|"+mm.dateDeploiement)toast("Fiche enregistrée. Les dates ne sont pas encore envoyées à Outlook : utilise le bouton à côté des dates.");else toast("Fiche enregistrée.");page="upcoming";backTo=null;setCur(null)};
+    const v=$("button","btn ok","Enregistrer");v.onclick=()=>{flushDates(id);persist(id);const mm=majs[id];if(mm&&calFlow()&&mm.type!=="correctif"&&mm.dateSiege&&mm.dateDeploiement&&mm.calSent!==mm.dateSiege+"|"+mm.dateDeploiement)toast("Fiche enregistrée. Les dates ne sont pas encore envoyées à Outlook : utilise le bouton à côté des dates.");else toast("Fiche enregistrée.");page="upcoming";backTo=null;setCur(null)};
     va.appendChild(v);foot=va;
   }
   const bloc1=$("section","bloc");
@@ -3868,6 +3990,23 @@ app.appendChild(tl);
     gbody.appendChild(ul);
   }
   grid.appendChild(card("MAJ par groupement","Nombre de MAJ par enseigne, en cours et archivées.",gbody));
+  // types : deploiements normaux / correctifs
+  {const tt={};let nn=0,cc=0;all.forEach(x=>{const k=groupOf(x.m)||"Sans groupement",c=x.m.type==="correctif";(tt[k]=tt[k]||{n:0,c:0})[c?"c":"n"]++;if(c)cc++;else nn++});
+   const tr0=Object.entries(tt).sort((a,b)=>(b[1].n+b[1].c)-(a[1].n+a[1].c)||a[0].localeCompare(b[0])).slice(0,7);
+   const tb=$("div");
+   if(!all.length)tb.appendChild($("p","empty","Aucune MAJ."));
+   else{
+     const tot=nn+cc,pc=Math.round(100*cc/tot);
+     tb.appendChild($("p","sub",nn+" déploiement"+(nn>1?"s":"")+" · "+cc+" correctif"+(cc>1?"s":"")+" ("+pc+" % de correctifs)"));
+     const bar=$("div","tbar");const i1=$("i","n"),i2=$("i","c");i1.style.width=(100*nn/tot)+"%";i2.style.width=(100*cc/tot)+"%";bar.append(i1,i2);tb.appendChild(bar);
+     const ul=$("ul","grows");
+     tr0.forEach(([k,v])=>{const li=$("li");li.append($("span","gn",k));const pcs=$("span","gpills");
+       if(v.n)pcs.appendChild($("span","gpill live",v.n+" déploiement"+(v.n>1?"s":"")));
+       if(v.c)pcs.appendChild($("span","gpill fix",v.c+" correctif"+(v.c>1?"s":"")));
+       li.append(pcs);ul.appendChild(li)});
+     tb.appendChild(ul);
+   }
+   grid.appendChild(card("Déploiements et correctifs","Répartition des MAJ (en cours et archivées) par enseigne.",tb));}
   // durees
   const ad=arch.slice().sort((a,b)=>(b.m.archivedAt||b.m.created)-(a.m.archivedAt||a.m.created)).slice(0,8);
   const dmax=Math.max(1,...ad.map(x=>durOf(x.m)));
@@ -4236,10 +4375,20 @@ const REGIONS=["FR","BE-FR","BE-NL","IT","ES","DE","La Réunion","Nouvelle Calé
 const REGGROUPS=[["France et outre-mer",[["FR","France métropolitaine"],["La Réunion","Océan Indien"],["Antilles","Guadeloupe, Martinique"],["Nouvelle Calédonie","Pacifique"]]],["Belgique",[["BE-FR","Belgique francophone"],["BE-NL","Belgique néerlandophone"]]],["Europe",[["IT","Italie"],["ES","Espagne"],["DE","Allemagne"]]]];
 let cdlg=null;
 function closeCustom(){if(cdlg){cdlg.bg.remove();document.removeEventListener("keydown",cdlg.key);cdlg=null}}
+/* Type de MAJ : déploiement normal ou correctif */
+function typeRow(get,set){
+  const w=$("div","fld");w.appendChild($("span",null,"Type de MAJ"));
+  const sg=$("div","typeseg");sg.setAttribute("role","group");sg.setAttribute("aria-label","Type de MAJ");
+  const paint=()=>{[...sg.children].forEach(b=>b.setAttribute("aria-pressed",String((get()==="correctif")===b.classList.contains("cor"))))};
+  [["Déploiement",""],["Correctif","correctif"]].forEach(([t,v])=>{const b=$("button",v?"cor":null,t);b.type="button";if(v)b.title="Correctif (oubli, erreur) : pas d'événement Outlook, dossier SharePoint suffixé CORRECTIF";b.onclick=()=>{set(v);paint()};sg.appendChild(b)});
+  paint();w.appendChild(sg);w.paint=paint;return w;
+}
+/* Détection d'un correctif dans le texte du mail */
+const detectFix=t=>{const m=/\b(correctifs?|rectificatif|oubli(?:é|es?|s)?|omission|omis(?:e|es|s)?|corriger|correction)\b/i.exec(String(t||""));return m?m[1].toLowerCase():""};
 function openCustom(){
   if(cdlg)closeCustom();
   const known=[...new Set(Object.values(majs).map(groupOf).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr"));
-  const st={group:"",mods:new Set(),regs:new Set(["FR"]),extra:[],filter:"",concepts:[],csel:new Set(),closed:new Set(CATALOG.map(c=>c[0]))};
+  const st={type:"",group:"",mods:new Set(),regs:new Set(["FR"]),extra:[],filter:"",concepts:[],csel:new Set(),closed:new Set(CATALOG.map(c=>c[0]))};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","ct");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeCustom()};document.addEventListener("keydown",key);
@@ -4254,7 +4403,7 @@ function openCustom(){
   const glb=$("div","glb");glb.id="glb";glb.setAttribute("role","listbox");glb.hidden=true;
   cw.append(gi,arrow,glb);
   const gmsg=$("small","gmsg");
-  gb.append(cw,gmsg);md.appendChild(gb);
+  gb.append(cw,gmsg);md.appendChild(gb);md.appendChild(typeRow(()=>st.type,v=>{st.type=v}));
   const nf=s=>fold(s).replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
   let opts=[],act=-1,open=false;
   function rank(g,q){
@@ -4428,7 +4577,7 @@ function openCustom(){
     const names=CATALOG.flatMap(([,a])=>a).filter(n=>st.mods.has(n));
     const regs=[...REGIONS,...st.extra].filter(r=>st.regs.has(r));
     const cons=st.concepts.filter(c=>st.csel.has(c));
-    draft.group=g;draft.parsed=names.map(n=>({name:n,regions:cons.length?cons.flatMap(c=>regs.map(r=>({label:r,concept:c}))):regs.slice()}));
+    draft.group=g;draft.type=st.type;draft.parsed=names.map(n=>({name:n,regions:cons.length?cons.flatMap(c=>regs.map(r=>({label:r,concept:c}))):regs.slice()}));
     closeCustom();ensureName().then(createMaj);
   };
   cdlg.refresh=()=>{if(open)paintCombo()};
@@ -4500,10 +4649,11 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v234",APP_DATE="21/10/2026";
+const APP_VERSION="v249",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
+  {const mm=cur&&majs[cur];document.body.classList.toggle("fixmode",!!(mm&&mm.type==="correctif"));document.body.classList.toggle("depmode",!!(mm&&mm.type!=="correctif"))}
   const app=document.getElementById("app");
   app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");
   const keepY=window.scrollY;
