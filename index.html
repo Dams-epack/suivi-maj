@@ -183,6 +183,23 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .drop:hover,.drop.over{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .drop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .drop strong{color:var(--fg)}
+#gt::before{content:"⚡ ";color:var(--cta)}
+.gsubp{align-self:flex-start;display:inline-block;margin:0;padding:3px 12px;border-radius:999px;background:var(--accent-soft);color:var(--fg)!important;font-size:.84rem;font-weight:600;border:1px solid var(--line)}
+.gtl{font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.gtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.gtile{font:inherit;text-align:left;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"k b" "k s";column-gap:8px;align-items:center;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;transition:transform .12s,border-color .15s,box-shadow .15s,background .15s}
+.gtile .gtk{grid-area:k;width:20px;height:20px;border-radius:50%;border:2px solid var(--muted);display:inline-grid;place-items:center;font-size:11px;font-weight:800;color:var(--cta-fg)}
+.gtile b{grid-area:b;font-size:.92rem}.gtile small{grid-area:s;color:var(--muted);font-size:.74rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gtile:hover{transform:translateY(-1px);border-color:var(--cta);box-shadow:0 4px 14px -6px rgba(155,249,68,.55)}
+.gtile.on{border-color:var(--cta);background:linear-gradient(180deg,color-mix(in srgb,var(--cta) 22%,transparent),color-mix(in srgb,var(--cta) 8%,transparent));box-shadow:0 0 0 1px color-mix(in srgb,var(--cta) 50%,transparent),0 4px 16px -8px var(--cta)}
+.gtile.on .gtk{background:var(--cta);border-color:var(--cta)}
+.gtile:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
+.ghint{margin:0;padding:9px 12px;border-radius:10px;background:var(--warn-soft);color:var(--fg)!important;font-size:.86rem;border-left:4px solid var(--warn)}
+.drop.big{padding:28px 16px;gap:6px;border-radius:14px;border-color:color-mix(in srgb,var(--cta) 60%,transparent);background:color-mix(in srgb,var(--cta) 6%,transparent)}
+.drop.big .dico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--cta);color:var(--cta-fg);font-size:1.3rem;font-weight:800;margin-bottom:4px;box-shadow:0 6px 18px -6px rgba(155,249,68,.8);transition:transform .2s}
+.drop.big:hover .dico,.drop.big.over .dico{transform:translateY(-3px)}
+.drop.big:hover,.drop.big.over{border-style:solid;box-shadow:0 0 0 4px color-mix(in srgb,var(--cta) 18%,transparent)}
+
 .or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.85rem}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
 .modal-bg{position:fixed;inset:0;background:rgba(10,20,19,.6);display:grid;place-items:center;padding:16px;z-index:50}
@@ -3415,15 +3432,17 @@ function openGen(m,k,id,M,r){
     md.textContent="";
     const h=$("h2",null,"Excel → XML");h.id="gt";
     const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
-    md.append(hd,$("p",null,M.name+" · "+regLabel));
+    md.append(hd,$("p","gsubp",M.name+" · "+regLabel));
     const T=GENX.MODS;
-    md.appendChild(field("Type d'XML",sel([["","Choisir…"],...Object.keys(T).map(t=>[t,t+" · "+T[t].out])],st.type,v=>{st.type=v;st.map={};st.res=null;paint()})));
-    if(!st.type&&!st.file)md.appendChild($("p",null,"Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
+    {const gl=$("div","gtl","Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role","radiogroup");gr.setAttribute("aria-label","Type d'XML");
+     Object.keys(T).forEach(t=>{const on=st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,t),$("small",null,T[t].out));b.onclick=()=>{if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
+     md.append(gl,gr)}
+    if(!st.type&&!st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
     const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls";inp.hidden=true;
     inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
     if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
     if(!st.file){
-      const d=$("button","drop");d.type="button";d.append($("strong",null,"Fichier Excel du client"),$("span",null,"Dépose le .xlsx ici ou clique pour le choisir"));
+      const d=$("button","drop big");d.type="button";d.append($("span","dico","⬆"),$("strong",null,"Fichier Excel du client"),$("span",null,"Dépose le .xlsx ici ou clique pour le choisir"));
       d.onclick=()=>inp.click();
       d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
       d.ondrop=e=>{e.preventDefault();d.classList.remove("over");const f=e.dataTransfer.files[0];if(f)onFile(f)};
@@ -4665,7 +4684,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v259",APP_DATE="21/10/2026";
+const APP_VERSION="v260",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
