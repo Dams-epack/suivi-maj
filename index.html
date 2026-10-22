@@ -360,6 +360,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .sitem{font:inherit;text-align:left;display:flex;flex-direction:column;gap:3px;padding:12px 14px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;cursor:pointer}
 .sitem:hover{border-color:var(--accent)}.sitem:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sitem small{color:var(--muted)}
+.sitem .ttl{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}.sitem.fixcard.acc{border-top-color:#FF8A28;background:linear-gradient(180deg,rgba(255,138,40,.10),transparent 60%),var(--surface)}.sitem.fixcard:hover{border-color:#FF8A28}
 .sitem.alldone{border-color:var(--ok)}
 .sitem .stop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .donebadge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);white-space:nowrap}
@@ -4149,6 +4150,7 @@ function viewArchTable(app,rows){
     const go=()=>{backTo="archived";setCur(x.id)};tr.onclick=go;tr.onkeydown=e=>{if(e.key==="Enter")go()};tbd.appendChild(tr)});
   tb.appendChild(tbd);wrap.appendChild(tb);app.appendChild(wrap);
 }
+const m_isFix=m=>!!m&&m.type==="correctif";
 function viewLive(app,arch){
   const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
   app.appendChild($("h1",null,arch?"MAJ archivées":"MAJ en cours"));
@@ -4157,8 +4159,8 @@ function viewLive(app,arch){
   if(arch){viewArchTable(app,rows);return}
   const res=$("div","sres");
   rows.forEach(x=>{
-    const m=x.m,b=$("button","sitem acc");
-    const top=$("div","stop");top.appendChild($("strong",null,m.title));
+    const m=x.m,b=$("button","sitem acc"+(m_isFix(x.m)?" fixcard":""));
+    const top=$("div","stop");{const tt=$("span","ttl");if(m_isFix(m))tt.appendChild($("span","gpill fix","Correctif"));tt.appendChild($("strong",null,m.title));top.appendChild(tt)}
     const st=arch?["Archivée","arch"]:x.s.pct>=100?["Prête à archiver","ready"]:["En cours","live"];top.appendChild($("span","badge "+st[1],st[0]));
     const lvl=x.s.pct>=100?"full":x.s.pct>=50?"mid":"low";
     const bar=$("div","bar"+(x.s.pct===0?" zero":"")+(lvl==="full"?" full":lvl==="mid"?" mid":""));const bi=$("i");bi.style.width=x.s.pct+"%";bar.appendChild(bi);
@@ -4294,8 +4296,8 @@ function viewSearch(app){
     res.textContent="";
     if(!rows.length){res.appendChild($("p","empty","Aucune MAJ ne correspond à ces critères."));return}
     rows.forEach(x=>{
-      const m=x.m,b=$("button","sitem acc");
-      const top=$("div","stop");top.appendChild($("strong",null,m.title));
+      const m=x.m,b=$("button","sitem acc"+(m_isFix(x.m)?" fixcard":""));
+      const top=$("div","stop");{const tt=$("span","ttl");if(m_isFix(m))tt.appendChild($("span","gpill fix","Correctif"));tt.appendChild($("strong",null,m.title));top.appendChild(tt)}
       const st=m.archived?["Archivée","arch"]:x.s.pct>=100?["Prête à archiver","ready"]:["En cours","live"];
       top.appendChild($("span","badge "+st[1],st[0]));
       const names=[...new Set(m.mods.map(M=>M.name))];
@@ -4651,7 +4653,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v250",APP_DATE="21/10/2026";
+const APP_VERSION="v251",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
