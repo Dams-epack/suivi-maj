@@ -170,7 +170,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .step .box{width:20px;height:20px;border-radius:50%;font-size:12px;font-weight:800;border-width:2px;transition:background .15s,border-color .15s}
 .step[aria-checked="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ok) 26%,transparent),color-mix(in srgb,var(--ok) 12%,transparent));border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 40%,transparent),0 4px 16px -8px var(--ok)}
 .step[aria-checked="true"]:hover{box-shadow:0 0 0 1px var(--ok),0 6px 18px -6px var(--ok)}
-.stepcell{gap:6px}
+.row .stepcell{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px}.stepcell .step{flex:1 1 84px;width:auto;min-width:0;padding-inline:8px;gap:6px}.stepcell .gx{order:-1;flex:none;align-self:center;white-space:nowrap;padding:6px 9px;gap:5px;font-size:.78rem}.stepcell .pill-bad{flex-basis:100%;order:2}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
 .chip.gx::before{content:"⚡";font-size:.85rem}
 .chip.gx:hover,.chip.gx:focus-visible{background:var(--cta);color:var(--cta-fg);border-style:solid;box-shadow:0 4px 16px -6px rgba(155,249,68,.8);transform:translateY(-1px)}
@@ -4665,7 +4665,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v254",APP_DATE="21/10/2026";
+const APP_VERSION="v255",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
