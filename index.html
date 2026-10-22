@@ -170,7 +170,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .step .box{width:20px;height:20px;border-radius:50%;font-size:12px;font-weight:800;border-width:2px;transition:background .15s,border-color .15s}
 .step[aria-checked="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ok) 26%,transparent),color-mix(in srgb,var(--ok) 12%,transparent));border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 40%,transparent),0 4px 16px -8px var(--ok)}
 .step[aria-checked="true"]:hover{box-shadow:0 0 0 1px var(--ok),0 6px 18px -6px var(--ok)}
-.stepcell{gap:6px}
+.stepcell{gap:6px}.reg .chip.gx{align-self:flex-start;margin-top:8px}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
 .chip.gx::before{content:"⚡";font-size:.85rem}
 .chip.gx:hover,.chip.gx:focus-visible{background:var(--cta);color:var(--cta-fg);border-style:solid;box-shadow:0 4px 16px -6px rgba(155,249,68,.8);transform:translateY(-1px)}
@@ -2561,7 +2561,7 @@ function viewMaj(app,id){
         if(p.s[i]&&p.s.slice(0,i).some(x=>!x)){b.classList.add("warn");warn=true}
         b.appendChild($("span","box",p.s[i]?"✓":""));b.appendChild($("span","stepname",S[1]));b.appendChild($("span",null,"Fait"));
         b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&stepsOf(M).length===3)openXml(m,k,id)};
-        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);w.appendChild(gx);if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}else row.appendChild(b);
+        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);reg.appendChild(gx);if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}else row.appendChild(b);
       });
       if(warn)row.appendChild($("div","warnmsg","Une étape est cochée alors qu'une étape précédente ne l'est pas. Vérifie l'ordre."));
       body.appendChild(row);
@@ -4665,7 +4665,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v256",APP_DATE="21/10/2026";
+const APP_VERSION="v257",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
