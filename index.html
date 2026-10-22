@@ -195,9 +195,9 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .gtile.on .gtk{background:var(--cta);border-color:var(--cta)}
 .gtile:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
 .ghint{margin:0;padding:9px 12px;border-radius:10px;background:var(--warn-soft);color:var(--fg)!important;font-size:.86rem;border-left:4px solid var(--warn)}
-.drop.big{padding:28px 16px;gap:6px;border-radius:14px;border-color:color-mix(in srgb,var(--cta) 60%,transparent);background:color-mix(in srgb,var(--cta) 6%,transparent)}
-.drop.big .dico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--cta);color:var(--cta-fg);font-size:1.3rem;font-weight:800;margin-bottom:4px;box-shadow:0 6px 18px -6px rgba(155,249,68,.8);transition:transform .2s}
-.drop.big:hover .dico,.drop.big.over .dico{transform:translateY(-3px)}
+.drop.big{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"i t" "i d";column-gap:14px;row-gap:0;align-items:center;text-align:left;padding:12px 16px;border-radius:12px;border-color:color-mix(in srgb,var(--cta) 60%,transparent);background:color-mix(in srgb,var(--cta) 6%,transparent)}.drop.big strong{grid-area:t}.drop.big>span:last-child{grid-area:d;font-size:.85rem}
+.drop.big .dico{grid-area:i;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--cta);color:var(--cta-fg);font-size:1.15rem;font-weight:800;box-shadow:0 5px 14px -6px rgba(155,249,68,.8);transition:transform .2s}
+.drop.big:hover .dico,.drop.big.over .dico{transform:translateY(3px)}
 .drop.big:hover,.drop.big.over{border-style:solid;box-shadow:0 0 0 4px color-mix(in srgb,var(--cta) 18%,transparent)}
 
 .or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.85rem}
@@ -3442,7 +3442,7 @@ function openGen(m,k,id,M,r){
     inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
     if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
     if(!st.file){
-      const d=$("button","drop big");d.type="button";d.append($("span","dico","⬆"),$("strong",null,"Fichier Excel du client"),$("span",null,"Dépose le .xlsx ici ou clique pour le choisir"));
+      const d=$("button","drop big");d.type="button";d.append($("span","dico","↓"),$("strong",null,"Fichier Excel du client"),$("span",null,"Dépose le .xlsx ici ou clique pour le choisir"));
       d.onclick=()=>inp.click();
       d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
       d.ondrop=e=>{e.preventDefault();d.classList.remove("over");const f=e.dataTransfer.files[0];if(f)onFile(f)};
@@ -4684,7 +4684,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v260",APP_DATE="21/10/2026";
+const APP_VERSION="v261",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
