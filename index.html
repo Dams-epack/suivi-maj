@@ -26,10 +26,23 @@
 body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.45;padding:0 0 48px}
 .brandbar{background:var(--band);color:var(--band-fg);display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:20px;border-bottom:3px solid var(--cta)}
 .brandbar b{font-size:1rem;letter-spacing:.02em}
-.brandbar{position:relative;gap:14px;padding:13px 20px;background:linear-gradient(100deg,var(--band) 0%,var(--band) 45%,color-mix(in srgb,var(--band) 78%,#9BF944 22%) 100%);box-shadow:0 6px 22px -10px rgba(155,249,68,.7)}
+.brandbar{position:sticky;top:0;z-index:40;gap:14px;padding:13px 20px;background:linear-gradient(100deg,var(--band) 0%,var(--band) 45%,color-mix(in srgb,var(--band) 78%,#9BF944 22%) 100%);box-shadow:0 6px 22px -10px rgba(155,249,68,.7)}
 .brandbar::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:3px;background:linear-gradient(90deg,var(--cta),color-mix(in srgb,var(--cta) 25%,transparent))}
-.brandbar span{display:flex;align-items:center;gap:14px;font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--band-fg);opacity:.88}
-.brandbar span::before{content:"";width:1px;height:20px;background:linear-gradient(transparent,var(--cta),transparent)}
+.brandbar>span{display:flex;align-items:center;gap:14px;font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--band-fg);opacity:.88}
+.brandbar>span::before{content:"";width:1px;height:20px;background:linear-gradient(transparent,var(--cta),transparent)}
+.brandbar{flex-wrap:wrap}
+.cog svg{transition:transform .6s cubic-bezier(.3,.7,.3,1)}.cog:hover svg{transform:rotate(90deg)}.cog.turn svg{animation:cogturn .8s cubic-bezier(.3,.7,.3,1)}@keyframes cogturn{from{transform:rotate(90deg)}to{transform:rotate(450deg)}}
+.guide svg{transition:transform .35s cubic-bezier(.3,1.6,.5,1)}.guide:hover svg{transform:rotate(-12deg) scale(1.18)}.guide.flip svg{animation:bookflip .7s cubic-bezier(.3,.7,.3,1)}@keyframes bookflip{0%{transform:perspective(60px) rotateY(0) scale(1.18)}60%{transform:perspective(60px) rotateY(200deg) scale(1.3)}100%{transform:perspective(60px) rotateY(360deg) scale(1)}}
+.refresh svg{transition:transform .5s cubic-bezier(.3,.7,.3,1)}.refresh:hover svg{transform:rotate(180deg)}.refresh.spin svg{animation:rfspin .8s linear infinite}@keyframes rfspin{to{transform:rotate(360deg)}}
+.brandright{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
+.brandright:empty{display:none}
+.brandright .actions{margin:0;gap:8px;align-items:center;justify-content:flex-end}
+.brandright .msg{color:var(--band-fg);opacity:.75;font-size:.78rem}
+.brandright .btn{padding:6px 12px;font-size:.84rem;min-height:0}
+.brandright .btn.gear{padding:6px 8px}
+.brandright .btn.ghost{background:rgba(255,255,255,.06);color:var(--band-fg);border-color:rgba(255,255,255,.28)}
+.brandright .btn.ghost:hover{background:rgba(155,249,68,.16);border-color:var(--cta);color:#fff}
+.brandright .avchip{background:rgba(255,255,255,.1);color:var(--band-fg);border-color:rgba(255,255,255,.28)}
 .brandlogo{filter:drop-shadow(0 1px 6px rgba(0,0,0,.35))}
 .brandlogo{height:22px;width:auto;display:block;flex:none}
 .brandbar i{width:10px;height:10px;border-radius:2px;background:var(--cta);flex:none}
@@ -441,7 +454,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 .preset[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .preset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
-<div class="brandbar"><img class="brandlogo" alt="ePackPro" src="data:image/png;base64,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"><span>Outil Support Grands Comptes</span></div>
+<div class="brandbar"><img class="brandlogo" alt="ePackPro" src="data:image/png;base64,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"><span>Outil Support Grands Comptes</span><div class="brandright" id="brandright"></div></div>
 <div class="wrap" id="app"></div>
 <div class="appver" id="appver"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1172,7 +1185,8 @@ Création des dossiers impossible : la date de début de déploiement n'est pas 
 Création des dossiers impossible : le groupement n'est pas renseigné. ⇒ Folder creation impossible: the group is not set.
 Vérifie l'URL du flux dans les paramètres. ⇒ Check the flow URL in the settings.
 Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint). ⇒ SharePoint folders not created: the flow URL is not set in this browser (home gear > Settings > SharePoint folders).
-Outil Support Grands Comptes ⇒ Key Accounts Support Tool`;
+Outil Support Grands Comptes ⇒ Key Accounts Support Tool
+Retour à l'accueil ⇒ Back to home`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
 function i18nBuild(){
   const keys=[];
@@ -2265,8 +2279,7 @@ function viewMaj(app,id){
   syncDone(m);
   const top=$("div","topbar");
   const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(backTo){page=backTo;backTo=null}setCur(null)};
-  const sy=$("span","msg",syncTxt);sy.id="sync";
-  top.append(back,sy);app.appendChild(top);
+  top.append(back);app.appendChild(top);
   const hrow=$("div","hrow");hrow.appendChild($("h1",null,m.title));app.appendChild(hrow);
   {const sp=$("p","sub","Créée le "+fdate(m.created)+(m.createdBy?" par "+who(m.createdBy):""));
    if(!m.createdBy){const b=$("button","btn ghost","Indiquer qui l'a préparée");b.type="button";b.style.marginLeft="8px";b.onclick=async()=>{await ensureName();const k=meKey();if(!k)return;m.createdBy=k;persist(id);render()};sp.appendChild(b)}
@@ -3721,7 +3734,7 @@ function openSettings(){
   const md=$("div","modal xml setm");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")close()};
   let closing=false;
-  const close=()=>{if(closing)return;closing=true;document.removeEventListener("keydown",key);const fin=()=>{bg.remove();if(page==="hub")render()};if(matchMedia("(prefers-reduced-motion:reduce)").matches){fin();return}bg.classList.add("out");setTimeout(fin,200)};
+  const close=()=>{if(closing)return;closing=true;document.removeEventListener("keydown",key);const fin=()=>{bg.remove();if(page==="hub"&&!cur)render();else buildBar()};if(matchMedia("(prefers-reduced-motion:reduce)").matches){fin();return}bg.classList.add("out");setTimeout(fin,200)};
   document.addEventListener("keydown",key);
   bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
   const h=$("h2",null,"Paramètres");h.id="stt";
@@ -3772,24 +3785,29 @@ function openSettings(){
   const ac=$("div","actions");ac.style.justifyContent="flex-end";const ok=$("button","btn ghost","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
   setTimeout(()=>{const f=md.querySelector("input");if(f)f.focus()},0);
 }
-function viewHub(app){
-  const hr=$("div","hubtop");
-  const fn=myName().split(" ")[0];
-  {const h1=$("h1",null,fn?(new Date().getHours()<18?"Bonjour ":"Bonsoir ")+fn:"Accueil");hr.appendChild(h1)}
-  const rb=$("button","btn ghost","Actualisation");rb.title="Recharge la page : dernière version de l'outil et données à jour";
-  rb.onclick=()=>{rb.disabled=true;rb.textContent="Actualisation…";try{location.reload()}catch(e){render();rb.disabled=false;rb.textContent="Actualisation"}};
+function buildBar(){
+  const br=document.getElementById("brandright");if(!br)return;br.textContent="";
+  const rb=$("button","btn ghost gear refresh");rb.type="button";rb.title="Recharge la page : dernière version de l'outil et données à jour";rb.setAttribute("aria-label","Actualisation");
+  rb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12A9 9 0 0 1 18.5 5.8L21 8"/><path d="M21 3v5h-5"/></svg>';
+  rb.onclick=()=>{rb.disabled=true;rb.classList.add("spin");try{location.reload()}catch(e){render();rb.disabled=false;rb.classList.remove("spin")}};
   const sy=$("span","msg",syncTxt);sy.id="sync";
-  const gb=$("button","btn ghost gear");gb.type="button";gb.setAttribute("aria-label","Paramètres");gb.title="Paramètres";
+  const gb=$("button","btn ghost gear cog");gb.type="button";gb.setAttribute("aria-label","Paramètres");gb.title="Paramètres";
   gb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
   if(!teamsFlow()||!calFlow()){const dt=$("span","gdot");gb.appendChild(dt);gb.title="Paramètres (un réglage obligatoire manque)"}
-  gb.onclick=openSettings;
-  const gd=$("a","btn ghost gear");gd.href=GUIDE_URL;gd.target="_blank";gd.rel="noopener noreferrer";gd.setAttribute("aria-label","Guide d'utilisation");gd.title="Guide d'utilisation (SharePoint)";
+  gb.onclick=()=>{gb.classList.remove("turn");void gb.offsetWidth;gb.classList.add("turn");openSettings()};
+  const gd=$("a","btn ghost gear guide");gd.href=GUIDE_URL;gd.addEventListener("click",()=>{gd.classList.remove("flip");void gd.offsetWidth;gd.classList.add("flip")});gd.target="_blank";gd.rel="noopener noreferrer";gd.setAttribute("aria-label","Guide d'utilisation");gd.title="Guide d'utilisation (SharePoint)";
   gd.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
   const rg=$("div","actions");const av=$("button","avchip");av.type="button";
   {const nm=myName();const ini=nm?nm.split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join(""):"?";
    av.append($("span","avc",ini),$("span","avn",nm||"Ton nom"));av.title=nm?"Profil : "+nm+" (modifier dans Paramètres)":"Indique ton nom";av.setAttribute("aria-label",av.title);
    av.setAttribute("aria-haspopup","dialog");av.onclick=()=>profileMenu(av)}
-  rg.append(sy,av,gd,gb,rb);hr.appendChild(rg);app.appendChild(hr);
+  rg.append(sy,av,gd,gb,rb);br.appendChild(rg);
+}
+function viewHub(app){
+  const hr=$("div","hubtop");
+  const fn=myName().split(" ")[0];
+  {const h1=$("h1",null,fn?(new Date().getHours()<18?"Bonjour ":"Bonsoir ")+fn:"Accueil");hr.appendChild(h1)}
+  app.appendChild(hr);
   app.appendChild($("p","sub",new Date().toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long",year:"numeric"}).replace(/^./,c=>c.toUpperCase())+" · vue d'ensemble des MAJ de modules."+(()=>{const k=meKey();if(!k)return"";const n=Object.values(majs).filter(m=>!m.archived&&m.createdBy===k).length;return n?" Tu as "+n+" MAJ en cours à ton nom.":""})()));
   const all=Object.keys(majs).map(k=>({id:k,m:majs[k],s:stats(majs[k])}));
   const live=all.filter(x=>!x.m.archived),arch=all.filter(x=>x.m.archived);
@@ -4482,9 +4500,10 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v227",APP_DATE="21/10/2026";
+const APP_VERSION="v234",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
+  buildBar();
   const app=document.getElementById("app");
   app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");
   const keepY=window.scrollY;
@@ -4492,6 +4511,12 @@ function render(){
   if(cur&&majs[cur])viewMaj(app,cur);else if(page==='hub')viewHub(app);else if(page==='search')viewSearch(app);else if(page==='live')viewLive(app,false);else if(page==='archived')viewLive(app,true);else if(page==='upcoming')viewUpcoming(app);else viewHome(app);
   window.scrollTo(0,keepY);
 }
+/* Logo et libellé de la barre : retour à l'accueil */
+document.querySelectorAll(".brandlogo,.brandbar>span").forEach(el=>{
+  el.style.cursor="pointer";el.setAttribute("role","link");el.tabIndex=0;el.title="Retour à l'accueil";
+  const go=()=>{backTo=null;if(cur)setCur(null);openHub();window.scrollTo(0,0)};
+  el.onclick=go;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}};
+});
 render();
 
 (async()=>{
