@@ -1966,7 +1966,7 @@ const isFerie=d=>feriesFR(d.getFullYear()).has(d.getMonth()+"-"+d.getDate());
 const isOuvre=d=>d.getDay()!==0&&d.getDay()!==6&&!isFerie(d);
 function addOuvres(d,n){const x=new Date(d),st=n<0?-1:1;let k=Math.abs(n);while(k>0){x.setDate(x.getDate()+st);if(isOuvre(x))k--}return x}
 function mailDraft(m,type){
-  const J=parseD(m.dateDeploiement),S=parseD(m.dateSiege),miss=new Set(),perso=!!m.datesPerso;
+  const fx=m.type==="correctif",J=parseD(fx?effDeploy(m):m.dateDeploiement),S=parseD(fx?effDeploy(m):m.dateSiege),miss=new Set(),perso=!!m.datesPerso;
   const fd=(d,lab)=>{if(!d){miss.add(lab);return "XX/XX/XXXX"}return d.toLocaleDateString(LOC())};
   const jx=n=>J?addOuvres(J,n):null;
   const dJ=()=>fd(J,"la date de déploiement (J)");
@@ -3809,7 +3809,7 @@ function backupCard(){
 function nextStep(e){
   const k=e.m.mails||{};
   if(e.kind==="dateSiege"){
-    if(!k.prise)return ["Envoyer le rétroplanning",0];
+    if(!k.prise&&e.m.type!=="correctif")return ["Envoyer le rétroplanning",0];
     if(!k.siege)return ["Déposer la mise à jour sur la solution siège",0];
     if(!k.validSiege)return ["Attendre la validation du siège",0];
     return null;
@@ -4048,7 +4048,7 @@ const startOfToday=()=>{const d=new Date();return new Date(d.getFullYear(),d.get
 function majEvents(){
   const out=[];
   Object.keys(majs).forEach(id=>{const m=majs[id];if(m.archived)return;
-    [["dateSiege","Mise à jour siège"],["dateDeploiement","Déploiement"]].forEach(([f,lab])=>{const d=parseD(m[f]);if(d)out.push({id,m,s:stats(m),date:d,kind:f,label:lab})});
+    [["dateSiege","Mise à jour siège"],["dateDeploiement","Déploiement"]].forEach(([f,lab])=>{const d=parseD(m.type==="correctif"?effDeploy(m):m[f]);if(d)out.push({id,m,s:stats(m),date:d,kind:f,label:lab})});
   });
   return out.sort((a,b)=>a.date-b.date||(a.kind==="dateSiege"?-1:1));
 }
@@ -4056,7 +4056,7 @@ function viewUpcoming(app){
   const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
   app.appendChild($("h1",null,"MAJ à venir"));
   const t0=startOfToday(),ev=majEvents();
-  const undated=Object.keys(majs).filter(id=>!majs[id].archived&&!majs[id].dateSiege&&!majs[id].dateDeploiement).length;
+  const undated=Object.keys(majs).filter(id=>!majs[id].archived&&majs[id].type!=="correctif"&&!majs[id].dateSiege&&!majs[id].dateDeploiement).length;
   app.appendChild($("p","sub","Les dates saisies dans les suivis en cours, de la plus proche à la plus lointaine."));
   const days=d=>Math.round((d-t0)/86400000);
   const when=n=>n===0?"aujourd'hui":n===1?"demain":n>1?"dans "+n+" jours":n===-1?"hier":"il y a "+(-n)+" jours";
@@ -4071,7 +4071,7 @@ function viewUpcoming(app){
     const g=$("button","chip mgen","✉ Générer un mail");g.type="button";
     g.onclick=()=>openMail(e.id);
     strip.appendChild(g);
-    [["prise","Rétroplanning"],["siege","Mise à jour siège"],["validSiege","Validation siège"],["debut","Début de déploiement"],["fin","Fin de déploiement"],["pass2","2nde passe"]].filter(([k])=>e.kind==="dateSiege"?(k==="prise"||k==="siege"||k==="validSiege"):(k==="debut"||k==="fin"||(k==="pass2"&&e.m.secondPass))).forEach(([k,lab])=>{
+    [["prise","Rétroplanning"],["siege","Mise à jour siège"],["validSiege","Validation siège"],["debut","Début de déploiement"],["fin","Fin de déploiement"],["pass2","2nde passe"]].filter(([k])=>e.m.type==="correctif"&&k==="prise"?false:e.kind==="dateSiege"?(k==="prise"||k==="siege"||k==="validSiege"):(k==="debut"||k==="fin"||(k==="pass2"&&e.m.secondPass))).forEach(([k,lab])=>{
       const on=!!(e.m.mails&&e.m.mails[k]);
       const sw=$("button","tgl"+(on?" on":""));sw.type="button";sw.setAttribute("role","switch");sw.setAttribute("aria-checked",String(on));
       const vs=k==="validSiege";sw.setAttribute("aria-label",lab+(vs?" : validée par le client":" : mail envoyé"));sw.title=on?(typeof e.m.mails[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(e.m.mails[k]):(vs?"Validée":"Mail envoyé")):(vs?"Pas encore validée":"Mail non envoyé");
@@ -4653,7 +4653,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v251",APP_DATE="21/10/2026";
+const APP_VERSION="v252",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
