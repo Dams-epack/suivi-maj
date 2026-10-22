@@ -46,6 +46,7 @@ body.depmode::before{content:"";position:fixed;left:0;right:0;top:0;height:340px
 .typeseg button.cor[aria-pressed="true"]{background:var(--mid);color:#fff}
 .typeseg button:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
 .chip.fixchip{border-color:var(--mid);color:var(--mid);font-weight:700}
+.gpill.dep{background:color-mix(in srgb,#9BF944 22%,transparent);color:var(--accent)}
 .gpill.fix{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
 .tbar{display:flex;height:12px;border-radius:999px;overflow:hidden;background:var(--line);margin:6px 0 4px}.tbar i{display:block;height:100%}.tbar i.n{background:var(--ok)}.tbar i.c{background:var(--mid)}
 .h1edit{flex:1 1 320px;min-width:200px;font:inherit;font-size:inherit;font-weight:700;font-size:1.6rem;line-height:1.25;padding:2px 10px;border-radius:10px;border:2px solid #9BF944;background:transparent;color:inherit}.h1ok{background:#9BF944!important;color:#1b2a28!important;border-color:#9BF944!important;font-weight:700}
@@ -3744,10 +3745,10 @@ function backupJson(){
 }
 function csvCell(v){v=String(v==null?"":v);return /[";\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function exportCsv(){
-  const head=["Titre","Groupement","Statut","Créée le","Archivée le","Durée (heures)","Avancement (%)","Préparée par","Modules","Régions"];
+  const head=["Titre","Groupement","Type","Statut","Créée le","Archivée le","Durée (heures)","Avancement (%)","Préparée par","Modules","Régions"];
   const rows=Object.keys(majs).map(k=>majs[k]).sort((a,b)=>b.created-a.created).map(m=>{
     const s=stats(m),st=m.archived?"Archivée":s.pct>=100?"Prête à archiver":"En cours";
-    return [m.title,groupOf(m),st,fdate(m.created),m.archived?fdate(m.archivedAt||m.created):"",(durOf(m)/3600000).toFixed(2).replace(".",","),s.pct,m.createdBy?(who(m.createdBy)||""):"",[...new Set(m.mods.map(M=>M.name))].join(", "),[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ")];
+    return [m.title,groupOf(m),m.type==="correctif"?"Correctif":"Déploiement",st,fdate(m.created),m.archived?fdate(m.archivedAt||m.created):"",(durOf(m)/3600000).toFixed(2).replace(".",","),s.pct,m.createdBy?(who(m.createdBy)||""):"",[...new Set(m.mods.map(M=>M.name))].join(", "),[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ")];
   });
   const txt="﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n");
   saveFile("export-maj-"+stampDay()+".csv",txt);
@@ -4116,7 +4117,7 @@ function viewUpcoming(app){
   if(undated)app.appendChild($("p","sub",undated+" MAJ en cours "+(undated>1?"n'ont":"n'a")+" aucune date renseignée."));
 }
 
-let archSort={k:"arch",d:-1},archF={g:"",l:""};
+let archSort={k:"arch",d:-1},archF={g:"",l:"",ty:""};
 function viewArchTable(app,rows){
   const R=x=>[...new Set(x.m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))];
   const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,"fr"));
@@ -4125,11 +4126,11 @@ function viewArchTable(app,rows){
   const mk=(lab,key,opts)=>{const l=$("label","fld");l.style.flexDirection="row";l.style.alignItems="center";l.style.gap="8px";l.appendChild($("span",null,lab));
     const s=$("select");[["","Tous"],...opts.map(o=>[o,o])].forEach(([v,tx])=>{const o=$("option",null,tx);o.value=v;if(v===archF[key])o.selected=true;s.appendChild(o)});
     s.onchange=()=>{archF[key]=s.value;render()};l.appendChild(s);bar.appendChild(l)};
-  mk("Enseigne","g",gs);mk("Langue","l",ls);
+  mk("Enseigne","g",gs);mk("Type","ty",["Déploiement","Correctif"]);mk("Langue","l",ls);
   app.appendChild(bar);
-  const COLS=[["g","Enseigne",x=>groupOf(x.m)||""],["s","Site",x=>x.m.site||""],["t","MAJ",x=>x.m.title||""],["l","Langues",x=>R(x).join(", ")],["mo","Modules",x=>[...new Set(x.m.mods.map(M=>M.name))].join(", ")],["dem","Demande",x=>x.m.dateDemande||0],["dep","Déploiement",x=>x.m.dateDeploiement||0],["arch","Archivée le",x=>x.m.archivedAt||x.m.created||0],["by","Créé par",x=>who(x.m.createdBy)],["dur","Durée",x=>durOf(x.m)]];
+  const COLS=[["g","Enseigne",x=>groupOf(x.m)||""],["s","Site",x=>x.m.site||""],["t","MAJ",x=>x.m.title||""],["ty","Type",x=>x.m.type==="correctif"?"Correctif":"Déploiement"],["l","Langues",x=>R(x).join(", ")],["mo","Modules",x=>[...new Set(x.m.mods.map(M=>M.name))].join(", ")],["dem","Demande",x=>x.m.dateDemande||0],["dep","Déploiement",x=>x.m.dateDeploiement||0],["arch","Archivée le",x=>x.m.archivedAt||x.m.created||0],["by","Créé par",x=>who(x.m.createdBy)],["dur","Durée",x=>durOf(x.m)]];
   const fmt={dem:v=>v?fdate(v):"-",dep:v=>v?fdate(v):"-",arch:v=>v?fdate(v):"-",dur:v=>fmtDur(v)};
-  let data=rows.filter(x=>(!archF.g||groupOf(x.m)===archF.g)&&(!archF.l||R(x).includes(archF.l)));
+  let data=rows.filter(x=>(!archF.g||groupOf(x.m)===archF.g)&&(!archF.l||R(x).includes(archF.l))&&(!archF.ty||(x.m.type==="correctif"?"Correctif":"Déploiement")===archF.ty));
   const c=COLS.find(z=>z[0]===archSort.k)||COLS.find(z=>z[0]==="arch");
   data.sort((a,b)=>{const u=c[2](a),v=c[2](b);const r=typeof u==="number"&&typeof v==="number"?u-v:String(u).localeCompare(String(v),"fr",{numeric:true});return r*archSort.d});
   if(!data.length){app.appendChild($("p","empty","Aucune MAJ ne correspond aux filtres."));return}
@@ -4141,6 +4142,7 @@ function viewArchTable(app,rows){
     COLS.forEach(([k,,f])=>{const v=f(x),td=$("td",null,"");
       if(k==="l"){String(v).split(", ").filter(Boolean).forEach(c=>{const ch=$("span","lchip");ch.append(flagEl(c,"fl fls"),c);td.appendChild(ch)})}
       else if(k==="g"){td.appendChild($("strong","gname",v||"-"))}
+      else if(k==="ty"){td.appendChild($("span","gpill "+(v==="Correctif"?"fix":"dep"),v))}
       else if(k==="s"||k==="by"){td.textContent=v||"-"}
       else{td.textContent=fmt[k]?fmt[k](v):v;if(k==="dur"||k==="dem"||k==="dep"||k==="arch")td.className="num"}
       tr.appendChild(td)});
@@ -4649,7 +4651,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v249",APP_DATE="21/10/2026";
+const APP_VERSION="v250",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
