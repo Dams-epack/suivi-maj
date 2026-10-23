@@ -359,7 +359,8 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .kpi.link{cursor:pointer}.kpi.link:hover{border-color:var(--accent)}.kpi.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.kpi.link em{font-style:normal;color:var(--accent);font-size:.8rem;margin-top:4px}
 .sitem .bar{margin:4px 0;height:10px}
 .usum{display:flex;flex-wrap:wrap;gap:8px}
-.upill{font-size:.86rem;padding:5px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}.upill b{font-size:1rem;color:var(--fg)}
+.upill{font:inherit;cursor:pointer;font-size:.86rem;transition:transform .12s,box-shadow .15s,background .15s;padding:5px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}.upill b{font-size:1rem;color:var(--fg)}
+.upill:hover,.upill:focus-visible{transform:translateY(-1px);box-shadow:0 4px 14px -6px rgba(155,249,68,.55);outline:none}.upill.on{background:var(--accent-soft);box-shadow:0 0 0 2px var(--cta);color:var(--fg)}.upill.late.on{box-shadow:0 0 0 2px var(--bad)}
 .upill.late{border-color:var(--bad)}.upill.late b{color:var(--bad)}.upill.week{border-color:var(--cta)}
 .usec h2{display:flex;align-items:center;gap:10px}.usec.late{border-top-color:var(--bad)}
 .ucnt{font-family:var(--mono);font-size:.8rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--fg)}.usec.late .ucnt{background:var(--bad);color:#fff}
@@ -4109,6 +4110,7 @@ function majEvents(){
   });
   return out.sort((a,b)=>a.date-b.date||(a.kind==="dateSiege"?-1:1));
 }
+let upFilter="";
 function viewUpcoming(app){
   const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
   app.appendChild($("h1",null,"MAJ à venir"));
@@ -4126,7 +4128,8 @@ function viewUpcoming(app){
     return {id,m,sg,dp,key,late:isLateEv(key.e,key.n,t0)}}).sort((a,b)=>a.key.e.date-b.key.e.date);
   const nLate=cards.filter(c=>c.late).length,nWeek=cards.filter(c=>!c.late&&days(c.key.e.date)<=7).length,nLater=cards.length-nLate-nWeek;
   const sm=$("div","usum");
-  [["late",nLate,"en retard"],["week",nWeek,"cette semaine"],["later",nLater,"plus tard"]].forEach(([k,n,t])=>{const p=$("span","upill "+k);p.append($("b",null,String(n)),document.createTextNode(" "+t));sm.appendChild(p)});
+  [["late",nLate,"en retard"],["week",nWeek,"cette semaine"],["later",nLater,"plus tard"]].forEach(([k,n,t])=>{const on=upFilter===k,p=$("button","upill "+k+(on?" on":""));p.type="button";p.setAttribute("aria-pressed",String(on));p.title=on?"Cliquer pour tout afficher":"Afficher seulement : "+t;p.append($("b",null,String(n)),document.createTextNode(" "+t));p.onclick=()=>{upFilter=on?"":k;render()};sm.appendChild(p)});
+  if(upFilter){const rs=$("button","chip","✕ Tout afficher");rs.type="button";rs.onclick=()=>{upFilter="";render()};sm.appendChild(rs)}
   app.appendChild(sm);
   const toggle=(m,id,k)=>{const was=!!(m.mails&&m.mails[k]);setMail(m,k,!was);persist(id);render();if(was)return;
     if(k==="validSiege")openTeams(m);
@@ -4160,10 +4163,12 @@ function viewUpcoming(app){
     w.appendChild(ft);return w};
   const sec=(title,cls,arr)=>{if(!arr.length)return;const s=$("section","panel acc usec "+cls),h=$("h2",null,title);h.appendChild($("span","ucnt",String(arr.length)));s.appendChild(h);
     const box=$("div","ulist");arr.forEach(c=>box.appendChild(card(c)));s.appendChild(box);app.appendChild(s)};
-  sec("En retard","late",cards.filter(c=>c.late));
-  sec("Cette semaine","week",cards.filter(c=>!c.late&&days(c.key.e.date)<=7));
-  sec("Plus tard","later",cards.filter(c=>!c.late&&days(c.key.e.date)>7));
+  const show=k=>!upFilter||upFilter===k;
+  if(show("late"))sec("En retard","late",cards.filter(c=>c.late));
+  if(show("week"))sec("Cette semaine","week",cards.filter(c=>!c.late&&days(c.key.e.date)<=7));
+  if(show("later"))sec("Plus tard","later",cards.filter(c=>!c.late&&days(c.key.e.date)>7));
   if(!cards.length)app.appendChild($("p","empty","Aucune MAJ avec des dates pour le moment."));
+  else if(upFilter&&!app.querySelector(".usec"))app.appendChild($("p","empty","Aucune MAJ dans cette catégorie."));
   if(focusEv){const fk=focusEv.id+"|"+focusEv.kind;focusEv=null;setTimeout(()=>{const el=[...document.querySelectorAll(".ucard")].find(x=>x.dataset.ev===fk||x.dataset.ev2===fk);if(el){el.scrollIntoView({block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),2200)}},30)}
   if(undated)app.appendChild($("p","sub",undated+" MAJ en cours "+(undated>1?"n'ont":"n'a")+" aucune date renseignée."));
 }
@@ -4703,7 +4708,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v262",APP_DATE="21/10/2026";
+const APP_VERSION="v263",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
