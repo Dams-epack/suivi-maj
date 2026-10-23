@@ -359,6 +359,16 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .kpi.link{cursor:pointer}.kpi.link:hover{border-color:var(--accent)}.kpi.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.kpi.link em{font-style:normal;color:var(--accent);font-size:.8rem;margin-top:4px}
 .sitem .bar{margin:4px 0;height:10px}
 .usum{display:flex;flex-wrap:wrap;gap:8px}
+.upill{--n:155,249,68}.upill.late{--n:255,90,80}.upill.later{--n:120,170,255}
+.upill{border-color:rgba(var(--n),.75)!important;color:rgb(var(--n));background:rgba(var(--n),.06);box-shadow:0 0 6px rgba(var(--n),.45),inset 0 0 8px rgba(var(--n),.12);text-shadow:0 0 6px rgba(var(--n),.7)}
+.upill b{color:rgb(var(--n))!important;text-shadow:0 0 8px rgb(var(--n))}
+.upill:hover,.upill:focus-visible{box-shadow:0 0 12px rgba(var(--n),.8),0 0 28px rgba(var(--n),.35),inset 0 0 10px rgba(var(--n),.2)!important}
+.upill.on{background:rgba(var(--n),.16)!important;box-shadow:0 0 0 1px rgb(var(--n)),0 0 14px rgba(var(--n),.9),0 0 34px rgba(var(--n),.5),inset 0 0 12px rgba(var(--n),.3)!important;animation:neonflick 3.5s infinite}
+@keyframes neonflick{0%,18%,22%,62%,64%,100%{opacity:1}20%,63%{opacity:.82}}
+:root[data-theme="light"] .upill{text-shadow:none;color:#1d3331}:root[data-theme="light"] .upill b{text-shadow:none}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .upill{text-shadow:none;color:#1d3331}:root:not([data-theme="dark"]) .upill b{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){.upill.on{animation:none}}
+
 .upill{font:inherit;cursor:pointer;font-size:.86rem;transition:transform .12s,box-shadow .15s,background .15s;padding:5px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}.upill b{font-size:1rem;color:var(--fg)}
 .upill:hover,.upill:focus-visible{transform:translateY(-1px);box-shadow:0 4px 14px -6px rgba(155,249,68,.55);outline:none}.upill.on{background:var(--accent-soft);box-shadow:0 0 0 2px var(--cta);color:var(--fg)}.upill.late.on{box-shadow:0 0 0 2px var(--bad)}
 .upill.late{border-color:var(--bad)}.upill.late b{color:var(--bad)}.upill.week{border-color:var(--cta)}
@@ -4708,7 +4718,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v263",APP_DATE="21/10/2026";
+const APP_VERSION="v264",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
