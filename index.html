@@ -4726,10 +4726,12 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v265",APP_DATE="21/10/2026";
+const APP_VERSION="v266",APP_DATE="21/10/2026";
+let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
+  {const vk=String(page)+"|"+(cur||"");if(typeof lastVK!=="undefined"&&vk!==lastVK){try{window.scrollTo(0,0)}catch(e){}}lastVK=vk}
   {const mm=cur&&majs[cur];document.body.classList.toggle("fixmode",!!(mm&&mm.type==="correctif"));document.body.classList.toggle("depmode",!!(mm&&mm.type!=="correctif"))}
   const app=document.getElementById("app");
   app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");
