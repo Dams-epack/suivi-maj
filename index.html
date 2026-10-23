@@ -358,6 +358,32 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .kpi.acc,.card.acc,.panel.acc,.sitem.acc{border-top:4px solid var(--cta)}
 .kpi.link{cursor:pointer}.kpi.link:hover{border-color:var(--accent)}.kpi.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.kpi.link em{font-style:normal;color:var(--accent);font-size:.8rem;margin-top:4px}
 .sitem .bar{margin:4px 0;height:10px}
+.usum{display:flex;flex-wrap:wrap;gap:8px}
+.upill{font-size:.86rem;padding:5px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}.upill b{font-size:1rem;color:var(--fg)}
+.upill.late{border-color:var(--bad)}.upill.late b{color:var(--bad)}.upill.week{border-color:var(--cta)}
+.usec h2{display:flex;align-items:center;gap:10px}.usec.late{border-top-color:var(--bad)}
+.ucnt{font-family:var(--mono);font-size:.8rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--fg)}.usec.late .ucnt{background:var(--bad);color:#fff}
+.ulist{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.ucard{border:1px solid var(--line);border-left:5px solid var(--cta);border-radius:12px;background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.ucard.late{border-left-color:var(--bad)}.ucard.fix{border-left-color:#FF8A28}.ucard.alldone{border-color:var(--ok);border-left-color:var(--ok)}
+.ucard.flash{animation:evflash 2.2s ease-out}
+.uhead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:space-between}
+.utitle{all:unset;cursor:pointer;font-weight:700;font-size:1.05rem;display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap}.utitle:hover,.utitle:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.upc{color:var(--muted);font-size:.85rem}.upc b{color:var(--fg);font-family:var(--mono)}
+.unext{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:.9rem}
+.unext .unl{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.unext .und{color:var(--muted)}
+.unext.late b,.unext.late .und{color:var(--bad)}
+.usteps{display:flex;align-items:flex-start;overflow-x:auto;padding:6px 0 2px}
+.ustep{all:unset;box-sizing:border-box;flex:1 1 0;min-width:92px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;cursor:pointer;text-align:center;padding:0 4px}
+.ustep::before{content:"";position:absolute;top:14px;left:-50%;right:50%;height:3px;background:var(--line);z-index:0}
+.ustep:first-child::before{display:none}.ustep.done::before{background:var(--ok)}
+.udot{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;border:2px solid var(--muted);background:var(--surface);display:grid;place-items:center;font-weight:800;font-size:.78rem;color:var(--muted);transition:transform .12s,border-color .15s,box-shadow .15s}
+.ustep:hover .udot,.ustep:focus-visible .udot{border-color:var(--cta);transform:scale(1.08)}.ustep:focus-visible{outline:2px solid var(--cta);outline-offset:2px;border-radius:8px}
+.ustep.done .udot{background:var(--ok);border-color:var(--ok);color:var(--ok-fg)}
+.ustep.next .udot{border-color:var(--cta);color:var(--fg);box-shadow:0 0 0 4px color-mix(in srgb,var(--cta) 30%,transparent)}
+.ulab{font-size:.8rem;font-weight:600;line-height:1.2}.ustep:not(.done):not(.next) .ulab{color:var(--muted)}
+.udate{font-size:.74rem;color:var(--muted)}.udate.late{color:var(--bad);font-weight:700}
+.ufoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .mhead{margin:10px 0 0;font-size:.9rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .tool:hover{border-color:var(--accent)}
 .tool:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -4086,66 +4112,59 @@ function majEvents(){
 function viewUpcoming(app){
   const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
   app.appendChild($("h1",null,"MAJ à venir"));
-  const t0=startOfToday(),ev=majEvents();
+  const t0=startOfToday(),evAll=majEvents();
   const undated=Object.keys(majs).filter(id=>!majs[id].archived&&majs[id].type!=="correctif"&&!majs[id].dateSiege&&!majs[id].dateDeploiement).length;
-  app.appendChild($("p","sub","Les dates saisies dans les suivis en cours, de la plus proche à la plus lointaine."));
   const days=d=>Math.round((d-t0)/86400000);
   const when=n=>n===0?"aujourd'hui":n===1?"demain":n>1?"dans "+n+" jours":n===-1?"hier":"il y a "+(-n)+" jours";
-  const item=e=>{
-    const w=$("div","sitem acc"),b=$("button","sopen");b.type="button";w.dataset.ev=e.id+"|"+e.kind;
-    const top=$("div","stop");
-    top.appendChild($("strong",null,e.date.toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long",year:"numeric"})));
-    b.append(top,$("span",null,e.m.title),$("small",null,when(days(e.date))+" · "+e.s.pct+" % · "+e.s.done+" / "+e.s.total+" étapes"));
-    b.onclick=()=>{backTo="upcoming";setCur(e.id)};
-    w.appendChild(b);
-    const strip=$("div","mstrip");
-    const g=$("button","chip mgen","✉ Générer un mail");g.type="button";
-    g.onclick=()=>openMail(e.id);
-    strip.appendChild(g);
-    [["prise","Rétroplanning"],["siege","Mise à jour siège"],["validSiege","Validation siège"],["debut","Début de déploiement"],["fin","Fin de déploiement"],["pass2","2nde passe"]].filter(([k])=>e.m.type==="correctif"&&k==="prise"?false:e.kind==="dateSiege"?(k==="prise"||k==="siege"||k==="validSiege"):(k==="debut"||k==="fin"||(k==="pass2"&&e.m.secondPass))).forEach(([k,lab])=>{
-      const on=!!(e.m.mails&&e.m.mails[k]);
-      const sw=$("button","tgl"+(on?" on":""));sw.type="button";sw.setAttribute("role","switch");sw.setAttribute("aria-checked",String(on));
-      const vs=k==="validSiege";sw.setAttribute("aria-label",lab+(vs?" : validée par le client":" : mail envoyé"));sw.title=on?(typeof e.m.mails[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(e.m.mails[k]):(vs?"Validée":"Mail envoyé")):(vs?"Pas encore validée":"Mail non envoyé");
-      sw.append($("span","tgt"),$("span","tgl2",lab));
-      sw.onclick=()=>{const m=e.m,was=!!(m.mails&&m.mails[k]);setMail(m,k,!was);persist(e.id);render();if(was)return;
-        if(k==="validSiege")openTeams(m);
-        else if(k==="prise")openMail(e.id,delayOf(m)===5?"5j":"7j",["5j","7j"]);
-        else if(k==="siege")openMail(e.id,"siege",["siege"]);
-        else if(k==="debut")openTeams(m,"debut",e.id,()=>openMail(e.id,"debut",["debut"]));
-        else if(k==="fin")openFin(m,e.id);
-        else if(k==="pass2")openMail(e.id,"fin2ok",["fin2ok"])};
-      strip.appendChild(sw)});
-    w.appendChild(strip);
-    const mk=e.m.mails||{};
-    const STAT=e.kind==="dateSiege"
-      ?[["validSiege","Mise à jour validée",1],["siege","Mise à jour déposée sur la solution siège",0],["prise","Rétroplanning envoyé - En attente de déploiement sur la solution siège",0]]
-      :[["fin",e.m.secondPass&&!mk.pass2?"Déploiement terminé - Seconde passe à prévoir":"Déploiement terminé",1],["pass2","Seconde passe effectuée",1],["debut","Déploiement en cours",0]];
-    let st=null;
-    if(e.kind!=="dateSiege"&&mk.pass2)st=STAT[1];else st=STAT.find(([k])=>mk[k]);
-    if(st){const ok=!!st[2]&&!(e.kind!=="dateSiege"&&e.m.secondPass&&!mk.pass2);w.classList.toggle("alldone",ok);const bd=$("span","donebadge"+(ok?"":" wait"),(ok?"✓ ":"")+st[1]);top.appendChild(bd);
-      if(ok&&e.kind!=="dateSiege"){const ab=$("button","btn ok","Archiver la MAJ");ab.type="button";ab.style.marginLeft="auto";ab.onclick=ev=>{ev.stopPropagation();archiveMaj(e.id);render()};strip.appendChild(ab)}}
-    return w;
-  };
-  const list=(box,rows)=>{
-    let mon="";
-    rows.forEach(e=>{
-      const k=e.date.toLocaleDateString(LOC(),{month:"long",year:"numeric"});
-      if(k!==mon){mon=k;box.appendChild($("h3","mhead",k.charAt(0).toUpperCase()+k.slice(1)))}
-      box.appendChild(item(e));
-    });
-  };
-  const block=(title,kind)=>{
-    const rows=ev.filter(e=>e.kind===kind),fut=rows.filter(e=>e.date>=t0),past=rows.filter(e=>e.date<t0).reverse();
-    const sec=$("section","panel acc");sec.appendChild($("h2",null,title));
-    sec.appendChild($("p","sub",fut.length+" à venir"+(past.length?" · "+past.length+" date"+(past.length>1?"s":"")+" dépassée"+(past.length>1?"s":""):"")));
-    const box=$("div","sres");
-    if(fut.length)list(box,fut);else box.appendChild($("p","empty","Aucune date à venir."));
-    if(past.length){box.appendChild($("h3","mhead","Dates dépassées (suivi non archivé)"));past.forEach(e=>box.appendChild(item(e)))}
-    sec.appendChild(box);app.appendChild(sec);
-  };
-  block("MAJ siège","dateSiege");
-  block("MAJ nationale / internationale","dateDeploiement");
-  if(focusEv){const fk=focusEv.id+"|"+focusEv.kind;focusEv=null;setTimeout(()=>{const el=[...document.querySelectorAll(".sitem")].find(x=>x.dataset.ev===fk);if(el){el.scrollIntoView({block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),2200)}},30)}
+  const fd=d=>d.toLocaleDateString(LOC(),{weekday:"short",day:"numeric",month:"short"});
+  /* une carte par MAJ : on retient l'échéance non terminée la plus proche */
+  const by={};evAll.forEach(e=>{(by[e.id]=by[e.id]||[]).push(e)});
+  const cards=Object.keys(by).map(id=>{const evs=by[id],m=majs[id];
+    const sg=evs.find(e=>e.kind==="dateSiege"),dp=evs.find(e=>e.kind==="dateDeploiement");
+    const pend=evs.map(e=>({e,n:nextStep(e)})).filter(x=>x.n);
+    const key=pend[0]||{e:dp||sg,n:["Archiver la MAJ",1]};
+    return {id,m,sg,dp,key,late:isLateEv(key.e,key.n,t0)}}).sort((a,b)=>a.key.e.date-b.key.e.date);
+  const nLate=cards.filter(c=>c.late).length,nWeek=cards.filter(c=>!c.late&&days(c.key.e.date)<=7).length,nLater=cards.length-nLate-nWeek;
+  const sm=$("div","usum");
+  [["late",nLate,"en retard"],["week",nWeek,"cette semaine"],["later",nLater,"plus tard"]].forEach(([k,n,t])=>{const p=$("span","upill "+k);p.append($("b",null,String(n)),document.createTextNode(" "+t));sm.appendChild(p)});
+  app.appendChild(sm);
+  const toggle=(m,id,k)=>{const was=!!(m.mails&&m.mails[k]);setMail(m,k,!was);persist(id);render();if(was)return;
+    if(k==="validSiege")openTeams(m);
+    else if(k==="prise")openMail(id,delayOf(m)===5?"5j":"7j",["5j","7j"]);
+    else if(k==="siege")openMail(id,"siege",["siege"]);
+    else if(k==="debut")openTeams(m,"debut",id,()=>openMail(id,"debut",["debut"]));
+    else if(k==="fin")openFin(m,id);
+    else if(k==="pass2")openMail(id,"fin2ok",["fin2ok"])};
+  const card=c=>{
+    const {id,m,sg,dp,key,late}=c,fix=m.type==="correctif",mk=m.mails||{},s=stats(m);
+    const w=$("article","ucard"+(late?" late":"")+(fix?" fix":""));w.dataset.ev=id+"|dateSiege";w.dataset.ev2=id+"|dateDeploiement";
+    const head=$("div","uhead"),tl=$("button","utitle");tl.type="button";tl.title="Ouvrir la fiche";tl.onclick=()=>{backTo="upcoming";setCur(id)};
+    if(fix)tl.appendChild($("span","gpill fix","Correctif"));tl.appendChild($("span",null,m.title));
+    const pc=$("div","upc");pc.append($("b",null,s.pct+" %"),$("small",null," · "+s.done+" / "+s.total+" étapes"));
+    head.append(tl,pc);w.appendChild(head);
+    const nx=$("p","unext"+(late?" late":""));nx.append($("span","unl","Prochaine étape"),$("b",null,key.n[0]),$("span","und",fd(key.e.date)+" · "+when(days(key.e.date))));w.appendChild(nx);
+    const defs=[["prise","Rétroplanning",null],["siege","Mise à jour siège",sg],["validSiege","Validation siège",null],["debut","Début de déploiement",dp],["fin","Fin de déploiement",null]];
+    if(m.secondPass)defs.push(["pass2","2nde passe",null]);
+    const list=defs.filter(d=>!(fix&&d[0]==="prise")),nextK=(list.find(d=>!mk[d[0]])||[])[0];
+    const st=$("div","usteps");st.setAttribute("role","group");st.setAttribute("aria-label","Étapes de la MAJ");
+    list.forEach(([k,lab,ev],i)=>{const on=!!mk[k],b=$("button","ustep"+(on?" done":"")+(k===nextK?" next":""));b.type="button";b.setAttribute("role","switch");b.setAttribute("aria-checked",String(on));
+      const vs=k==="validSiege";b.setAttribute("aria-label",lab+(vs?" : validée par le client":" : mail envoyé"));
+      b.title=on?(typeof mk[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(mk[k]):(vs?"Validée":"Mail envoyé")):(vs?"Pas encore validée : cliquer pour valider":"Mail non envoyé : cliquer pour l'envoyer");
+      b.append($("span","udot",on?"✓":String(i+1)),$("span","ulab",lab));
+      if(ev){const dl=$("small","udate"+(!on&&ev.date<t0?" late":""),fd(ev.date));b.appendChild(dl)}
+      b.onclick=()=>toggle(m,id,k);st.appendChild(b)});
+    w.appendChild(st);
+    const ft=$("div","ufoot");const g=$("button","chip mgen","✉ Générer un mail");g.type="button";g.onclick=()=>openMail(id);
+    const op=$("button","chip","Ouvrir la fiche →");op.type="button";op.onclick=()=>{backTo="upcoming";setCur(id)};ft.append(g,op);
+    if(mk.pass2||(mk.fin&&!m.secondPass)){const ab=$("button","btn ok","Archiver la MAJ");ab.type="button";ab.style.marginLeft="auto";ab.onclick=()=>{archiveMaj(id);render()};ft.appendChild(ab);w.classList.add("alldone")}
+    w.appendChild(ft);return w};
+  const sec=(title,cls,arr)=>{if(!arr.length)return;const s=$("section","panel acc usec "+cls),h=$("h2",null,title);h.appendChild($("span","ucnt",String(arr.length)));s.appendChild(h);
+    const box=$("div","ulist");arr.forEach(c=>box.appendChild(card(c)));s.appendChild(box);app.appendChild(s)};
+  sec("En retard","late",cards.filter(c=>c.late));
+  sec("Cette semaine","week",cards.filter(c=>!c.late&&days(c.key.e.date)<=7));
+  sec("Plus tard","later",cards.filter(c=>!c.late&&days(c.key.e.date)>7));
+  if(!cards.length)app.appendChild($("p","empty","Aucune MAJ avec des dates pour le moment."));
+  if(focusEv){const fk=focusEv.id+"|"+focusEv.kind;focusEv=null;setTimeout(()=>{const el=[...document.querySelectorAll(".ucard")].find(x=>x.dataset.ev===fk||x.dataset.ev2===fk);if(el){el.scrollIntoView({block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),2200)}},30)}
   if(undated)app.appendChild($("p","sub",undated+" MAJ en cours "+(undated>1?"n'ont":"n'a")+" aucune date renseignée."));
 }
 
@@ -4684,7 +4703,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v261",APP_DATE="21/10/2026";
+const APP_VERSION="v262",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
