@@ -396,6 +396,14 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .udate{font-size:.74rem;color:var(--muted)}.udate.late{color:var(--bad);font-weight:700}
 .ufoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .mhead{margin:10px 0 0;font-size:.9rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tool,.kpi.link{transition:border-color .2s,box-shadow .25s,transform .2s}
+.tool:hover,.tool:focus-visible,.kpi.link:hover,.kpi.link:focus-visible{border-color:#9BF944;transform:translateY(-2px);box-shadow:0 0 0 1px #9BF944,0 0 14px rgba(155,249,68,.75),0 0 38px rgba(155,249,68,.35),inset 0 0 18px rgba(155,249,68,.10)}
+.tool:hover strong,.tool:focus-visible strong{color:#9BF944;text-shadow:0 0 10px rgba(155,249,68,.85)}
+.tool:hover small,.tool:focus-visible small{text-shadow:0 0 8px rgba(155,249,68,.8)}
+.kpi.link:hover b,.kpi.link:focus-visible b{text-shadow:0 0 12px rgba(155,249,68,.85)}
+:root[data-theme="light"] .tool:hover strong{color:var(--accent);text-shadow:none}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .tool:hover strong{color:var(--accent);text-shadow:none}}
+@media (prefers-reduced-motion:reduce){.tool:hover,.kpi.link:hover{transform:none}}
 .tool:hover{border-color:var(--accent)}
 .tool:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tool span{color:var(--muted)}.tool small{color:var(--accent);font-weight:600}
@@ -4718,7 +4726,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v264",APP_DATE="21/10/2026";
+const APP_VERSION="v265",APP_DATE="21/10/2026";
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
   buildBar();
