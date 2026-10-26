@@ -3273,7 +3273,9 @@ const isDef=(t,x)=>MODS[t].req.includes(x)&&['int','num'].includes(MODS[t].cols.
 function normalized(t,s,mp){
   const m=MODS[t],idx=resolve(t,s,mp),has=x=>idx[x]>=0;
   const tags=m.cols.map(c=>c[0]).filter(x=>has(x)||isDef(t,x));
-  const errs=[],notes=[],filled={},missing=[];
+  const errs=[],notes=[],filled={},missing=[],cleanEx=[];let nClean=0;
+  /* DLC saisie sous forme « J+3 », « J+ 3 jours », « 3 jours » : on ne garde que le nombre de jours */
+  const dayNb=v=>{if(typeof v!=='string')return v;const mm=/^\s*(?:J\s*\+\s*)?(-?\d+(?:[.,]\d+)?)\s*(?:j|jr|jrs|jour|jours)?\s*\.?\s*$/i.exec(v);return mm&&!/^\s*-?\d+(?:[.,]\d+)?\s*$/.test(v)?mm[1].replace(',','.'):v};
   const cellS=(r,x)=>has(x)&&r[idx[x]]!=null?String(r[idx[x]]).trim():'';
   tags.filter(x=>!has(x)).forEach(x=>notes.push(`${x} : aucune colonne trouvée dans cet onglet, -1 appliqué`));
   m.req.filter(x=>!isDef(t,x)&&!has(x)).forEach(x=>errs.push(`Colonne ${x} introuvable dans cet onglet (en-têtes lues : ${s.header.filter(Boolean).join(', ')||'aucune'})`));
@@ -3284,9 +3286,11 @@ function normalized(t,s,mp){
     aoa.push(tags.map(x=>{
       let v=has(x)?r[idx[x]]:null;
       if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x)){if(x==='DateLimit'||x==='Dlc')missing.push({tag:x,row:i+s.hdrRow+1,name:cellS(r,'Name'),cat:cellS(r,'Category')});else filled[x]=(filled[x]||0)+1}}
+      if(has(x)&&typeof v==='string'&&['int','num'].includes((m.cols.find(c=>c[0]===x)||[])[1])){const c=dayNb(v);if(c!==v){nClean++;if(cleanEx.length<2&&!cleanEx.includes(v.trim()))cleanEx.push(v.trim());v=c}}
       return v;
     }));
   });
+  if(nClean)notes.push(`${nClean} valeur(s) nettoyée(s) pour ne garder que le nombre de jours (ex. « ${cleanEx.join(' », « ')} »)`);
   Object.keys(filled).forEach(x=>notes.push(`${x} : ${filled[x]} cellule(s) vide(s) remplacée(s) par -1`));
   if(missing.length)errs.unshift(`DLC manquante sur ${missing.length} produit(s) : génération bloquée. Complète la DLC dans l'Excel (saisis -1 si le produit n'a pas de DLC).`);
   return {aoa,errs,notes,idx,missing};
@@ -4726,7 +4730,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v266",APP_DATE="21/10/2026";
+const APP_VERSION="v267",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
