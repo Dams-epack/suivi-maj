@@ -2363,13 +2363,16 @@ async function syncCalendar2(id,m,u,s,d,key){
 const LSDIR="suivi-maj-dir";
 const dirFlow=()=>getFlow(LSDIR);
 const effDeploy=m=>m.type==="correctif"?(()=>{const t=new Date(m.created||Date.now());return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")})():m.dateDeploiement||((calcDates(m,m.dateDemande)||{}).dateDeploiement)||"";
+/* Nom du répertoire SharePoint quand il diffère du groupement de la MAJ (comparaison sans accents, espaces ni ponctuation) */
+const DIR_ALIAS=[[/papilles/,"ATELIER PAPILLES"],[/sophie.?le.?b/,"BOULANGERIE SOPHIE LEBREUILLY"]];
+const dirName=g=>{const k=String(g||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z]/g,"");const a=DIR_ALIAS.find(([r])=>r.test(k));return a?a[1]:String(g||"").trim()};
 const dirBusy={};
 async function syncDirs(id,force){
   const m=majs[id],u=dirFlow();if(!m)return "";
   if(!u)return effDeploy(m)?"Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint).":"";
   const d0=effDeploy(m),d=d0?d0+(m.type==="correctif"?" CORRECTIF":""):"";if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
   if(!force&&m.dirSent===d)return "";if(dirBusy[id])return "";
-  const g=String(groupOf(m)||m.group||"").trim();if(!g)return force?"Création des dossiers impossible : le groupement n'est pas renseigné.":"";
+  const g=dirName(groupOf(m)||m.group||"");if(!g)return force?"Création des dossiers impossible : le groupement n'est pas renseigné.":"";
   dirBusy[id]=true;
   const q={groupe:g,date:d0,dossier:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};
   const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
@@ -4730,7 +4733,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v267",APP_DATE="21/10/2026";
+const APP_VERSION="v268",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
