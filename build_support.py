@@ -22,6 +22,9 @@ Génère ou complète les XML des modules à partir des fichiers du client. Rien
 Excel → XML ⇒ Excel → XML
 Dépose l'Excel du client, choisis le type d'XML (Warming, Stickers, Contrôles divers…), récupère le XML dans un ZIP. ⇒ Drop the client's Excel file, choose the XML type (Warming, Stickers, Miscellaneous controls…), get the XML in a ZIP.
 Un onglet = un XML ⇒ One sheet = one XML
+XML → Excel ⇒ XML → Excel
+Dépose le ZIP de la configuration du client (ou un seul XML) : j'en fais un Excel, un onglet par module. ⇒ Drop the client's configuration ZIP (or a single XML): I turn it into an Excel file, one sheet per module.
+Un onglet = un module ⇒ One sheet = one module
 Compléter un XML ⇒ Complete an XML
 Dépose un export XML du configurateur : j'ajoute les balises manquantes et je normalise le fichier. ⇒ Drop an XML export from the configurator: I add the missing tags and normalise the file.
 Produits, checklists, plans de nettoyage ⇒ Products, checklists, cleaning plans
@@ -36,6 +39,7 @@ prof=src[a:b]
 code+=i18n+'\n'+fl+'\n'
 for n in ['XMLC','GENX','GENUI','XMLUI']: code+=block(n)+'\n'
 code+=prof+'\n'
+code+=open(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)),'x2e.js'),encoding='utf-8').read()+'\n'
 # adaptations propres à l'outil Support (aucun contexte de MAJ)
 a='md.append(hd,$("p","gsubp",M.name+" · "+regLabel));'
 assert code.count(a)==1
@@ -71,8 +75,10 @@ function render(){
   const one=(t,d,small,fn,ic)=>{const b=$("button","tool");b.type="button";const i=$("span","ticon");i.setAttribute("aria-hidden","true");i.innerHTML=ic;i.dataset.nt="1";b.append(i,$("strong",null,t),$("span",null,d),$("small",null,small));b.onclick=fn;tl.appendChild(b)};
   const IC1='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="14" rx="2"/><path d="M3 9h10M8 9v9"/><g class="tarr"><path d="M15 11h6M18.5 8.5 21 11l-2.5 2.5"/></g></svg>';
   const IC2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="m9 14 2 2 4-4"/><path class="tspk" d="M19 2v3M17.5 3.5h3"/></svg>';
+  const IC3='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6M12 11v7"/></svg>';
   one("Excel → XML","Dépose l'Excel du client, choisis le type d'XML (Warming, Stickers, Contrôles divers…), récupère le XML dans un ZIP.","Un onglet = un XML",()=>openGen(ctx,null,null,XM,XR),IC1);
   one("Compléter un XML","Dépose un export XML du configurateur : j'ajoute les balises manquantes et je normalise le fichier.","Produits, checklists, plans de nettoyage",()=>openXml(ctx,null,null),IC2);
+  one("XML → Excel","Dépose le ZIP de la configuration du client (ou un seul XML) : j'en fais un Excel, un onglet par module.","Un onglet = un module",()=>openX2E(),IC3);
   app.appendChild(tl);
   trSchedule();
 }
@@ -100,6 +106,11 @@ extra_css='''<style>
 @keyframes tspin{to{transform:rotate(360deg)}}
 @keyframes tpop{from{transform:scale(.4)}to{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.tools .tool,.tool .tarr,.tool .tspk,.gtile.on .gtk{animation:none!important}.tool::after{display:none}.tool,.btn,.gtile,.chip,.tool .ticon{transition:none!important}}
+/* XML → Excel */
+.x2list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;border:1px solid var(--border,#ccc);border-radius:10px;padding:6px}
+.x2row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;cursor:pointer}
+.x2row:hover{background:rgba(155,249,68,.12)}.x2row.empty{opacity:.55}
+.x2n{flex:1}
 </style>
 '''
 out=head+'\n'+extra_css+brand+'\n<div class="wrap" id="app"></div>\n<div class="appver" id="appver"></div>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>\n<script>\nconst APP_VERSION="%s";\n'%ver+prelude+code+main+'\n</script>\n'
