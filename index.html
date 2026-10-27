@@ -3199,7 +3199,7 @@ function buildXml(name,rows,p,warns){
       r.IsDDM=hit?(p.excVal||'true'):(p.isddm||'false');
     }
     if(name==='ControleDivers'){
-      const nd=new Date(Date.now()+864e5),ndS=`${nd.getFullYear()}-${pad2(nd.getMonth()+1)}-${pad2(nd.getDate())}T04:00:00`;
+      const nd=new Date(Date.now()+864e5),ndS=`${nd.getFullYear()}-${pad2(nd.getMonth()+1)}-${pad2(nd.getDate())}T${p.momTime||'04:00:00'}`;
       out.push(`  <${m.el}>`,'    <idFileAttente>0</idFileAttente>','    <CheckList_Name />','    <CheckList_AllMandatoryToValid>false</CheckList_AllMandatoryToValid>','    <Recurrence>','      <Type>Daily</Type>','      <Moments>');
       (p.moments||[]).forEach(mid=>{out.push('        <DefRecurrenceMoment>',`          <MomentId>${esc(String(mid))}</MomentId>`);for(let d=1;d<=7;d++)out.push(`          <Day${d}>true</Day${d}>`);out.push('        </DefRecurrenceMoment>')});
       out.push('      </Moments>','      <Nb>0</Nb>',`      <NextDate>${ndS}</NextDate>`,'    </Recurrence>');
@@ -3411,7 +3411,7 @@ function openGen(m,k,id,M,r){
     paint();
   }
   function run(){
-    const t=st.type,p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true",moments:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)).map(z=>z.id):[]},nf=GENX.nowFn(t);
+    const t=st.type,p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true",moments:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)).map(z=>z.id):[],momTime:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)&&z.time).map(z=>z.time).sort()[0]||"":""},nf=GENX.nowFn(t);
     st.msg="";st.ticked=false;st.open={};
     st.res=[...st.sel].sort((a,b)=>a-b).map(i=>{
       const s=st.sheets[i],n=GENX.normalized(t,s,st.map);
@@ -3573,7 +3573,8 @@ function openGen(m,k,id,M,r){
         try{const doc=new DOMParser().parseFromString(await f.text(),"application/xml");if(doc.querySelector("parsererror"))throw 0;
           const list=[],seen=new Set();
           doc.querySelectorAll("*").forEach(el=>{const kid=n=>[...el.children].find(c=>c.localName===n);const idn=kid("Id"),nm=kid("Name")||kid("Label")||kid("Libelle")||kid("Title");
-            if(idn&&nm&&/^\d+$/.test(idn.textContent.trim())&&!seen.has(idn.textContent.trim())){seen.add(idn.textContent.trim());list.push({id:idn.textContent.trim(),name:nm.textContent.trim()})}});
+            if(idn&&nm&&/^\d+$/.test(idn.textContent.trim())&&!seen.has(idn.textContent.trim())){seen.add(idn.textContent.trim());const dl=kid("Delete"),tf=kid("TimeFrom"),tm=tf&&/T(\d\d:\d\d(?::\d\d)?)/.exec(tf.textContent);
+              if(dl&&dl.textContent.trim().toLowerCase()==="true")return;list.push({id:idn.textContent.trim(),name:nm.textContent.trim(),time:tm?(tm[1].length===5?tm[1]+":00":tm[1]):""})}});
           if(!list.length){st.err="Aucun moment (Id + Name) trouvé dans ce fichier : vérifie que c'est bien le Moments.xml du client.";st.mom=null}
           else{st.err="";st.mom={file:f.name,list,sel:new Set()}}
         }catch(e){st.err="Moments.xml illisible : vérifie que c'est bien le fichier XML du client.";st.mom=null}
@@ -3590,7 +3591,7 @@ function openGen(m,k,id,M,r){
         const ml=$("div","gsheets");
         st.mom.list.forEach(z=>{const l=$("label","gsheet");const cb=$("input");cb.type="checkbox";cb.checked=st.mom.sel.has(z.id);
           cb.onchange=()=>{cb.checked?st.mom.sel.add(z.id):st.mom.sel.delete(z.id);st.res=null;paint()};
-          l.append(cb,$("b",null,z.name),$("span",null,z.id));ml.appendChild(l)});
+          l.append(cb,$("b",null,z.name),$("span",null,(z.time?z.time.slice(0,5)+" · ":"")+z.id));ml.appendChild(l)});
         mb.appendChild(ml);
       }
       md.appendChild(mb);
@@ -4791,7 +4792,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v271",APP_DATE="21/10/2026";
+const APP_VERSION="v272",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
