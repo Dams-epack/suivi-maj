@@ -68,15 +68,40 @@ function render(){
   app.appendChild($("h1",null,"Outils XML"));
   app.appendChild($("p","sub","Génère ou complète les XML des modules à partir des fichiers du client. Rien n'est enregistré : les fichiers restent dans ton navigateur."));
   const tl=$("div","tools");
-  const one=(t,d,small,fn)=>{const b=$("button","tool");b.type="button";b.append($("strong",null,t),$("span",null,d),$("small",null,small));b.onclick=fn;tl.appendChild(b)};
-  one("Excel → XML","Dépose l'Excel du client, choisis le type d'XML (Warming, Stickers, Contrôles divers…), récupère le XML dans un ZIP.","Un onglet = un XML",()=>openGen(ctx,null,null,XM,XR));
-  one("Compléter un XML","Dépose un export XML du configurateur : j'ajoute les balises manquantes et je normalise le fichier.","Produits, checklists, plans de nettoyage",()=>openXml(ctx,null,null));
+  const one=(t,d,small,fn,ic)=>{const b=$("button","tool");b.type="button";const i=$("span","ticon");i.setAttribute("aria-hidden","true");i.innerHTML=ic;i.dataset.nt="1";b.append(i,$("strong",null,t),$("span",null,d),$("small",null,small));b.onclick=fn;tl.appendChild(b)};
+  const IC1='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="14" rx="2"/><path d="M3 9h10M8 9v9"/><g class="tarr"><path d="M15 11h6M18.5 8.5 21 11l-2.5 2.5"/></g></svg>';
+  const IC2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="m9 14 2 2 4-4"/><path class="tspk" d="M19 2v3M17.5 3.5h3"/></svg>';
+  one("Excel → XML","Dépose l'Excel du client, choisis le type d'XML (Warming, Stickers, Contrôles divers…), récupère le XML dans un ZIP.","Un onglet = un XML",()=>openGen(ctx,null,null,XM,XR),IC1);
+  one("Compléter un XML","Dépose un export XML du configurateur : j'ajoute les balises manquantes et je normalise le fichier.","Produits, checklists, plans de nettoyage",()=>openXml(ctx,null,null),IC2);
   app.appendChild(tl);
   trSchedule();
 }
 render();
 '''
 ver=re.search(r'const APP_VERSION="(v\d+)"',src).group(1)
-out=head+'\n'+brand+'\n<div class="wrap" id="app"></div>\n<div class="appver" id="appver"></div>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>\n<script>\nconst APP_VERSION="%s";\n'%ver+prelude+code+main+'\n</script>\n'
+extra_css='''<style>
+/* animations propres à la page Support */
+.tool{position:relative;overflow:hidden}
+.tool .ticon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(155,249,68,.16);color:var(--accent);margin-bottom:4px;transition:transform .25s,background .25s}
+.tool .ticon svg{width:26px;height:26px;overflow:visible}
+.tool:hover .ticon,.tool:focus-visible .ticon{background:rgba(155,249,68,.3);transform:rotate(-6deg) scale(1.08)}
+.tool .tarr{transition:transform .3s}.tool:hover .tarr,.tool:focus-visible .tarr{animation:tnudge .9s ease-in-out infinite}
+.tool .tspk{transform-origin:center;transform-box:fill-box}.tool:hover .tspk,.tool:focus-visible .tspk{animation:tspin 1.2s linear infinite}
+.tool::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(155,249,68,.22) 50%,transparent 65%);transform:translateX(-120%);pointer-events:none}
+.tool:hover::after,.tool:focus-visible::after{transform:translateX(120%);transition:transform .8s ease}
+.tool:active{transform:translateY(0) scale(.98)}
+.tools .tool{animation:tin .5s cubic-bezier(.2,.8,.2,1) both}.tools .tool:nth-child(2){animation-delay:.12s}
+.btn,.gtile,.chip{transition:transform .15s,box-shadow .2s,background .2s,border-color .2s}
+.btn:not(:disabled):hover,.gtile:hover{transform:translateY(-1px)}
+.btn:not(:disabled):active,.gtile:active,.chip:active{transform:scale(.97)}
+.gtile.on .gtk{animation:tpop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes tin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes tnudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+@keyframes tspin{to{transform:rotate(360deg)}}
+@keyframes tpop{from{transform:scale(.4)}to{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.tools .tool,.tool .tarr,.tool .tspk,.gtile.on .gtk{animation:none!important}.tool::after{display:none}.tool,.btn,.gtile,.chip,.tool .ticon{transition:none!important}}
+</style>
+'''
+out=head+'\n'+extra_css+brand+'\n<div class="wrap" id="app"></div>\n<div class="appver" id="appver"></div>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>\n<script>\nconst APP_VERSION="%s";\n'%ver+prelude+code+main+'\n</script>\n'
 open(sys.argv[2],'w',encoding='utf-8').write(out)
 print('OK',ver,len(out))
