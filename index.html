@@ -4575,7 +4575,7 @@ function openCustom(){
       const ok2=$("button",null,"✓");ok2.type="button";ok2.setAttribute("aria-label","Ajouter");
       const go=()=>{const v=i.value.replace(/\s+/g," ").trim();cadding=false;if(v){if(!st.concepts.includes(v))st.concepts.push(v);st.csel.add(v)}paintConcepts();check()};
       ok2.onclick=go;i.onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();go()}else if(ev.key==="Escape"){ev.preventDefault();ev.stopPropagation();cadding=false;paintConcepts()}};
-      i.onblur=()=>{setTimeout(()=>{if(cadding&&!i.value.trim()){cadding=false;paintConcepts()}},150)};
+      i.onblur=()=>{setTimeout(()=>{if(!cadding)return;if(i.value.trim())go();else{cadding=false;paintConcepts()}},150)};
       e.append(i,ok2);cw2.appendChild(e);setTimeout(()=>i.focus(),0);
     }else{
       const pl=$("button","rp plus","+ Concept");pl.type="button";pl.onclick=()=>{cadding=true;paintConcepts()};cw2.appendChild(pl);
@@ -4658,6 +4658,8 @@ function openCustom(){
   no.onclick=closeCustom;
   ok.onclick=()=>{
     const g=st.group;if(!g||!st.mods.size||!st.regs.size)return;
+    /* concept tapé mais pas encore validé (ni Entrée ni ✓) : on le prend en compte */
+    {const pi=cw2.querySelector(".rp.edit input.ri"),pv=pi?pi.value.replace(/\s+/g," ").trim():"";if(pv){if(!st.concepts.includes(pv))st.concepts.push(pv);st.csel.add(pv)}cadding=false}
     const names=CATALOG.flatMap(([,a])=>a).filter(n=>st.mods.has(n));
     const regs=[...REGIONS,...st.extra].filter(r=>st.regs.has(r));
     const cons=st.concepts.filter(c=>st.csel.has(c));
@@ -4733,7 +4735,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v268",APP_DATE="21/10/2026";
+const APP_VERSION="v269",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
