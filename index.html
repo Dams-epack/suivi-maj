@@ -4122,6 +4122,8 @@ function viewHub(app){
   tb.onclick=openTool;tl.appendChild(tb);
   const sb=$("button","tool");sb.append($("strong",null,"Recherche de MAJ"),$("span",null,"Retrouver une MAJ par mot-clé, groupement, module, région, collègue, date ou durée."),$("small",null,(live.length+arch.length)+" MAJ indexées"));
   sb.onclick=openSearch;tl.appendChild(sb);
+  {const xa=$("a","tool");xa.href="https://dams-epack.github.io/suivi-maj/xml.html";xa.target="_blank";xa.rel="noopener noreferrer";xa.style.textDecoration="none";
+   xa.append($("strong",null,"Outils XML (Support) ↗"),$("span",null,"Version allégée pour l'équipe support : Excel → XML et Compléter un XML, sans suivi de MAJ. S'ouvre dans un nouvel onglet."),$("small",null,"xml.html · GitHub Pages"));tl.appendChild(xa)}
 app.appendChild(tl);
   // diagrammes
   const barList=(rows,opt)=>{
@@ -4826,7 +4828,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v275",APP_DATE="21/10/2026";
+const APP_VERSION="v276",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
