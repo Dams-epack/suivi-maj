@@ -521,7 +521,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 .cat{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:0;display:flex;flex-direction:column;gap:4px}
 .cat legend{font-weight:600;padding:0 6px;display:flex;align-items:center;gap:8px}
 .cat legend .chip{padding:2px 10px;font-size:.78rem;font-weight:400}
-.chk{display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;padding:2px 0}.mrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}.mcp{display:inline-flex;flex-wrap:wrap;gap:4px}.mcpb{font:inherit;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}.mcpb[aria-pressed="true"]{background:var(--epack-dark,#2d5650);border-color:transparent;color:#fff}
+.chk{display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;padding:2px 0}.cmrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}.mcp{display:inline-flex;flex-wrap:wrap;gap:4px}.mcpb{font:inherit;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}.mcpb[aria-pressed="true"]{background:var(--epack-dark,#2d5650);border-color:transparent;color:#fff}
 .modal.xml input[type=text],.modal.xml input[type=url],.modal.xml input[type=search]{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%;font-weight:400}
 .glist{display:flex;flex-direction:column;gap:2px;max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:4px}
 .gopt{font:inherit;font-weight:400;text-align:left;border:0;background:transparent;color:var(--fg);padding:6px 10px;border-radius:6px;cursor:pointer}
@@ -2088,6 +2088,17 @@ function openMail(id,type,only){
     let ok=false;try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
     if(!ok){try{src.focus();src.select();ok=document.execCommand("copy")}catch(e){}}
     st.textContent=ok?what+" copié.":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C.";
+    /* texte du mail copié : l'étape correspondante est cochée comme envoyée (avec possibilité d'annuler) */
+    if(ok&&what==="Texte"){
+      const key=mailType==="5j"||mailType==="7j"?"prise":(MAIL_TRACK.some(x=>x[0]===mailType)?mailType:""),cm=majs[id];
+      if(key&&cm&&!(cm.mails&&cm.mails[key])){
+        setMail(cm,key,true);persist(id);render();
+        const lab=(MAIL_TRACK.find(x=>x[0]===key)||[])[1]||key;
+        st.textContent="Texte copié · « "+lab.replace(/^\d+\w?\s*·\s*/,"")+" » coché comme envoyé. ";
+        const un=$("button","chip","Annuler la coche");un.type="button";un.onclick=()=>{const c2=majs[id];if(c2){setMail(c2,key,false);persist(id);render()}st.textContent="Texte copié (étape non cochée).";};
+        st.appendChild(un);
+      }
+    }
   };
   const bar=$("div","actions");
   const b1=$("button","btn","Copier le texte");b1.onclick=()=>copy(ta.value,"Texte",ta);
@@ -4692,7 +4703,7 @@ function openCustom(){
             b.onclick=e=>{e.preventDefault();const x=st.mex.get(n)||new Set();x.has(v)?x.delete(v):x.add(v);st.mex.set(n,x);fillCp()};cp.appendChild(b)})};
         c.onchange=()=>{c.checked?st.mods.add(n):st.mods.delete(n);check();upd();fillCp()};
         fillCp();
-        const row=$("div","mrow");l.append(c,$("span",null,n));row.append(l,cp);fs.appendChild(row);
+        const row=$("div","cmrow");l.append(c,$("span",null,n));row.append(l,cp);fs.appendChild(row);
       });
       list.appendChild(fs);
     });
@@ -4792,7 +4803,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v272",APP_DATE="21/10/2026";
+const APP_VERSION="v273",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
