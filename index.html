@@ -2083,7 +2083,7 @@ function openMail(id,type,only){
   const wn=$("p","msg err");wn.hidden=true;const hn=$("p","msg");hn.hidden=true;
   const st=$("span","msg");st.setAttribute("role","status");
   const fill=()=>{const d=mailDraft(m,mailType);si.value=d.subject;ta.value=d.body;wn.hidden=!d.warn.length;wn.textContent=d.warn.length?"À compléter : "+d.warn.join(" et ")+" (laissé en XX/XX/XXXX dans le texte).":"";hn.hidden=!d.hint;hn.textContent=d.hint;st.textContent=""};
-  sel.onchange=()=>{mailType=sel.value;fill()};
+  sel.onchange=()=>{mailType=sel.value;fill();sync()};
   const copy=async(txt,what,src)=>{
     let ok=false;try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
     if(!ok){try{src.focus();src.select();ok=document.execCommand("copy")}catch(e){}}
@@ -2094,9 +2094,8 @@ function openMail(id,type,only){
       if(key&&cm&&!(cm.mails&&cm.mails[key])){
         setMail(cm,key,true);persist(id);render();
         const lab=(MAIL_TRACK.find(x=>x[0]===key)||[])[1]||key;
-        st.textContent="Texte copié · « "+lab.replace(/^\d+\w?\s*·\s*/,"")+" » coché comme envoyé. ";
-        const un=$("button","chip","Annuler la coche");un.type="button";un.onclick=()=>{const c2=majs[id];if(c2){setMail(c2,key,false);persist(id);render()}st.textContent="Texte copié (étape non cochée).";};
-        st.appendChild(un);
+        st.textContent="Texte copié · « "+lab.replace(/^\d+\w?\s*·\s*/,"")+" » coché comme envoyé (tu peux le décocher ci-dessous).";
+        sync();
       }
     }
   };
@@ -2106,8 +2105,12 @@ function openMail(id,type,only){
   const b3=$("button","btn ghost","Remettre le texte d'origine");b3.onclick=fill;
   bar.append(b1,b2,b3);
   const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
-  md.append(hd,$("p",null,m.title),fl("Type de mail",sel),fl("Objet",si),fl("Texte (modifiable avant de copier)",ta),wn,hn,bar,st);
-  fill();
+  const tkKey=()=>mailType==="5j"||mailType==="7j"?"prise":(MAIL_TRACK.some(x=>x[0]===mailType)?mailType:"");
+  const sl=$("label","chk");const sc=$("input");sc.type="checkbox";const sct=$("span",null,"");sl.append(sc,sct);
+  function sync(){const k=tkKey(),cm=majs[id];sl.hidden=!(k&&cm);if(!k||!cm)return;sc.checked=!!(cm.mails&&cm.mails[k]);const lab=(MAIL_TRACK.find(x=>x[0]===k)||[])[1]||k;sct.textContent="Mail envoyé : « "+lab.replace(/^\d+\w?\s*·\s*/,"")+" » (décoche pour annuler)"}
+  sc.onchange=()=>{const k=tkKey(),cm=majs[id];if(!(k&&cm))return;setMail(cm,k,sc.checked);persist(id);render();sync();st.textContent=sc.checked?"Étape cochée.":"Étape décochée."};
+  md.append(hd,$("p",null,m.title),fl("Type de mail",sel),fl("Objet",si),fl("Texte (modifiable avant de copier)",ta),wn,hn,bar,sl,st);
+  fill();sync();
 }
 /* Validation siège : copie « NOM - Maj. validée par le siège » et propose d'ouvrir le canal Teams « Support SGC Automatisation » */
 let teamsDlg=null;
@@ -4238,7 +4241,7 @@ function viewUpcoming(app){
     const st=$("div","usteps");st.setAttribute("role","group");st.setAttribute("aria-label","Étapes de la MAJ");
     list.forEach(([k,lab,ev],i)=>{const on=!!mk[k],b=$("button","ustep"+(on?" done":"")+(k===nextK?" next":""));b.type="button";b.setAttribute("role","switch");b.setAttribute("aria-checked",String(on));
       const vs=k==="validSiege";b.setAttribute("aria-label",lab+(vs?" : validée par le client":" : mail envoyé"));
-      b.title=on?(typeof mk[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(mk[k]):(vs?"Validée":"Mail envoyé")):(vs?"Pas encore validée : cliquer pour valider":"Mail non envoyé : cliquer pour l'envoyer");
+      b.title=on?(typeof mk[k]==="number"?(vs?"Validée le ":"Mail envoyé le ")+fdate(mk[k])+" · cliquer pour décocher":(vs?"Validée":"Mail envoyé")+" · cliquer pour décocher"):(vs?"Pas encore validée : cliquer pour valider":"Mail non envoyé : cliquer pour l'envoyer");
       b.append($("span","udot",on?"✓":String(i+1)),$("span","ulab",lab));
       if(ev){const dl=$("small","udate"+(!on&&ev.date<t0?" late":""),fd(ev.date));b.appendChild(dl)}
       b.onclick=()=>toggle(m,id,k);st.appendChild(b)});
@@ -4803,7 +4806,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v273",APP_DATE="21/10/2026";
+const APP_VERSION="v274",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
