@@ -3121,9 +3121,13 @@ const MODS={
     order:['idFileAttente','Id','TS','Name','Category','TempMin','TempMax','TempLimit','CheckList_Name','CheckList_AllMandatoryToValid','Delete','Disable','ProductReference']},
   ControleDivers:{el:'DefControleDivers',out:'ControleDivers.xml',eol:'\r\n',enc:'utf-8',noDef:true,moments:true,
     cols:[['Id','id'],['TS','text'],['Name','text'],['Category','text'],['MesureMin','num'],['MesureMax','num'],['MesureUnit','text'],['Delete','bool']],
-    req:['Name','MesureMin','MesureMax'],order:['Id','TS','Name','Category','MesureUnit','MesureMin','MesureMax','Delete','Disable']}
+    req:['Name','MesureMin','MesureMax'],order:['Id','TS','Name','Category','MesureUnit','MesureMin','MesureMax','Delete','Disable']},
+  PlatsTemoins:{el:'DefPlatTemoin',out:'PlatsTemoins.xml',eol:'\r\n',enc:'utf-8',noDef:true,sp:true,idLen:21,
+    cols:[['Id','id'],['TS','text'],['Name','text'],['Category','text'],['Conservation','int'],['Delete','bool']],
+    req:['Name','Conservation'],
+    order:['idFileAttente','Delete','Id','TS','Name','Category','Photo','UserName','MyNote_Text','MyNote_Photo','MyNote_Username','Temperature','MyDate','Moment','Conservation','NeedSticker']}
 };
-const TRIM={Warming:['Name','Category'],Service:['Name','Category'],Production:['Name','Category'],Stickers:['Name','Category'],Freezing:['Name','Category'],Frozen:['Name','Category'],StockIn:['Name','Category','CheckList_Name'],ControleDivers:['Name','Category']};
+const TRIM={Warming:['Name','Category'],Service:['Name','Category'],Production:['Name','Category'],Stickers:['Name','Category'],Freezing:['Name','Category'],Frozen:['Name','Category'],StockIn:['Name','Category','CheckList_Name'],ControleDivers:['Name','Category'],PlatsTemoins:['Name','Category']};
 const BOOLS={true:'true',vrai:'true',oui:'true','1':'true',x:'true',false:'false',faux:'false',non:'false','0':'false'};
 const LIG={'Œ':'OE','œ':'oe','Æ':'AE','æ':'ae'};
 const cleanText=v=>v.replace(/[ŒœÆæ]/g,c=>LIG[c]).replace(/\s+/g,' ').trim();
@@ -3132,6 +3136,7 @@ const pad2=n=>String(n).padStart(2,'0');
 const fmtDate=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 /* Horodatage par défaut : Warming = ISO UTC sur 7 décimales (format de l'export e-Pack), autres modules = AAAA-MM-JJ HH:MM:SS */
 const nowFn=t=>{
+  if(t==='PlatsTemoins'){const s=new Date().toISOString().replace(/\.\d+Z$/,'Z');return()=>s}
   if(t==='Warming'||t==='ControleDivers'){const b=new Date().toISOString();return i=>b.replace(/\.(\d{3})Z$/,(_,ms)=>'.'+ms+String(i%10000).padStart(4,'0')+'Z')}
   const s=fmtDate(new Date());return()=>s;
 };
@@ -3146,10 +3151,11 @@ function cellText(v,kind,warns,where){
   }
   return String(v).trim();
 }
-function randId(){
+function randId(len){
+  len=len||18;
   const a=new Uint32Array(3);crypto.getRandomValues(a);
-  const n=(BigInt(a[0])<<64n|BigInt(a[1])<<32n|BigInt(a[2]))%(10n**18n);
-  return n.toString().padStart(18,'0');
+  const n=(BigInt(a[0])<<64n|BigInt(a[1])<<32n|BigInt(a[2]))%(10n**BigInt(len));
+  return n.toString().padStart(len,'0');
 }
 function readRows(name,aoa,off){
   off=off||0;
@@ -3187,7 +3193,7 @@ function finalize(name,rows,errs,warns,now){
   const used=new Set();let gen=0;
   rows.forEach(r=>{if(r.Id){if(used.has(r.Id))errs.push(`L${r._row} : Id en double ${r.Id}`);used.add(r.Id)}});
   rows.forEach((r,i)=>{
-    if(!r.Id){let x;do{x=randId()}while(used.has(x));used.add(x);r.Id=x;gen++}
+    if(!r.Id){let x;do{x=randId(MODS[name].idLen)}while(used.has(x));used.add(x);r.Id=x;gen++}
     if(!r.TS)r.TS=now(i);
     if(!r.Delete)r.Delete='false';
   });
@@ -3201,8 +3207,9 @@ function buildXml(name,rows,p,warns){
   const excCat=(p.excCat||'').trim().toLowerCase();let excN=0;
   out.push(`<?xml version="1.0" encoding="${m.enc}"?>`);
   out.push(m.bare?`<ArrayOf${m.el}>`:`<ArrayOf${m.el} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">`);
+  let ri=0;
   for(const r0 of rows){
-    const r=Object.assign({},r0);
+    const r=Object.assign({},r0);ri++;
     for(const t of TRIM[name]){if(r[t])r[t]=cleanText(r[t])}
     if(m.forceFalse)m.forceFalse.forEach(t=>r[t]='false');
     r.idFileAttente='0';r.Disable='false';r.MustIndicateDLC='false';r.IsDLUO='false';
@@ -3220,13 +3227,18 @@ function buildXml(name,rows,p,warns){
       ['Delete','Disable','Id','TS','Name','Category','Photo','MesureUnit','MesureMin','MesureMax'].forEach(t=>{const v=t==='Disable'?'false':(r[t]==null?'':r[t]);out.push(v!==''?`    <${t}>${esc(String(v))}</${t}>`:`    <${t} />`)});
       out.push(`  </${m.el}>`);continue;
     }
+    if(name==='PlatsTemoins'){
+      const d=new Date(),P=(n,l)=>String(n).padStart(l||2,'0'),tz=-d.getTimezoneOffset(),az=Math.abs(tz);
+      r.Photo=r.UserName=r.MyNote_Text=r.MyNote_Photo=r.MyNote_Username=r.Moment='';r.Temperature='0';r.NeedSticker='false';
+      r.MyDate=`${d.getFullYear()}-${P(d.getMonth()+1)}-${P(d.getDate())}T${P(d.getHours())}:${P(d.getMinutes())}:${P(d.getSeconds())}.${P(d.getMilliseconds(),3)}${P(ri%10000,4)}${tz<0?'-':'+'}${P(Math.floor(az/60))}:${P(az%60)}`;
+    }
     out.push(`  <${m.el}>`);
     const known=new Set(m.order),tags=m.order.slice();
     m.cols.forEach(([t])=>{if(!known.has(t)&&r[t])tags.push(t)});
     for(const t of tags){
       const v=r[t]==null?'':r[t];
       if(v)out.push(`    <${t}>${esc(v)}</${t}>`);
-      else out.push(m.bare||t==='ProductReference'?`    <${t} />`:`    <${t}/>`);
+      else out.push(m.bare||m.sp||t==='ProductReference'?`    <${t} />`:`    <${t}/>`);
     }
     out.push(`  </${m.el}>`);
   }
@@ -3270,6 +3282,7 @@ const SYN={
   MustIndicateOrigin:['mustindicateorigin','origine'],Delete:['delete','supprime'],
   CheckList_Name:['checklistname','checklist'],CheckList_AllMandatoryToValid:['checklistallmandatorytovalid'],
   ProductReference:['productreference','reference','ref'],
+  Conservation:['conservation','dlc','duree','dureeconservation','jours','nbjours'],
   MesureMin:['mesuremin','poidsmini','poidsmin','mini','minimum','min'],MesureMax:['mesuremax','poidsmaxi','poidsmax','maxi','maximum','max'],MesureUnit:['mesureunit','unite','unit']
 };
 function findHeader(aoa){
@@ -3359,7 +3372,7 @@ function makeZipMany(files){
   return out;
 }
 /* Type d'XML proposé selon le nom du module (modifiable dans la fenêtre) */
-const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/mise en cong[eé]lation/i,"Freezing"],[/d[eé]cong[eé]lation/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/tra[cç]abilit[eé]/i,"Production"],[/contr[oô]les?\s+divers/i,"ControleDivers"]];
+const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/mise en cong[eé]lation/i,"Freezing"],[/d[eé]cong[eé]lation/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/tra[cç]abilit[eé]/i,"Production"],[/contr[oô]les?\s+divers/i,"ControleDivers"],[/plats?\s+t[eé]moins?/i,"PlatsTemoins"]];
 const guessType=name=>{for(const [re,t] of GEN_GUESS)if(re.test(name))return t;return ""};
 let genDlg=null;
 function closeGen(){if(genDlg){genDlg.bg.remove();document.removeEventListener("keydown",genDlg.key);genDlg=null}}
@@ -3407,7 +3420,14 @@ function openGen(m,k,id,M,r){
     st.err="";st.res=null;st.msg="";
     if(typeof XLSX==="undefined"){st.err="Le lecteur Excel n'est pas chargé (problème de connexion ?). Recharge la page puis réessaie.";paint();return}
     try{
-      const wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:"array",cellDates:true});
+      const u8=new Uint8Array(await f.arrayBuffer());let wb;
+      if(/\.(csv|txt)$/i.test(f.name)){
+        /* CSV : UTF-8 si valide, sinon Windows-1252 (Œ, É… des exports Excel français) */
+        let txt;try{txt=new TextDecoder("utf-8",{fatal:true}).decode(u8)}catch(e){
+          const W={128:"€",130:"‚",131:"ƒ",132:"„",133:"…",134:"†",135:"‡",136:"ˆ",137:"‰",138:"Š",139:"‹",140:"Œ",142:"Ž",145:"‘",146:"’",147:"“",148:"”",149:"•",150:"–",151:"—",152:"˜",153:"™",154:"š",155:"›",156:"œ",158:"ž",159:"Ÿ"};
+          let o="";for(let i=0;i<u8.length;i+=8192){let p="";const e2=Math.min(u8.length,i+8192);for(let j=i;j<e2;j++){const c=u8[j];p+=(c>=128&&c<=159)?(W[c]||""):String.fromCharCode(c)}o+=p}txt=o}
+        wb=XLSX.read(txt.replace(/^\uFEFF/,""),{type:"string",cellDates:true});
+      }else wb=XLSX.read(u8,{type:"array",cellDates:true});
       st.sheets=[];
       wb.SheetNames.forEach(sn=>{
         const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:null,blankrows:true});if(!aoa.length)return;
@@ -3523,7 +3543,7 @@ function openGen(m,k,id,M,r){
      Object.keys(T).forEach(t=>{const on=st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,t),$("small",null,T[t].out));b.onclick=()=>{if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
      md.append(gl,gr)}
     if(!st.type&&!st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
-    const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls";inp.hidden=true;
+    const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls,.csv";inp.hidden=true;
     inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
     if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
     if(!st.file){
@@ -4806,7 +4826,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v274",APP_DATE="21/10/2026";
+const APP_VERSION="v275",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
