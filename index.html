@@ -3393,6 +3393,7 @@ function makeZipMany(files){
 }
 /* Type d'XML proposé selon le nom du module (modifiable dans la fenêtre) */
 const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/mise en cong[eé]lation/i,"Freezing"],[/d[eé]cong[eé]lation/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/tra[cç]abilit[eé]/i,"Production"],[/contr[oô]les?\s+divers/i,"ControleDivers"],[/plats?\s+t[eé]moins?/i,"PlatsTemoins"]];
+const GEN_LABEL={Warming:"Mise en température",Service:"Température de service",Production:"Traçabilité",Stickers:"Étiquettes produits",Freezing:"Mise en congélation",Frozen:"Décongélation",StockIn:"Réception",ControleDivers:"Contrôles divers",PlatsTemoins:"Plats témoins"};
 const guessType=name=>{for(const [re,t] of GEN_GUESS)if(re.test(name))return t;return ""};
 let genDlg=null;
 function closeGen(){if(genDlg){genDlg.bg.remove();document.removeEventListener("keydown",genDlg.key);genDlg=null}}
@@ -3560,7 +3561,7 @@ function openGen(m,k,id,M,r){
     md.append(hd,$("p","gsubp",M.name+" · "+regLabel));
     const T=GENX.MODS;
     {const gl=$("div","gtl","Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role","radiogroup");gr.setAttribute("aria-label","Type d'XML");
-     Object.keys(T).forEach(t=>{const on=st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,t),$("small",null,T[t].out));b.onclick=()=>{if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
+     Object.keys(T).forEach(t=>{const on=st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
      md.append(gl,gr)}
     if(!st.type&&!st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
     const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls,.csv";inp.hidden=true;
@@ -4848,7 +4849,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v277",APP_DATE="21/10/2026";
+const APP_VERSION="v278",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
