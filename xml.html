@@ -567,6 +567,26 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 .preset:hover{border-color:var(--accent)}
 .preset[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .preset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* menu profil : interrupteurs et champ animés */
+.themesw .tknob{transition:transform .38s cubic-bezier(.3,1.6,.5,1),width .15s,box-shadow .2s}
+.themesw:hover .tknob,.themesw:focus-visible .tknob{box-shadow:0 0 0 3px rgba(155,249,68,.28),0 0 12px rgba(155,249,68,.75)}
+.themesw:active .tknob{width:34px}.themesw.dk:active .tknob{width:34px;transform:translateX(22px)}
+.langsw:active .tknob{width:36px}.langsw.dk:active .tknob{width:36px;transform:translateX(22px)}
+.themesw .tsi svg{transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
+.themesw:hover:not(.dk) .tsun svg{animation:sunspin 2.4s linear infinite}
+.themesw.dk:hover .tmoon svg{animation:moonsway 1.6s ease-in-out infinite}
+.themesw .lf{transition:transform .3s cubic-bezier(.3,1.6,.5,1)}.langsw:hover .lf{transform:scale(1.14)}
+.langsw:not(.dk):hover .tsun .lf,.langsw.dk:hover .tmoon .lf{animation:flagwave 1s ease-in-out infinite}
+.pmenu input{transition:box-shadow .2s,border-color .2s}.pmenu input:focus{box-shadow:0 0 0 3px rgba(155,249,68,.35)}
+.pmok{transition:transform .2s cubic-bezier(.3,1.6,.5,1)}.pmok:hover{transform:scale(1.12) rotate(-6deg)}.pmok:active{transform:scale(.92)}
+.avchip{transition:transform .2s,box-shadow .25s,border-color .2s}.avchip:hover{transform:translateY(-1px);box-shadow:0 0 0 1px #9BF944,0 0 14px rgba(155,249,68,.6)}.avchip:hover .avc{animation:avpulse .9s ease-in-out infinite}.avchip:active{transform:scale(.97)}
+.pmenu>*{animation:pmitem .4s cubic-bezier(.2,.8,.2,1) both}.pmenu>*:nth-child(2){animation-delay:.05s}.pmenu>*:nth-child(3){animation-delay:.1s}.pmenu>*:nth-child(4){animation-delay:.15s}
+@keyframes sunspin{to{transform:rotate(360deg)}}
+@keyframes moonsway{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+@keyframes flagwave{0%,100%{transform:scale(1.14) rotate(0)}25%{transform:scale(1.14) rotate(-8deg)}75%{transform:scale(1.14) rotate(8deg)}}
+@keyframes avpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+@keyframes pmitem{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.pmenu>*,.themesw .tsi svg,.themesw .lf,.avchip:hover .avc{animation:none!important}.themesw .tknob,.avchip,.pmok{transition:none!important}}
 </style>
 <style>
 /* animations propres à la page Support */
@@ -595,7 +615,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="appver" id="appver"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v276";
+const APP_VERSION="v277";
 
 const SUPPORT=true;
 let majs={},cur=null;
