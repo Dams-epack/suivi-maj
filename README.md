@@ -34,3 +34,12 @@ Aucune clé ni URL de flux n'est dans le code : les trois URL Power Automate (Te
 
 ## Partage entre postes sur GitHub Pages
 Sans la base de claude.ai, les MAJ peuvent être partagées via un fichier JSON SharePoint : un flux Power Automate (POST `op=read` / `op=write`, avec l'en-tête `Access-Control-Allow-Origin: *`) lit et écrit le fichier. L'URL du flux se saisit dans Paramètres, « Partage SharePoint », et reste dans le navigateur. L'outil relit le fichier toutes les minutes et fusionne par MAJ (la modification la plus récente gagne). Les XML générés restent locaux.
+
+## Outil Support XML
+
+`xml.html` est une version allégée pour l'équipe support : Excel → XML et Compléter un XML, sans suivi de MAJ, mails ni SharePoint.
+Elle est générée à partir de `index.html` (blocs XMLC, GENX, GENUI, XMLUI) :
+
+    python3 build_support.py index.html xml.html
+
+Après toute amélioration du moteur XML dans `index.html`, relancer cette commande puis publier les deux pages.
