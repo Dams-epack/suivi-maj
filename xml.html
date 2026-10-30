@@ -621,7 +621,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="appver" id="appver"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v281";
+const APP_VERSION="v282";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1889,9 +1889,13 @@ const MODS={
   PlatsTemoins:{el:'DefPlatTemoin',out:'PlatsTemoins.xml',eol:'\r\n',enc:'utf-8',noDef:true,sp:true,idLen:21,
     cols:[['Id','id'],['TS','text'],['Name','text'],['Category','text'],['Conservation','int'],['Delete','bool']],
     req:['Name','Conservation'],
-    order:['idFileAttente','Delete','Id','TS','Name','Category','Photo','UserName','MyNote_Text','MyNote_Photo','MyNote_Username','Temperature','MyDate','Moment','Conservation','NeedSticker']}
+    order:['idFileAttente','Delete','Id','TS','Name','Category','Photo','UserName','MyNote_Text','MyNote_Photo','MyNote_Username','Temperature','MyDate','Moment','Conservation','NeedSticker']},
+  ProductionsTemp:{el:'DefProductionTemp',out:'ProductionsTemp.xml',eol:'\n',enc:'UTF-8',noDef:true,
+    cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['CheckList_Name','text'],['CheckList_AllMandatoryToValid','bool'],['Dlc','int'],['Delete','bool']],
+    req:['Name'],
+    order:['Id','TS','Name','Category','CheckList_Name','CheckList_AllMandatoryToValid','Delete','Dlc','DLType']}
 };
-const TRIM={Warming:['Name','Category'],Service:['Name','Category'],Production:['Name','Category'],Stickers:['Name','Category'],Freezing:['Name','Category'],Frozen:['Name','Category'],StockIn:['Name','Category','CheckList_Name'],ControleDivers:['Name','Category'],PlatsTemoins:['Name','Category']};
+const TRIM={Warming:['Name','Category'],Service:['Name','Category'],Production:['Name','Category'],Stickers:['Name','Category'],Freezing:['Name','Category'],Frozen:['Name','Category'],StockIn:['Name','Category','CheckList_Name'],ControleDivers:['Name','Category'],PlatsTemoins:['Name','Category'],ProductionsTemp:['Name','Category','CheckList_Name']};
 const BOOLS={true:'true',vrai:'true',oui:'true','1':'true',x:'true',false:'false',faux:'false',non:'false','0':'false'};
 const LIG={'Œ':'OE','œ':'oe','Æ':'AE','æ':'ae'};
 const cleanText=v=>v.replace(/[ŒœÆæ]/g,c=>LIG[c]).replace(/\s+/g,' ').trim();
@@ -1983,6 +1987,7 @@ function buildXml(name,rows,p,warns){
       const hit=excCat&&(r.Category||'').trim().toLowerCase()===excCat;if(hit)excN++;
       r.IsDDM=hit?(p.excVal||'true'):(p.isddm||'false');
     }
+    if(name==='ProductionsTemp'){if(!r.CheckList_AllMandatoryToValid)r.CheckList_AllMandatoryToValid='false';r.DLType='-1'}
     if(name==='ControleDivers'){
       const nd=new Date(Date.now()+864e5),ndS=`${nd.getFullYear()}-${pad2(nd.getMonth()+1)}-${pad2(nd.getDate())}T${p.momTime||'04:00:00'}`;
       out.push(`  <${m.el}>`,'    <idFileAttente>0</idFileAttente>','    <CheckList_Name />','    <CheckList_AllMandatoryToValid>false</CheckList_AllMandatoryToValid>','    <Recurrence>','      <Type>Daily</Type>','      <Moments>');
@@ -2136,8 +2141,8 @@ function makeZipMany(files){
   return out;
 }
 /* Type d'XML proposé selon le nom du module (modifiable dans la fenêtre) */
-const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/mise en cong[eé]lation/i,"Freezing"],[/d[eé]cong[eé]lation/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/tra[cç]abilit[eé]/i,"Production"],[/contr[oô]les?\s+divers/i,"ControleDivers"],[/plats?\s+t[eé]moins?/i,"PlatsTemoins"]];
-const GEN_LABEL={Warming:"Mise en température",Service:"Température de service",Production:"Traçabilité",Stickers:"Étiquettes produits",Freezing:"Mise en congélation",Frozen:"Décongélation",StockIn:"Réception",ControleDivers:"Contrôles divers",PlatsTemoins:"Plats témoins"};
+const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/mise en cong[eé]lation/i,"Freezing"],[/d[eé]cong[eé]lation/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/temp[eé]rature de production/i,"ProductionsTemp"],[/tra[cç]abilit[eé]/i,"Production"],[/contr[oô]les?\s+divers/i,"ControleDivers"],[/plats?\s+t[eé]moins?/i,"PlatsTemoins"]];
+const GEN_LABEL={Warming:"Mise en température",Service:"Température de service",Production:"Traçabilité",Stickers:"Étiquettes produits",Freezing:"Mise en congélation",Frozen:"Décongélation",StockIn:"Réception",ControleDivers:"Contrôles divers",PlatsTemoins:"Plats témoins",ProductionsTemp:"Température de production"};
 const guessType=name=>{for(const [re,t] of GEN_GUESS)if(re.test(name))return t;return ""};
 let genDlg=null;
 function closeGen(){if(genDlg){genDlg.bg.remove();document.removeEventListener("keydown",genDlg.key);genDlg=null}}
