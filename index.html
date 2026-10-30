@@ -1613,6 +1613,8 @@ function paintSync(){const e=document.getElementById("sync");if(e)e.textContent=
 function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
 
 /* ---- Analyse du mail ---- */
+/* « France/BE FR/BE NL » saisi d'un bloc : une ligne par région (FR, BE FR, BE NL) */
+const splitReg=l=>{const o=[];String(l).split("/").map(x=>x.trim()).filter(Boolean).forEach(p=>{p=/^france$/i.test(p)?"FR":p;if(!o.includes(p))o.push(p)});return o.length?o:[String(l)]};
 const norm=l=>String(l).replace(/\bblux(?:embourg)?[\s-]*(FR|NL)\b/i,(m,c)=>"BE-"+c.toUpperCase());
 function localParse(mail){
   const mods=[];
@@ -1897,7 +1899,7 @@ async function analyse(){
   if(!group){const top=topMessage(mail);group=localGroup(top)||detectGroupsInText(top)[0]||domainGroup(top)||localGroup(mail)||domainGroup(mail)}
   {const dom=domainGroup(mail);if(dom&&group&&dom.toLowerCase().includes(group.toLowerCase())&&dom.length>group.length)group=dom}
   draft.group=group.replace(/\s+/g," ").trim().slice(0,60).toUpperCase();
-  mods=mods.map(m=>({name:m.name,regions:m.regions.map(norm)}));
+  mods=mods.map(m=>({name:m.name,regions:[...new Set(m.regions.flatMap(splitReg).map(norm))]}));
   draft.busy=false;
   if(!mods.length){draft.msg="Je n'ai trouvé aucun module dans ce mail. Vérifie le texte collé.";draft.err=true;draft.parsed=null}
   else{draft.parsed=mods;draft.msg="";draft.err=false}
@@ -4776,7 +4778,7 @@ function openCustom(){
     /* concept tapé mais pas encore validé (ni Entrée ni ✓) : on le prend en compte */
     {const pi=cw2.querySelector(".rp.edit input.ri"),pv=pi?pi.value.replace(/\s+/g," ").trim():"";if(pv){if(!st.concepts.includes(pv))st.concepts.push(pv);st.csel.add(pv)}cadding=false}
     const names=CATALOG.flatMap(([,a])=>a).filter(n=>st.mods.has(n));
-    const regs=[...REGIONS,...st.extra].filter(r=>st.regs.has(r));
+    const regs=[...new Set([...REGIONS,...st.extra].filter(r=>st.regs.has(r)).flatMap(splitReg))];
     const cons=st.concepts.filter(c=>st.csel.has(c));
     draft.group=g;draft.type=st.type;draft.parsed=names.map(n=>{const ex=st.mex.get(n)||new Set(),cm=cons.filter(c=>!ex.has(c));return {name:n,regions:cm.length?cm.flatMap(c=>regs.map(r=>({label:r,concept:c}))):regs.slice()}});
     closeCustom();ensureName().then(createMaj);
@@ -4850,7 +4852,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v280",APP_DATE="21/10/2026";
+const APP_VERSION="v281",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
