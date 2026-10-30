@@ -621,7 +621,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="appver" id="appver"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v278";
+const APP_VERSION="v279";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1429,6 +1429,7 @@ function flagCode(label){
   for(const t of toks){const k=FLAG_FOLD(t);if(!k)continue;if(FLAG_ALIAS[k]&&FLAG_SVG[FLAG_ALIAS[k]])return FLAG_ALIAS[k];if(FLAG_IDX[k])return FLAG_IDX[k];if(t===t.toUpperCase()&&/^[A-Z]{2}$/.test(t)&&FLAG_SVG[t]&&toks.length<=3)return t}
   return null;
 }
+const regCode=l=>String(l).split("/").map(p=>{const t=p.trim();if(/^[A-Z]{2}( [A-Z]{2})?$/.test(t))return t;const c=flagCode(t);return c||t}).join("/");
 const FLAG_CACHE={};
 function flagBg(code){return FLAG_CACHE[code]||(FLAG_CACHE[code]='url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" '+FLAG_SVG[code].slice(5))+'") center/cover no-repeat')}
 function flagEl(label,cls){const c=flagCode(label);const s=document.createElement("span");s.className=cls||"fl";s.dataset.nt="1";s.setAttribute("aria-hidden","true");

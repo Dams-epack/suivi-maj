@@ -1405,6 +1405,7 @@ function flagCode(label){
   for(const t of toks){const k=FLAG_FOLD(t);if(!k)continue;if(FLAG_ALIAS[k]&&FLAG_SVG[FLAG_ALIAS[k]])return FLAG_ALIAS[k];if(FLAG_IDX[k])return FLAG_IDX[k];if(t===t.toUpperCase()&&/^[A-Z]{2}$/.test(t)&&FLAG_SVG[t]&&toks.length<=3)return t}
   return null;
 }
+const regCode=l=>String(l).split("/").map(p=>{const t=p.trim();if(/^[A-Z]{2}( [A-Z]{2})?$/.test(t))return t;const c=flagCode(t);return c||t}).join("/");
 const FLAG_CACHE={};
 function flagBg(code){return FLAG_CACHE[code]||(FLAG_CACHE[code]='url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" '+FLAG_SVG[code].slice(5))+'") center/cover no-repeat')}
 function flagEl(label,cls){const c=flagCode(label);const s=document.createElement("span");s.className=cls||"fl";s.dataset.nt="1";s.setAttribute("aria-hidden","true");
@@ -2453,7 +2454,7 @@ function openAddMods(id){
     CATALOG.forEach(([cat,names])=>{const vis=names.filter(n=>!f||fold(n).includes(f));if(!vis.length)return;any=true;list.appendChild($("div","amcat",cat));vis.forEach(n=>row(n,have.has(fold(n))))});
     if(!any&&!extra.length)list.appendChild($("p","empty","Aucun module ne correspond : utilise « Autre module »."));
   };
-  const paintR=()=>{rl.textContent="";regs.forEach(r=>{const b=$("button","rp");b.type="button";b.setAttribute("aria-pressed",String(selR.has(r.key)));b.append(flagEl(r.label),r.label+(r.concept?" · "+r.concept:""));b.onclick=()=>{selR.has(r.key)?selR.delete(r.key):selR.add(r.key);paintR();upd()};rl.appendChild(b)})};
+  const paintR=()=>{rl.textContent="";regs.forEach(r=>{const b=$("button","rp");b.type="button";b.setAttribute("aria-pressed",String(selR.has(r.key)));b.title=r.label;b.append(flagEl(r.label),regCode(r.label)+(r.concept?" · "+r.concept:""));b.onclick=()=>{selR.has(r.key)?selR.delete(r.key):selR.add(r.key);paintR();upd()};rl.appendChild(b)})};
   const upd=()=>{ok.disabled=!(chosen.size&&selR.size);cnt.textContent=chosen.size+" module"+(chosen.size>1?"s":"")+" · "+selR.size+" région"+(selR.size>1?"s":"")};
   const addExtra=()=>{const v=ei.value.replace(/\s+/g," ").trim().slice(0,60);if(!v)return;if(have.has(fold(v))||extra.some(n=>fold(n)===fold(v))||CATALOG.some(([,a])=>a.some(n=>fold(n)===fold(v)))){ei.value="";return}extra.push(v);chosen.add(v);ei.value="";paintM();upd()};
   eb.onclick=addExtra;ei.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addExtra()}};
@@ -2652,7 +2653,7 @@ function viewMaj(app,id){
       const L=stepsOf(M).length;const n=p.s.slice(0,L).filter(Boolean).length;md+=n;
       if(onlyTodo&&n===L)return;
       const row=$("div","row"+(n===L?" full":"")+(L===1?" one":"")+(L===2?" two":""));
-      const reg=$("div","reg");{const st0=$("strong");st0.append(flagEl(norm(r.label),"fl fls"),norm(r.label));reg.appendChild(st0)}if(r.concept){const cs=$("small",null,r.concept);cs.style.color="var(--muted)";reg.appendChild(cs)}row.appendChild(reg);
+      const reg=$("div","reg");{const st0=$("strong");st0.append(flagEl(norm(r.label),"fl fls"),regCode(norm(r.label)));st0.title=norm(r.label);reg.appendChild(st0)}if(r.concept){const cs=$("small",null,r.concept);cs.style.color="var(--muted)";reg.appendChild(cs)}row.appendChild(reg);
       let warn=false;
       stepsOf(M).forEach((S,i)=>{
         const b=$("button","step");b.setAttribute("role","checkbox");b.setAttribute("aria-checked",p.s[i]?"true":"false");
@@ -4849,7 +4850,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v278",APP_DATE="21/10/2026";
+const APP_VERSION="v279",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
