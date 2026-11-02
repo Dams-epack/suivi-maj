@@ -378,7 +378,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .ucard{border:1px solid var(--line);border-left:5px solid var(--cta);border-radius:12px;background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .ucard.late{border-left-color:var(--bad)}.ucard.fix{border-left-color:#FF8A28}.ucard.alldone{border-color:var(--ok);border-left-color:var(--ok)}
 .ucard.flash{animation:evflash 2.2s ease-out}
-.uhead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:space-between}
+.ucar{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:.8rem;transition:transform .2s,background .2s}.ucar:hover{background:rgba(155,249,68,.14);color:var(--fg)}.uhead .ucar+.utitle{flex:1;text-align:left;margin-left:-6px}.ucard.ucol .ucar{transform:rotate(-90deg)}.ucard.ucol .usteps,.ucard.ucol .ufoot{display:none}.ucard.ucol{gap:6px;padding-top:10px;padding-bottom:10px}.uhead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:space-between}
 .utitle{all:unset;cursor:pointer;font-weight:700;font-size:1.05rem;display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap}.utitle:hover,.utitle:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .upc{color:var(--muted);font-size:.85rem}.upc b{color:var(--fg);font-family:var(--mono)}
 .unext{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:.9rem}
@@ -2313,6 +2313,7 @@ function showTeams(m,kind,id,onDone){
 }
 const mailKey2=t=>t==="5j"||t==="7j"?"prise":t;
 /*MAIL-END*/
+let ucol={};try{ucol=JSON.parse(localStorage.getItem("suivi-maj-ucol")||"{}")||{}}catch(e){}
 let blocClosed={};try{blocClosed=JSON.parse(localStorage.getItem("suivi-maj-bloc")||"{}")||{}}catch(e){}
 /* En-tête de bloc réductible : la case ouverte / fermée est mémorisée sur cet appareil */
 function blocHead(key,title,cnt,dflt){
@@ -4269,6 +4270,9 @@ function viewUpcoming(app){
   const nLate=cards.filter(c=>c.late).length,nWeek=cards.filter(c=>!c.late&&days(c.key.e.date)<=7).length,nLater=cards.length-nLate-nWeek;
   const sm=$("div","usum");
   [["late",nLate,"en retard"],["week",nWeek,"cette semaine"],["later",nLater,"plus tard"]].forEach(([k,n,t])=>{const on=upFilter===k,p=$("button","upill "+k+(on?" on":""));p.type="button";p.setAttribute("aria-pressed",String(on));p.title=on?"Cliquer pour tout afficher":"Afficher seulement : "+t;p.append($("b",null,String(n)),document.createTextNode(" "+t));p.onclick=()=>{upFilter=on?"":k;render()};sm.appendChild(p)});
+  {const ids=cards.map(c=>c.id),allC=ids.length&&ids.every(i=>ucol[i]);
+   const tg=$("button","chip",allC?"▸ Tout développer":"▾ Tout réduire");tg.type="button";tg.title=allC?"Afficher les étapes de toutes les MAJ":"Réduire toutes les cartes (titre et prochaine étape seulement)";
+   tg.onclick=()=>{ids.forEach(i=>{if(allC)delete ucol[i];else ucol[i]=1});try{localStorage.setItem("suivi-maj-ucol",JSON.stringify(ucol))}catch(e){}render()};if(ids.length)sm.appendChild(tg)}
   if(upFilter){const rs=$("button","chip","✕ Tout afficher");rs.type="button";rs.onclick=()=>{upFilter="";render()};sm.appendChild(rs)}
   app.appendChild(sm);
   const toggle=(m,id,k)=>{const was=!!(m.mails&&m.mails[k]);setMail(m,k,!was);persist(id);render();if(was)return;
@@ -4281,10 +4285,12 @@ function viewUpcoming(app){
   const card=c=>{
     const {id,m,sg,dp,key,late}=c,fix=m.type==="correctif",mk=m.mails||{},s=stats(m);
     const w=$("article","ucard"+(late?" late":"")+(fix?" fix":""));w.dataset.ev=id+"|dateSiege";w.dataset.ev2=id+"|dateDeploiement";
+    const cb=$("button","ucar","▾");cb.type="button";cb.setAttribute("aria-expanded",String(!ucol[id]));cb.setAttribute("aria-label","Réduire ou développer la carte");cb.title=ucol[id]?"Développer":"Réduire";cb.onclick=()=>{if(ucol[id])delete ucol[id];else ucol[id]=1;try{localStorage.setItem("suivi-maj-ucol",JSON.stringify(ucol))}catch(e){}w.classList.toggle("ucol",!!ucol[id]);cb.setAttribute("aria-expanded",String(!ucol[id]));cb.title=ucol[id]?"Développer":"Réduire";render()};
+    if(ucol[id])w.classList.add("ucol");
     const head=$("div","uhead"),tl=$("button","utitle");tl.type="button";tl.title="Ouvrir la fiche";tl.onclick=()=>{backTo="upcoming";setCur(id)};
     if(fix)tl.appendChild($("span","gpill fix","Correctif"));tl.appendChild($("span",null,m.title));
     const pc=$("div","upc");pc.append($("b",null,s.pct+" %"),$("small",null," · "+s.done+" / "+s.total+" étapes"));
-    head.append(tl,pc);w.appendChild(head);
+    head.append(cb,tl,pc);w.appendChild(head);
     const nx=$("p","unext"+(late?" late":""));nx.append($("span","unl","Prochaine étape"),$("b",null,key.n[0]),$("span","und",fd(key.e.date)+" · "+when(days(key.e.date))));w.appendChild(nx);
     const defs=[["prise","Rétroplanning",null],["siege","Mise à jour siège",sg],["validSiege","Validation siège",null],["debut","Début de déploiement",dp],["fin","Fin de déploiement",null]];
     if(m.secondPass)defs.push(["pass2","2nde passe",null]);
@@ -4857,7 +4863,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v286",APP_DATE="21/10/2026";
+const APP_VERSION="v287",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
