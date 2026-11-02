@@ -4858,7 +4858,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v283",APP_DATE="21/10/2026";
+const APP_VERSION="v284",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
@@ -4905,7 +4905,8 @@ render();
       });
       if(!snap.metadata.fromCache&&!snap.metadata.hasPendingWrites)Object.keys(majs).forEach(k=>{if(seen.has(k)&&!remote[k])delete majs[k]});
       if(cur&&!majs[cur])cur=null;
-      Object.keys(majs).forEach(k=>{const m=majs[k];{const before=m.title;stampTitle(m);if(m.title!==before){persist(k)}}});
+      /* le titre est recalculé en local uniquement : l'écrire en base à chaque synchro provoquait des aller-retours entre postes (et des écrasements de cases cochées) */
+      Object.keys(majs).forEach(k=>{stampTitle(majs[k])});
       syncTxt="Synchronisé";resolveNames();
       try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
       const a=document.activeElement;
