@@ -68,7 +68,7 @@ function buildBar(){
 function render(){
   buildBar();
   const app=document.getElementById("app");app.textContent="";
-  const ver=document.getElementById("appver");if(ver)ver.textContent="Outils XML ePack · "+APP_VERSION;
+  const ver=document.getElementById("appver");if(ver)ver.textContent=APP_VERSION;
   app.appendChild($("h1",null,"Outils XML"));
   app.appendChild($("p","sub","Génère ou complète les XML des modules à partir des fichiers du client. Rien n'est enregistré : les fichiers restent dans ton navigateur."));
   const tl=$("div","tools");
@@ -114,6 +114,6 @@ extra_css='''<style>
 .x2n{flex:1}
 </style>
 '''
-out=head+'\n'+extra_css+brand+'\n<div class="wrap" id="app"></div>\n<div class="appver" id="appver"></div>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>\n<script>\nconst APP_VERSION="%s";\n'%ver+prelude+code+main+'\n</script>\n'
+out=head+'\n'+extra_css+brand+'\n<div class="wrap" id="app"></div>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>\n<script>\nconst APP_VERSION="%s";\n'%ver+prelude+code+main+'\n</script>\n'
 open(sys.argv[2],'w',encoding='utf-8').write(out)
 print('OK',ver,len(out))
