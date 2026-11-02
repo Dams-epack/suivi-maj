@@ -3142,7 +3142,7 @@ const MODS={
     cols:[['Id','id'],['TS','ts'],['Name','text'],['Category','text'],['TempMin','num'],['TempMax','num'],['TempLimit','num'],['CheckList_Name','text'],['CheckList_AllMandatoryToValid','bool'],['OrderId','text'],['CategoryId','text'],['SupplierId','text'],['ProductReference','text'],['Quantity','text'],['DLCTheorique','text'],['Delete','bool'],['NumLot','text']],
     req:['Name','TempMin','TempMax'],
     order:['idFileAttente','Id','TS','Name','Category','TempMin','TempMax','TempLimit','CheckList_Name','CheckList_AllMandatoryToValid','Delete','Disable','ProductReference']},
-  ControleDivers:{el:'DefControleDivers',out:'ControleDivers.xml',eol:'\r\n',enc:'utf-8',noDef:true,moments:true,
+  ControleDivers:{el:'DefControleDivers',out:'ControlesDivers.xml',eol:'\r\n',enc:'utf-8',noDef:true,moments:true,
     cols:[['Id','id'],['TS','text'],['Name','text'],['Category','text'],['MesureMin','num'],['MesureMax','num'],['MesureUnit','text'],['Delete','bool']],
     req:['Name','MesureMin','MesureMax'],order:['Id','TS','Name','Category','MesureUnit','MesureMin','MesureMax','Delete','Disable']},
   PlatsTemoins:{el:'DefPlatTemoin',out:'PlatsTemoins.xml',eol:'\r\n',enc:'utf-8',noDef:true,sp:true,idLen:21,
@@ -4857,7 +4857,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v285",APP_DATE="21/10/2026";
+const APP_VERSION="v286",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
