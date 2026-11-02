@@ -2160,8 +2160,9 @@ function askLink(step,total,title,label,value){
     const ok=$("button","btn",step<total?"Continuer":"Terminer");ok.type="button";const no=$("button","btn ghost","Annuler");no.type="button";
     const upd=()=>{ok.disabled=!i.value.trim()};i.oninput=upd;upd();
     ok.onclick=()=>fin(i.value.trim());no.onclick=()=>fin(null);
+    const sk=$("button","btn ghost","Continuer sans lien");sk.type="button";sk.title="Le message sera préparé sans ce lien";sk.onclick=()=>fin("");
     i.onkeydown=e=>{if(e.key==="Enter"&&i.value.trim()){e.preventDefault();fin(i.value.trim())}};
-    const bar=$("div","actions");bar.append(ok,no);
+    const bar=$("div","actions");bar.append(ok,sk,no);
     md.append(hd,$("p","sub","Étape "+step+" sur "+total),l,bar);setTimeout(()=>i.focus(),0);
   });
 }
@@ -2268,10 +2269,10 @@ function showTeams(m,kind,id,onDone){
   closeTeams();const deb=kind==="debut";
   const nom=String(groupOf(m)||m.group||m.baseTitle||m.title||"").replace(/\s+/g," ").trim().toUpperCase();
   const qmc=csmOf(m),qmName=!deb&&qmc&&qmc.qm||"",qmMail=QM_MAIL[qmName]||"";
-  const msg=tr(nom+" - Maj. validée par le siège\nRessources : "+((m.liens&&m.liens.ressources)||"…"));
+  const msg=tr(nom+" - Maj. validée par le siège"+((m.liens&&m.liens.ressources)?"\nRessources : "+m.liens.ressources:""));
   const L=Object.assign({ressources:"",rapport:""},m.liens);
   const langs=majLangs(m),multi=langs.length>1,R=Object.assign({},(m.liens||{}).rapports);
-  const build=()=>tr(String(m.title||nom).trim()+"\n\nRessources : "+(L.ressources||"…")+"\n\n"+(multi?langs.map(([c,n])=>"Rapport d'intervention ("+n+") : "+(R[c]||"…")).join("\n\n"):"Rapport d'intervention : "+(L.rapport||"…")));
+  const build=()=>tr([String(m.title||nom).trim(),L.ressources?"Ressources : "+L.ressources:"",...(multi?langs.map(([c,n])=>R[c]?"Rapport d'intervention ("+n+") : "+R[c]:""):[L.rapport?"Rapport d'intervention : "+L.rapport:""])].filter(Boolean).join("\n\n"));
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","tmt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeTeams()};document.addEventListener("keydown",key);teamsDlg={bg,key,onClose:onDone};
@@ -4857,7 +4858,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v282",APP_DATE="21/10/2026";
+const APP_VERSION="v283",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent="Suivi de préparation des MAJ · "+APP_VERSION+" · "+APP_DATE}
