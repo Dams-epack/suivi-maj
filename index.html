@@ -245,6 +245,18 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .datef select,.datef input{font:inherit;font-weight:400;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
 .cols.two,.row.two{grid-template-columns:minmax(120px,1.3fr) repeat(2,minmax(0,1fr))}
 .pill-bad{align-self:center;font-size:.76rem;font-weight:700;padding:2px 10px;border-radius:999px;background:#D11A1A;color:#fff;white-space:nowrap}
+.btn.ico{display:inline-flex;align-items:center;gap:8px}.btn .ic{width:18px;height:18px;flex:none;overflow:visible}
+.btn.trash{padding:9px 12px}.btn.danger.trash:hover,.btn.danger.trash:focus-visible{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);border-color:var(--warn)}.btn.trash .ic .lid{transform-box:fill-box;transform-origin:15% 100%;transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
+.btn.trash:hover .ic .lid,.btn.trash:focus-visible .ic .lid{transform:rotate(-24deg) translateY(-2px)}
+.btn.trash:hover .ic .tb,.btn.trash:focus-visible .ic .tb{animation:icshake .45s ease-in-out}
+.btn.trash:active .ic{transform:scale(.88)}
+.btn.sv .ic .fl{transition:transform .25s}.btn.sv:hover .ic .fl,.btn.sv:focus-visible .ic .fl{animation:icsave .9s ease-in-out infinite}
+.btn.sv:hover .ic,.btn.sv:focus-visible .ic{animation:icpop .5s ease}
+.btn.sv:active .ic{transform:scale(.85)}
+@keyframes icshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-1.2px)}75%{transform:translateX(1.2px)}}
+@keyframes icsave{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+@keyframes icpop{0%{transform:scale(1)}40%{transform:scale(1.22) rotate(-6deg)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.btn.trash .ic *,.btn.sv .ic,.btn.sv .ic *{animation:none!important;transition:none!important}}
 .bver{font-size:.7rem;font-weight:600;letter-spacing:.04em;color:var(--band-fg);opacity:.75;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 9px;user-select:text;white-space:nowrap}
 .stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
 .row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
@@ -2626,7 +2638,7 @@ function viewMaj(app,id){
     ar.appendChild(un);foot=ar;
   }else{
     const va=$("div","actions");
-    const v=$("button","btn ok","Enregistrer");v.onclick=()=>{flushDates(id);persist(id);const mm=majs[id];if(mm&&calFlow()&&mm.type!=="correctif"&&mm.dateSiege&&mm.dateDeploiement&&mm.calSent!==mm.dateSiege+"|"+mm.dateDeploiement)toast("Fiche enregistrée. Les dates ne sont pas encore envoyées à Outlook : utilise le bouton à côté des dates.");else toast("Fiche enregistrée.");page="upcoming";backTo=null;setCur(null)};
+    const v=$("button","btn ok ico sv");v.innerHTML='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><g class="fl"><path d="M8 21v-7h8v7"/></g></svg><span>Enregistrer</span>';v.onclick=()=>{flushDates(id);persist(id);const mm=majs[id];if(mm&&calFlow()&&mm.type!=="correctif"&&mm.dateSiege&&mm.dateDeploiement&&mm.calSent!==mm.dateSiege+"|"+mm.dateDeploiement)toast("Fiche enregistrée. Les dates ne sont pas encore envoyées à Outlook : utilise le bouton à côté des dates.");else toast("Fiche enregistrée.");page="upcoming";backTo=null;setCur(null)};
     va.appendChild(v);foot=va;
   }
   const bloc1=$("section","bloc");
@@ -2684,8 +2696,8 @@ function viewMaj(app,id){
     body1.appendChild(sec);
   });
   if(foot){foot.style.marginTop="18px";app.appendChild(foot)}
-  const del=$("div","actions");
-  if(!confirmDel){const d=$("button","btn danger","Supprimer cette MAJ");d.onclick=()=>{confirmDel=true;render()};del.appendChild(d)}
+  const del=foot||$("div","actions");
+  if(!confirmDel){const d=$("button","btn danger ico trash");d.type="button";d.title="Supprimer cette MAJ";d.setAttribute("aria-label","Supprimer cette MAJ");d.innerHTML='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="lid"><path d="M4 7h16"/><path d="M9 7V4h6v3"/></g><g class="tb"><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></g></svg>';d.onclick=()=>{confirmDel=true;render()};del.appendChild(d)}
   else{
     del.appendChild($("span","msg err","Supprimer définitivement ce suivi ?"));
     const y=$("button","btn danger","Oui, supprimer");y.onclick=()=>{
@@ -2694,7 +2706,7 @@ function viewMaj(app,id){
     const n=$("button","btn ghost","Annuler");n.onclick=()=>{confirmDel=false;render()};
     del.append(y,n);
   }
-  app.appendChild(del);
+  if(!foot)app.appendChild(del);
   if(focusId){const el=[...app.querySelectorAll("[data-fid]")].find(x=>x.dataset.fid===focusId);if(el)el.focus()}
 }
 /*XMLC-START*/
@@ -4865,7 +4877,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v289",APP_DATE="21/10/2026";
+const APP_VERSION="v290",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
