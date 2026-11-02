@@ -378,7 +378,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .ucard{border:1px solid var(--line);border-left:5px solid var(--cta);border-radius:12px;background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .ucard.late{border-left-color:var(--bad)}.ucard.fix{border-left-color:#FF8A28}.ucard.alldone{border-color:var(--ok);border-left-color:var(--ok)}
 .ucard.flash{animation:evflash 2.2s ease-out}
-.ucar{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:.8rem;transition:transform .2s,background .2s}.ucar:hover{background:rgba(155,249,68,.14);color:var(--fg)}.uhead .ucar+.utitle{flex:1;text-align:left;margin-left:-6px}.ucard.ucol .ucar{transform:rotate(-90deg)}.ucard.ucol .usteps,.ucard.ucol .ufoot{display:none}.ucard.ucol{gap:6px;padding-top:10px;padding-bottom:10px}.uhead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:space-between}
+.ucar{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:.8rem;transition:transform .2s,background .2s}.ucar:hover{background:rgba(155,249,68,.14);color:var(--fg)}.uhead .utitle{flex:1;text-align:left}.uhead .ucar+.utitle,.uhead .ucar+.gpill{margin-left:-6px}.uhead>.gpill{flex:none;cursor:default}.ucard.ucol .ucar{transform:rotate(-90deg)}.ucard.ucol .usteps,.ucard.ucol .ufoot{display:none}.ucard.ucol{gap:6px;padding-top:10px;padding-bottom:10px}.uhead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:space-between}
 .utitle{all:unset;cursor:pointer;font-weight:700;font-size:1.05rem;display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap}.utitle:hover,.utitle:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .upc{color:var(--muted);font-size:.85rem}.upc b{color:var(--fg);font-family:var(--mono)}
 .unext{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:.9rem}
@@ -620,7 +620,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v287";
+const APP_VERSION="v288";
 
 const SUPPORT=true;
 let majs={},cur=null;
