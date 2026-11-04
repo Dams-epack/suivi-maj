@@ -3099,7 +3099,8 @@ const X2E=(()=>{
           row.push(r?r.label:"");
           if(anyDis)row.push(r&&r.dis?"Oui":"Non");
           row.push(m.n);
-          DAYS.forEach((d,di)=>row.push(m.d[di]?"Oui":"Non"));
+          const none=!r||/^sans/i.test(r.label||"");
+          DAYS.forEach((d,di)=>row.push(none?"":(m.d[di]?"Oui":"Non")));
           outRows.push(row);
         });
       });
