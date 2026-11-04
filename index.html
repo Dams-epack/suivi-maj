@@ -305,6 +305,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .gwarn{font-size:.82rem;color:var(--warn);background:var(--warn-soft);padding:4px 8px;border-radius:6px;overflow-wrap:anywhere}
 
 .fld{display:flex;flex-direction:column;gap:4px;font-weight:600}
+.tmrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}.tmrow input{font:inherit;font-size:1.3rem;font-weight:700;text-align:center;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);width:100%;box-sizing:border-box}.tmrow input:focus{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}.tmprev{margin:4px 0 10px;font-weight:600}.tmq{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.tmedit svg{vertical-align:-2px}
 .dd{position:relative}
 .ddb{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;font:inherit;font-weight:500;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s,background .2s}
 .ddb:hover{border-color:var(--accent)}.ddb:focus-visible,.dd.open .ddb{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}
@@ -704,7 +705,17 @@ const fdate=t=>new Date(t).toLocaleDateString(LOC());
 const LSLANG="suivi-maj-lang";
 let LANG="fr";try{if(localStorage.getItem(LSLANG)==="en")LANG="en"}catch(e){}
 const LOC=()=>LANG==="en"?"en-GB":"fr-FR";
-const I18N_RAW=String.raw`Suivi de préparation des majs. ⇒ Update preparation tracker
+const I18N_RAW=String.raw`Modifier le chronomètre ⇒ Edit the timer
+Saisis la durée de préparation à afficher. Le chronomètre repart de cette valeur s'il tourne encore. ⇒ Enter the preparation time to show. The timer continues from this value if it is still running.
+Nouvelle durée : ⇒ New duration:
+par rapport à maintenant ⇒ compared with now
+(inchangée) ⇒ (unchanged)
+Revenir au temps calculé ⇒ Back to calculated time
+Supprime toute correction manuelle ⇒ Removes any manual correction
+corrigé à la main ⇒ manually corrected
+Corriger la durée de préparation ⇒ Correct the preparation time
+Heures ⇒ Hours
+Suivi de préparation des majs. ⇒ Update preparation tracker
 =Prêt ⇒ Ready
 À relancer ⇒ To chase
 À envoyer ⇒ To send
@@ -1661,7 +1672,7 @@ function renameGroup(id,g){
 }
 const startOf=m=>m.startedAt||m.created;
 const endOf=m=>m.prepDoneAt||(m.archived?(m.archivedAt||Date.now()):Date.now());
-const durOf=m=>Math.max(0,endOf(m)-startOf(m)-(m.pausedMs||0)-(m.pausedAt&&!m.archived&&!m.prepDoneAt?Date.now()-m.pausedAt:0));
+const durOf=m=>Math.max(0,endOf(m)-startOf(m)+(m.timeAdj||0)-(m.pausedMs||0)-(m.pausedAt&&!m.archived&&!m.prepDoneAt?Date.now()-m.pausedAt:0));
 /* Une MAJ ne peut être archivée qu'après la fin de déploiement (et la 2nde passe si elle est demandée) */
 const canArchive=m=>{const k=(m&&m.mails)||{};return !!m&&!m.archived&&!!(k.pass2||(k.fin&&!m.secondPass))};
 /* Règle unique du statut d'une MAJ (badges, filtres, export CSV) : [libellé, classe] */
@@ -1743,7 +1754,7 @@ function persist(id,what){
   else if(what&&what!=="*"){data={updatedAt:ts,prepDoneAt:m.prepDoneAt||null,pausedAt:m.pausedAt||null,pausedMs:m.pausedMs||0,prog:{[what]:JSON.parse(JSON.stringify(m.prog[what]||{s:[false,false,false],note:""}))}}}
   else{
     const c=JSON.parse(JSON.stringify(m));delete c._pending;
-    c.archivedAt=m.archivedAt||null;c.archivedBy=m.archivedBy||null;c.baseTitle=m.baseTitle||null;c.pausedAt=m.pausedAt||null;c.pausedMs=m.pausedMs||0;c.prepDoneAt=m.prepDoneAt||null;
+    c.archivedAt=m.archivedAt||null;c.archivedBy=m.archivedBy||null;c.baseTitle=m.baseTitle||null;c.pausedAt=m.pausedAt||null;c.pausedMs=m.pausedMs||0;c.timeAdj=m.timeAdj||0;c.prepDoneAt=m.prepDoneAt||null;
     if(what!=="*")delete c.prog;
     data=c;
   }
@@ -1795,6 +1806,36 @@ function openSyncLog(){
 }
 window.addEventListener("online",()=>slog("ok","Connexion rétablie"));
 window.addEventListener("offline",()=>slog("warn","Hors connexion : les modifications restent dans ce navigateur"));
+/* Correction manuelle du chronomètre : on fixe la durée voulue, l'écart est gardé dans timeAdj */
+function openTimerEdit(id){
+  const m=majs[id];if(!m)return;
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");
+  const md=$("div","modal xml");md.style.maxWidth="440px";bg.appendChild(md);document.body.appendChild(bg);
+  const close=()=>{bg.remove();document.removeEventListener("keydown",kd)};const kd=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",kd);
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+  const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;
+  const hd=$("div","xhead");hd.append($("h2",null,"Modifier le chronomètre"),x);md.appendChild(hd);
+  md.appendChild($("p","sub","Saisis la durée de préparation à afficher. Le chronomètre repart de cette valeur s'il tourne encore."));
+  const tot=Math.round(durOf(m)/60000);
+  const row=$("div","tmrow");
+  const mk=(lab,val,max)=>{const l=$("label","fld");l.appendChild($("span",null,lab));const i=$("input");i.type="number";i.min="0";if(max)i.max=String(max);i.value=String(val);i.inputMode="numeric";l.appendChild(i);row.appendChild(l);return i};
+  const ih=mk("Heures",Math.floor(tot/60)),im=mk("Minutes",tot%60,59);
+  md.appendChild(row);
+  const pv=$("p","tmprev");md.appendChild(pv);
+  const get=()=>Math.max(0,Math.round((+ih.value||0)*60+(+im.value||0)));
+  const paint=()=>{const v=get(),d=v-tot;pv.textContent="Nouvelle durée : "+fmtDur(v*60000)+(d?" ("+(d>0?"+":"−")+fmtDur(Math.abs(d)*60000)+" par rapport à maintenant)":" (inchangée)")};
+  const bump=n=>{const v=Math.max(0,get()+n);ih.value=String(Math.floor(v/60));im.value=String(v%60);paint()};
+  [ih,im].forEach(i=>i.oninput=paint);
+  const q=$("div","tmq");[[-30,"−30 min"],[-15,"−15 min"],[15,"+15 min"],[30,"+30 min"],[60,"+1 h"]].forEach(([n,t])=>{const b=$("button","chip",t);b.type="button";b.onclick=()=>bump(n);q.appendChild(b)});md.appendChild(q);
+  const ac=$("div","actions");
+  const ok=$("button","btn ok","Enregistrer");ok.type="button";
+  ok.onclick=()=>{const cur=m.timeAdj||0;m.timeAdj=cur+(get()*60000-durOf(m));if(Math.abs(m.timeAdj)<30000)m.timeAdj=0;persist(id);close();render()};
+  const rz=$("button","btn ghost","Revenir au temps calculé");rz.type="button";rz.title="Supprime toute correction manuelle";rz.onclick=()=>{m.timeAdj=0;persist(id);close();render()};
+  if(m.timeAdj)ac.appendChild(rz);
+  const no=$("button","btn ghost","Annuler");no.type="button";no.onclick=close;ac.append(ok,no);md.appendChild(ac);
+  paint();setTimeout(()=>ih.select(),30);
+  md.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}});
+}
 function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
 
 /* ---- Analyse du mail ---- */
@@ -2710,6 +2751,9 @@ function viewMaj(app,id){
    else{tb.dataset.mid=id;tb.textContent=fmtClock(durOf(m));tp.append(m.pausedAt?"Temps de préparation (en pause) : ":"Temps de préparation : ",tb);
      const pb=$("button","chip",m.pausedAt?"▶ Reprendre":"⏸ Pause");pb.style.marginLeft="10px";pb.setAttribute("aria-label",m.pausedAt?"Reprendre le chronomètre":"Mettre le chronomètre en pause");pb.onclick=()=>togglePause(id);tp.append(pb);
      if(m.pausedAt){const ps=$("small",null," · en pause depuis le "+fdate(m.pausedAt)+" "+new Date(m.pausedAt).toLocaleTimeString(LOC(),{hour:"2-digit",minute:"2-digit"}));tp.append(ps)}}
+   {const eb=$("button","chip tmedit");eb.type="button";eb.style.marginLeft="10px";eb.title="Corriger la durée de préparation"+(m.timeAdj?" (correction manuelle : "+(m.timeAdj>0?"+":"−")+fmtDur(Math.abs(m.timeAdj))+")":"");eb.setAttribute("aria-label","Modifier le chronomètre");
+    eb.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';eb.append(" Modifier");eb.onclick=()=>openTimerEdit(id);tp.append(eb);
+    if(m.timeAdj)tp.append($("small",null," · corrigé à la main"))}
    metarow.appendChild(tp)}
   /* Lien correctif -> MAJ d'origine, et inversement */
   {const gk=groupOf(m),others=Object.keys(majs).filter(k=>k!==id&&majs[k]&&majs[k].type!=="correctif").sort((a,b)=>(majs[b].created||0)-(majs[a].created||0));
@@ -5130,7 +5174,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v306",APP_DATE="21/10/2026";
+const APP_VERSION="v307",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}

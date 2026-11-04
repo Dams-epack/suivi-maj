@@ -305,6 +305,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .gwarn{font-size:.82rem;color:var(--warn);background:var(--warn-soft);padding:4px 8px;border-radius:6px;overflow-wrap:anywhere}
 
 .fld{display:flex;flex-direction:column;gap:4px;font-weight:600}
+.tmrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}.tmrow input{font:inherit;font-size:1.3rem;font-weight:700;text-align:center;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);width:100%;box-sizing:border-box}.tmrow input:focus{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}.tmprev{margin:4px 0 10px;font-weight:600}.tmq{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.tmedit svg{vertical-align:-2px}
 .dd{position:relative}
 .ddb{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;font:inherit;font-weight:500;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s,background .2s}
 .ddb:hover{border-color:var(--accent)}.ddb:focus-visible,.dd.open .ddb{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}
@@ -699,7 +700,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v306";
+const APP_VERSION="v307";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -711,7 +712,17 @@ const persist=()=>{},groupOf=()=>"",zipGroup=()=>"",zipName=(id,b)=>b+".zip",meK
 const LSLANG="suivi-maj-lang";
 let LANG="fr";try{if(localStorage.getItem(LSLANG)==="en")LANG="en"}catch(e){}
 const LOC=()=>LANG==="en"?"en-GB":"fr-FR";
-const I18N_RAW=String.raw`Suivi de préparation des majs. ⇒ Update preparation tracker
+const I18N_RAW=String.raw`Modifier le chronomètre ⇒ Edit the timer
+Saisis la durée de préparation à afficher. Le chronomètre repart de cette valeur s'il tourne encore. ⇒ Enter the preparation time to show. The timer continues from this value if it is still running.
+Nouvelle durée : ⇒ New duration:
+par rapport à maintenant ⇒ compared with now
+(inchangée) ⇒ (unchanged)
+Revenir au temps calculé ⇒ Back to calculated time
+Supprime toute correction manuelle ⇒ Removes any manual correction
+corrigé à la main ⇒ manually corrected
+Corriger la durée de préparation ⇒ Correct the preparation time
+Heures ⇒ Hours
+Suivi de préparation des majs. ⇒ Update preparation tracker
 =Prêt ⇒ Ready
 À relancer ⇒ To chase
 À envoyer ⇒ To send
