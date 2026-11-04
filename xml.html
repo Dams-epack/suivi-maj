@@ -257,6 +257,25 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 @keyframes icsave{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
 @keyframes icpop{0%{transform:scale(1)}40%{transform:scale(1.22) rotate(-6deg)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.btn.trash .ic *,.btn.sv .ic,.btn.sv .ic *{animation:none!important;transition:none!important}}
+.modal.tm{animation:tmin .35s cubic-bezier(.2,.9,.3,1.15);border-top:3px solid var(--cta)}
+@keyframes tmin{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.tmh{display:flex;align-items:center;gap:10px}.tmico{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(155,249,68,.16);color:var(--cta);flex:none}.tmico svg{width:21px;height:21px}
+.tmico .d1,.tmico .d2,.tmico .d3{stroke-width:3;animation:tmdot 1.4s ease-in-out infinite}.tmico .d2{animation-delay:.18s}.tmico .d3{animation-delay:.36s}
+@keyframes tmdot{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-2.5px);opacity:1}}
+.tmdest{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(155,249,68,.1);border:1px solid rgba(155,249,68,.35);margin:0 0 4px;font-size:.88rem}
+.tmhash{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--cta);color:#13211f;font-weight:800;font-size:.85rem}
+.tmqm{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin:6px 0 0}.tmat{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:rgba(155,249,68,.18);color:var(--cta);font-weight:800;font-size:.78rem}
+textarea.tmta{border-radius:12px;border:1px solid var(--line);border-left:4px solid var(--cta);padding:12px 14px;line-height:1.5;transition:box-shadow .2s,border-color .2s}
+textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rgba(155,249,68,.22)}
+.btn.tmsend{position:relative;overflow:hidden;transition:transform .15s,box-shadow .25s}.btn.tmsend:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(155,249,68,.9)}.btn.tmsend:active{transform:scale(.97)}
+.btn.tmsend::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.4) 50%,transparent 65%);transform:translateX(-120%);pointer-events:none}.btn.tmsend:hover::after{transform:translateX(120%);transition:transform .7s}
+.btn.tmsend .pl{transition:transform .25s}.btn.tmsend:hover .pl{transform:translate(2px,-2px) rotate(-8deg)}
+.btn.tmsend.fly .pl{animation:tmfly .9s ease-in infinite}
+@keyframes tmfly{0%{transform:translate(0,0);opacity:1}60%{transform:translate(18px,-18px);opacity:0}61%{transform:translate(-18px,18px);opacity:0}100%{transform:translate(0,0);opacity:1}}
+.btn.tmsend.done{animation:icpop .5s ease}.btn.tmcopy:hover,.btn.tmcopy:focus-visible,.btn.tmcopy.done{background:rgba(155,249,68,.14)!important;color:var(--cta)!important;border-color:var(--cta)!important}.btn.tmcopy.done{border-color:var(--cta);color:var(--cta);animation:icpop .5s ease}
+.btn.tmcopy:hover .cb{animation:tmcb .5s ease}@keyframes tmcb{50%{transform:translate(-1.5px,-1.5px)}}
+.msg.tmok{color:var(--cta);font-weight:600}
+@media (prefers-reduced-motion:reduce){.modal.tm,.tmico *,.btn.tmsend *,.btn.tmsend,.btn.tmcopy,.btn.tmcopy *{animation:none!important;transition:none!important}}
 .bver{font-size:.7rem;font-weight:600;letter-spacing:.04em;color:var(--band-fg);opacity:.75;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 9px;user-select:text;white-space:nowrap}
 .stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
 .row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
@@ -632,7 +651,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v294";
+const APP_VERSION="v295";
 
 const SUPPORT=true;
 let majs={},cur=null;

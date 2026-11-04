@@ -257,6 +257,25 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 @keyframes icsave{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
 @keyframes icpop{0%{transform:scale(1)}40%{transform:scale(1.22) rotate(-6deg)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.btn.trash .ic *,.btn.sv .ic,.btn.sv .ic *{animation:none!important;transition:none!important}}
+.modal.tm{animation:tmin .35s cubic-bezier(.2,.9,.3,1.15);border-top:3px solid var(--cta)}
+@keyframes tmin{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.tmh{display:flex;align-items:center;gap:10px}.tmico{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(155,249,68,.16);color:var(--cta);flex:none}.tmico svg{width:21px;height:21px}
+.tmico .d1,.tmico .d2,.tmico .d3{stroke-width:3;animation:tmdot 1.4s ease-in-out infinite}.tmico .d2{animation-delay:.18s}.tmico .d3{animation-delay:.36s}
+@keyframes tmdot{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-2.5px);opacity:1}}
+.tmdest{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(155,249,68,.1);border:1px solid rgba(155,249,68,.35);margin:0 0 4px;font-size:.88rem}
+.tmhash{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--cta);color:#13211f;font-weight:800;font-size:.85rem}
+.tmqm{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin:6px 0 0}.tmat{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:rgba(155,249,68,.18);color:var(--cta);font-weight:800;font-size:.78rem}
+textarea.tmta{border-radius:12px;border:1px solid var(--line);border-left:4px solid var(--cta);padding:12px 14px;line-height:1.5;transition:box-shadow .2s,border-color .2s}
+textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rgba(155,249,68,.22)}
+.btn.tmsend{position:relative;overflow:hidden;transition:transform .15s,box-shadow .25s}.btn.tmsend:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(155,249,68,.9)}.btn.tmsend:active{transform:scale(.97)}
+.btn.tmsend::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.4) 50%,transparent 65%);transform:translateX(-120%);pointer-events:none}.btn.tmsend:hover::after{transform:translateX(120%);transition:transform .7s}
+.btn.tmsend .pl{transition:transform .25s}.btn.tmsend:hover .pl{transform:translate(2px,-2px) rotate(-8deg)}
+.btn.tmsend.fly .pl{animation:tmfly .9s ease-in infinite}
+@keyframes tmfly{0%{transform:translate(0,0);opacity:1}60%{transform:translate(18px,-18px);opacity:0}61%{transform:translate(-18px,18px);opacity:0}100%{transform:translate(0,0);opacity:1}}
+.btn.tmsend.done{animation:icpop .5s ease}.btn.tmcopy:hover,.btn.tmcopy:focus-visible,.btn.tmcopy.done{background:rgba(155,249,68,.14)!important;color:var(--cta)!important;border-color:var(--cta)!important}.btn.tmcopy.done{border-color:var(--cta);color:var(--cta);animation:icpop .5s ease}
+.btn.tmcopy:hover .cb{animation:tmcb .5s ease}@keyframes tmcb{50%{transform:translate(-1.5px,-1.5px)}}
+.msg.tmok{color:var(--cta);font-weight:600}
+@media (prefers-reduced-motion:reduce){.modal.tm,.tmico *,.btn.tmsend *,.btn.tmsend,.btn.tmcopy,.btn.tmcopy *{animation:none!important;transition:none!important}}
 .bver{font-size:.7rem;font-weight:600;letter-spacing:.04em;color:var(--band-fg);opacity:.75;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 9px;user-select:text;white-space:nowrap}
 .stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
 .row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
@@ -2287,16 +2306,19 @@ function showTeams(m,kind,id,onDone){
   const langs=majLangs(m),multi=langs.length>1,R=Object.assign({},(m.liens||{}).rapports);
   const build=()=>tr([String(m.title||nom).trim(),L.ressources?"Ressources : "+L.ressources:"",...(multi?langs.map(([c,n])=>R[c]?"Rapport d'intervention ("+n+") : "+R[c]:""):[L.rapport?"Rapport d'intervention : "+L.rapport:""])].filter(Boolean).join("\n\n"));
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","tmt");
-  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const md=$("div","modal xml tm");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeTeams()};document.addEventListener("keydown",key);teamsDlg={bg,key,onClose:onDone};
   bg.addEventListener("mousedown",e=>{if(e.target===bg)closeTeams()});
-  const h=$("h2",null,deb?"Message Teams : début de déploiement":"Message Teams : validation siège");h.id="tmt";
+  const h=$("h2",null);h.id="tmt";h.classList.add("tmh");
+  {const ic=$("span","tmico");ic.setAttribute("aria-hidden","true");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path class="d1" d="M8.5 12h.01"/><path class="d2" d="M12 12h.01"/><path class="d3" d="M15.5 12h.01"/></svg>';h.append(ic,$("span",null,deb?"Message Teams : début de déploiement":"Message Teams : validation siège"))}
   const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeTeams;hd.append(h,x);
-  const ta=$("textarea");ta.rows=deb?7:3;ta.value=deb?build():msg;ta.setAttribute("aria-label","Message à envoyer");
+  const ta=$("textarea");ta.className="tmta";ta.rows=deb?7:3;ta.value=deb?build():msg;ta.setAttribute("aria-label","Message à envoyer");
   const st=$("span","msg");st.setAttribute("role","status");
   const copy=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
     if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
-    st.textContent=ok?"Message copié : colle-le dans le canal (Ctrl+V puis Entrée).":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C."};
+    st.textContent=ok?"Message copié : colle-le dans le canal (Ctrl+V puis Entrée).":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C.";st.classList.toggle("tmok",ok);
+    if(ok)flash(bc,"Copié ✓","done")};
+  const flash=(b,t,c)=>{const sp=b.querySelector(".tml");if(!sp)return;if(!sp.dataset.o)sp.dataset.o=sp.textContent;sp.textContent=t;b.classList.add(c);clearTimeout(b._t);b._t=setTimeout(()=>{sp.textContent=sp.dataset.o;b.classList.remove(c)},2200)};
   const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=deb?(getFlow(LSDEB)||teamsFlow()):teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
   fu.oninput=()=>{setFlow(deb?LSDEB:"suivi-maj-flow",fu.value);bs.hidden=!fu.value.trim()};
   const ready=()=>{};
@@ -2309,19 +2331,23 @@ function showTeams(m,kind,id,onDone){
   }).join("<br>");
   const toTitle=t=>"<h3>"+esc(String(t))+"</h3>";
   const flowUrl=u=>{const ps=ta.value.split(/\r?\n/),hd0=ps[0]||"",tl=ps.slice(1).join("\n").replace(/^\s+/,"");return u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toTitle(hd0))+"&tail="+encodeURIComponent(toHtml(tl))+(qmMail?"&qm="+encodeURIComponent(qmMail):"")};
-  const send=async()=>{const u=cleanUrl(fu.value);if(!u)return;st.textContent="Envoi dans Teams…";
-    try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans la conversation Teams."}
+  const send=async()=>{const u=cleanUrl(fu.value);if(!u)return;st.textContent="Envoi dans Teams…";st.classList.remove("tmok");bs.classList.add("fly");
+    try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans le canal Teams.";st.classList.add("tmok");bs.classList.remove("fly");flash(bs,"Envoyé ✓","done")}
     catch(e){await copy();
       let w=null;try{w=window.open(flowUrl(u),"_blank");if(w){try{w.opener=null}catch(e3){}setTimeout(()=>{try{w.close()}catch(e4){}},3000)}}catch(e2){}
       st.textContent=w!==null?"Message envoyé via un onglet qui se ferme tout seul (si l'onglet reste ouvert, tu peux le fermer). Vérifie dans Teams ; sinon le message est copié, colle-le dans la conversation.":"Envoi bloqué par le navigateur. Message copié : colle-le dans la conversation."}};
-  const bs=$("button","btn","Envoyer dans Teams");bs.type="button";bs.hidden=!fu.value.trim();bs.onclick=send;ready();
-  const bc=$("button","btn ghost","Copier le message");bc.type="button";bc.onclick=copy;
+  const IC_SEND='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="pl"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></g></svg>';
+  const IC_COPY='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect class="cb" x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const bs=$("button","btn ico tmsend");bs.type="button";bs.innerHTML=IC_SEND+'<span class="tml">Envoyer dans Teams</span>';bs.hidden=!fu.value.trim();bs.onclick=send;ready();
+  const bc=$("button","btn ghost ico tmcopy");bc.type="button";bc.innerHTML=IC_COPY+'<span class="tml">Copier le message</span>';bc.onclick=copy;
   const bar=$("div","actions");bar.append(bs,bc);
   const rg=$("details");rg.style.marginTop="12px";if(!fu.value.trim())rg.open=true;else rg.hidden=true;const sm0=$("summary",null,"Réglages (flux Power Automate)");sm0.style.cursor="pointer";sm0.style.color="var(--muted)";rg.append(sm0);
   const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
   rg.append(fl("URL du flux Power Automate (enregistrée dans ce navigateur)",fu));
-  md.append(hd,$("p",null,deb?"Message pour Teams (début de déploiement) :":"Message pour le canal « MAJ PARAM TYPE » :"),fl("Message",ta));
-  if(qmMail)md.appendChild($("p","sub","QM mentionné dans Teams, sous la première ligne : "+qmName));
+  md.appendChild(hd);
+  {const dp=$("p","tmdest");const hs=$("span","tmhash","#");hs.setAttribute("aria-hidden","true");dp.append(hs,$("span",null,deb?"Message pour Teams (début de déploiement) :":"Message pour le canal « MAJ PARAM TYPE » :"));md.appendChild(dp)}
+  md.appendChild(fl("Message",ta));
+  if(qmMail){const qp=$("p","tmqm");qp.append($("span","tmat","@"),$("span",null,"QM mentionné dans Teams, sous la première ligne : "+qmName));md.appendChild(qp)}
   md.append(bar,st,rg);
   st.textContent=fu.value.trim()?"Vérifie le message, puis clique sur « Envoyer dans Teams ».":"Aucun flux configuré : copie le message ou renseigne l'URL du flux dans les réglages.";
 }
@@ -4877,7 +4903,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v294",APP_DATE="21/10/2026";
+const APP_VERSION="v295",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
