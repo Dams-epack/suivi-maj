@@ -3060,7 +3060,7 @@ const X2E=(()=>{
     keep.sort((a,b)=>(a==="Name"?-1:0)-(b==="Name"?-1:0)||(a==="Category"?-1:0)-(b==="Category"?-1:0)||0);
     const stable=cols.filter(t=>keep.includes(t));
     const ordered=["Name","Category"].filter(t=>stable.includes(t)).concat(stable.filter(t=>t!=="Name"&&t!=="Category"));
-    const head=ordered.map(t=>t==="Name"?(name==="Moments"?"Moment":name==="Usernames"?"Nom":hum(t)):(name==="Usernames"&&{CanAddProduct:"Peut ajouter un produit",IsAdminLaboCommande:"Admin labo commande"}[t])||hum(t));
+    const head=ordered.map(t=>t==="Name"?(name==="Moments"?"Moment":name==="Usernames"?"Nom":hum(t)):(name==="Usernames"&&{CanAddProduct:"Peut ajouter un produit",IsAdmin_LaboCommande:"Admin labo commande"}[t])||hum(t));
     const body=recRows.map(o=>ordered.map(t=>o[t]===undefined?"":o[t]));
     if(name==="OptionsUI"){const pi=ordered.indexOf("ModulePosition");if(pi>=0)body.sort((a,b)=>(Number(a[pi])||0)-(Number(b[pi])||0)||String(a[0]).localeCompare(String(b[0]),"fr"))}
     let ynCols=null;
