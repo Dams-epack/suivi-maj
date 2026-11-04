@@ -3561,7 +3561,7 @@ const SYN={
   Category:['category','categorie','famille','rayon','groupe','type'],
   DateLimit:['datelimit','dlc','dluo','dl','duree','dureedeconservation'],
   TempMin:['tempmin','tmin','temperaturemin','min'],TempMax:['tempmax','tmax','temperaturemax','max'],TempLimit:['templimit','tlimite','limite'],
-  Dlc:['dlc'],Ddm:['ddm'],Du:['du'],Printer:['printer','imprimante'],Fridge:['fridge','frigo'],Photo:['photo'],
+  Dlc:['dlc'],Ddm:['ddm'],Du:['du','unite','uniteddm','unitedlc'],Printer:['printer','imprimante'],Fridge:['fridge','frigo'],Photo:['photo'],
   MustIndicateOrigin:['mustindicateorigin','origine'],Delete:['delete','supprime'],
   CheckList_Name:['checklistname','checklist'],CheckList_AllMandatoryToValid:['checklistallmandatorytovalid'],
   ProductReference:['productreference','reference','ref'],
@@ -5174,7 +5174,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v307",APP_DATE="21/10/2026";
+const APP_VERSION="v308",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
