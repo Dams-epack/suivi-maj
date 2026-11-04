@@ -1630,11 +1630,11 @@ function resolveNames(){
 const LANGS=[[/(^|[\s\-_/])NL$|n[ée]erlandais|flamand|dutch/i,"NL"],[/(^|[\s\-_/])(EN|UK)$|anglais|english/i,"EN"],[/(^|[\s\-_/])DE$|allemand|german/i,"DE"],[/(^|[\s\-_/])ES$|espagnol|spanish/i,"ES"],[/(^|[\s\-_/])IT$|italien|italian/i,"IT"],[/(^|[\s\-_/])PT$|portugais|portuguese/i,"PT"]];
 const langOf=l=>{const x=String(l).trim();for(const [re,c] of LANGS)if(re.test(x))return c;return "FR"};
 const langsOf=m=>new Set(m.mods.flatMap(M=>M.regions.map(r=>langOf(r.label))));
-const baseTitleFor=(group)=>(group?group+" - ":"")+"Maj du "+fdate(Date.now());
+const baseTitleFor=(group,t)=>(group?group+" - ":"")+"Maj du "+fdate(t||Date.now());
 function renameGroup(id,g){
   const m=majs[id];g=String(g).replace(/\s+/g," ").trim().slice(0,60).toUpperCase();
   m.group=g;
-  const base=(g?g+" - ":"")+"Maj du "+fdate(m.created);
+  const base=baseTitleFor(g,m.created);
   m.baseTitle=base;stampTitle(m);
   persist(id);
 }
@@ -1933,9 +1933,9 @@ function mailIssues(){
   }
   (info.unclear||[]).forEach(u=>out.push({title:"Point à préciser",text:u.point,ask:u.question||null}));
   {const gs=draft.guess;if(gs){
-    if(gs.defReg&&gs.defReg.length)out.push({title:"Région non précisée : FR supposé",text:"Pour "+gs.defReg.map(n=>"« "+n+" »").join(", ")+", le mail ne donne aucune région. J'ai mis FR par défaut, à corriger si besoin.",ask:"Pour quels pays ou langues (FR, BE-FR, BE-NL…) faut-il mettre à jour "+gs.defReg.join(", ")+" ?"});
-    if(gs.skipped&&gs.skipped.length)out.push({title:"Lignes que je n'ai pas comprises",text:gs.skipped.map(l=>"« "+l+" »").join(" · ")+". Ces lignes n'ont pas été converties en module : vérifie-les dans le mail.",ask:"Pouvez-vous préciser ces lignes : "+gs.skipped.join(" ; ")+" ?"});
-    if(gs.groups&&gs.groups.length)out.push({title:"Plusieurs groupements cités",text:"Le mail cite "+gs.groups.join(", ")+". J'ai retenu « "+(draft.group||"?")+" » : vérifie que c'est le bon.",ask:null});
+    if(gs.defReg&&gs.defReg.length)out.push({title:"Région non précisée : FR supposé",text:"Pour "+gs.defReg.map(n=>"« "+n+" »").join(", ")+", le mail ne donne aucune région. J'ai mis FR par défaut, à corriger si besoin."});
+    if(gs.skipped&&gs.skipped.length)out.push({title:"Lignes que je n'ai pas comprises",text:gs.skipped.map(l=>"« "+l+" »").join(" · ")+". Ces lignes n'ont pas été converties en module : vérifie-les dans le mail."});
+    if(gs.groups&&gs.groups.length)out.push({title:"Plusieurs groupements cités",text:"Le mail cite "+gs.groups.join(", ")+". J'ai retenu « "+(draft.group||"?")+" » : vérifie que c'est le bon."});
   }}
   if(!(typeof info.file==="boolean"?info.file:RX_FILE.test(mail)))
     out.push({title:"Aucun fichier mentionné",text:"Le mail ne parle d'aucun fichier Excel ni d'aucune pièce jointe. Vérifie dans le mail d'origine qu'une pièce jointe ne t'a pas échappé.",ask:"Pourriez-vous nous transmettre le fichier Excel contenant les éléments à mettre à jour ?"});
@@ -5077,7 +5077,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v303",APP_DATE="21/10/2026";
+const APP_VERSION="v304",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
