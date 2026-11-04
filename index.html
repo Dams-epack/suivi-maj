@@ -305,6 +305,19 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .gwarn{font-size:.82rem;color:var(--warn);background:var(--warn-soft);padding:4px 8px;border-radius:6px;overflow-wrap:anywhere}
 
 .fld{display:flex;flex-direction:column;gap:4px;font-weight:600}
+.dd{position:relative}
+.ddb{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;font:inherit;font-weight:500;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s,background .2s}
+.ddb:hover{border-color:var(--accent)}.ddb:focus-visible,.dd.open .ddb{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}
+.ddb.set{border-color:#9BF944;background:rgba(155,249,68,.12);font-weight:700}
+.ddt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ddc{display:inline-flex;opacity:.7;transition:transform .25s}.dd.open .ddc{transform:rotate(180deg)}
+.ddl{position:absolute;z-index:60;left:0;right:0;min-width:max-content;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;max-height:272px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 0 1px rgba(155,249,68,.18);transform-origin:top;animation:ddin .16s ease-out}
+.dd.up .ddl{top:auto;bottom:calc(100% + 6px);transform-origin:bottom}
+.ddl li{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.92rem}
+.ddl li .ddk{width:14px;flex:none;opacity:0;color:#4fa800;transform:scale(.5);transition:.18s}
+.ddl li.hi{background:rgba(155,249,68,.18)}.ddl li.on{font-weight:700}.ddl li.on .ddk{opacity:1;transform:none}
+@keyframes ddin{from{opacity:0;transform:translateY(-6px) scaleY(.92)}to{opacity:1;transform:none}}
+.dd.ddc2 .ddb{padding:6px 10px}.dd.ddc2{min-width:160px}
+@media (prefers-reduced-motion:reduce){.ddl{animation:none}.ddc{transition:none}}
 .fld select{font:inherit;font-weight:400;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
 .xres{margin:0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:.78rem;white-space:pre-wrap;overflow:auto;max-height:240px}
 .ligs{margin:0;padding-left:20px;color:var(--fg)}
@@ -4585,6 +4598,30 @@ function viewLive(app,arch){
   app.appendChild(res);
 }
 const fold=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+/* Liste déroulante personnalisée (remplace le select natif des filtres) : clavier, survol, coche, animation */
+const DD_OPEN=new Set();
+document.addEventListener("mousedown",e=>{DD_OPEN.forEach(c=>{if(!c.root.contains(e.target))c.close()})});
+function mkDD(opts,get,set){
+  const root=$("div","dd"),btn=$("button","ddb"),bt=$("span","ddt"),car=$("span","ddc"),list=$("ul","ddl");
+  btn.type="button";btn.setAttribute("aria-haspopup","listbox");btn.setAttribute("aria-expanded","false");
+  car.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  btn.append(bt,car);list.setAttribute("role","listbox");list.hidden=true;root.append(btn,list);
+  let hi=-1;const items=[];
+  const idx=()=>Math.max(0,opts.findIndex(o=>o[0]===get()));
+  const paint=()=>{const i=idx();bt.textContent=opts[i][1];btn.classList.toggle("set",i>0&&opts[0][0]==="");items.forEach((li,k)=>{li.classList.toggle("on",k===i);li.classList.toggle("hi",k===hi);li.setAttribute("aria-selected",String(k===i))})};
+  const close=()=>{list.hidden=true;root.classList.remove("open");btn.setAttribute("aria-expanded","false");DD_OPEN.delete(ctl)};
+  const open=()=>{DD_OPEN.forEach(c=>c.close());list.hidden=false;root.classList.add("open");btn.setAttribute("aria-expanded","true");hi=idx();paint();DD_OPEN.add(ctl);const r=list.getBoundingClientRect();root.classList.toggle("up",r.bottom>innerHeight-8&&btn.getBoundingClientRect().top>r.height+16);const on=items[hi];if(on)on.scrollIntoView({block:"nearest"})};
+  const pick=i=>{set(opts[i][0]);hi=i;close();paint();btn.focus()};
+  opts.forEach(([v,t],i)=>{const li=$("li",null);li.setAttribute("role","option");const ck=$("span","ddk");ck.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';li.append(ck,$("span",null,t));li.onmousedown=e=>e.preventDefault();li.onclick=()=>pick(i);li.onmousemove=()=>{hi=i;paint()};items.push(li);list.appendChild(li)});
+  btn.onclick=()=>list.hidden?open():close();
+  btn.onkeydown=e=>{
+    if(e.key==="Escape"){if(!list.hidden){e.preventDefault();e.stopPropagation();close()}return}
+    if(["ArrowDown","ArrowUp"].includes(e.key)){e.preventDefault();if(list.hidden){open();return}hi=Math.min(opts.length-1,Math.max(0,hi+(e.key==="ArrowDown"?1:-1)));paint();items[hi].scrollIntoView({block:"nearest"})}
+    else if((e.key==="Enter"||e.key===" ")&&!list.hidden){e.preventDefault();pick(Math.max(0,hi))}
+    else if(e.key==="Tab")close();
+  };
+  const ctl={root,close};paint();root.repaint=paint;return root;
+}
 function viewSearch(app){
   const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
   app.appendChild($("h1",null,"Recherche de MAJ"));
@@ -4606,9 +4643,8 @@ function viewSearch(app){
   srow.append(si,fb);panel.appendChild(srow);
   const grid=$("div","fgrid");grid.id="fpanel";
   const sel=(lab,key,opts)=>{
-    const l=$("label","fld");l.appendChild($("span",null,lab));
-    const s=$("select");opts.forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===sf[key])o.selected=true;s.appendChild(o)});
-    s.onchange=()=>{sf[key]=s.value;update()};l.appendChild(s);grid.appendChild(l);return s};
+    const l=$("div","fld");l.appendChild($("span",null,lab));
+    l.appendChild(mkDD(opts,()=>sf[key],v=>{sf[key]=v;update()}));grid.appendChild(l);return l};
   const inp=(lab,key,type)=>{const l=$("label","fld");l.appendChild($("span",null,lab));const i=$("input");i.type=type;i.value=sf[key];i.oninput=()=>{sf[key]=i.value;update()};l.appendChild(i);grid.appendChild(l)};
   sel("Statut","status",[["","Tous"],["live","En cours"],["ready","Prêtes à archiver"],["block","Bloquées / attente client"],["arch","Archivées"]]);
   sel("Groupement","group",[["","Tous"],...groups.map(g=>[g,g])]);
@@ -4626,9 +4662,8 @@ function viewSearch(app){
   const paintF=()=>{grid.hidden=!sfOpen;fb.setAttribute("aria-expanded",String(sfOpen));fb.classList.toggle("on",sfOpen);const n=nAct();fbn.textContent=n?String(n):"";fbn.hidden=!n;fb.setAttribute("aria-label","Filtres"+(n?" ("+n+" actif"+(n>1?"s":"")+")":""))};
   fb.onclick=()=>{sfOpen=!sfOpen;paintF()};paintF();
   const bar=$("div","actions");
-  const so=$("label","fld");so.style.flexDirection="row";so.style.alignItems="center";so.style.gap="8px";so.appendChild($("span",null,"Trier par"));
-  const ss=$("select");[["recent","Plus récentes"],["old","Plus anciennes"],["prog","Avancement"],["dur","Durée"],["name","Nom"]].forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===sf.sort)o.selected=true;ss.appendChild(o)});
-  ss.onchange=()=>{sf.sort=ss.value;update()};so.appendChild(ss);
+  const so=$("div","fld");so.style.flexDirection="row";so.style.alignItems="center";so.style.gap="8px";so.appendChild($("span",null,"Trier par"));
+  const ss=mkDD([["recent","Plus récentes"],["old","Plus anciennes"],["prog","Avancement"],["dur","Durée"],["name","Nom"]],()=>sf.sort,v=>{sf.sort=v;update()});ss.classList.add("ddc2");so.appendChild(ss);
   const rs=$("button","btn ghost","Réinitialiser");rs.onclick=()=>{sf=Object.assign({},SF0);render()};
   const cnt=$("span","msg");cnt.id="scount";cnt.setAttribute("aria-live","polite");
   const sp=$("span");sp.style.flex="1";
@@ -5077,7 +5112,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v304",APP_DATE="21/10/2026";
+const APP_VERSION="v305",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}

@@ -305,6 +305,19 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .gwarn{font-size:.82rem;color:var(--warn);background:var(--warn-soft);padding:4px 8px;border-radius:6px;overflow-wrap:anywhere}
 
 .fld{display:flex;flex-direction:column;gap:4px;font-weight:600}
+.dd{position:relative}
+.ddb{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;font:inherit;font-weight:500;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s,background .2s}
+.ddb:hover{border-color:var(--accent)}.ddb:focus-visible,.dd.open .ddb{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}
+.ddb.set{border-color:#9BF944;background:rgba(155,249,68,.12);font-weight:700}
+.ddt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ddc{display:inline-flex;opacity:.7;transition:transform .25s}.dd.open .ddc{transform:rotate(180deg)}
+.ddl{position:absolute;z-index:60;left:0;right:0;min-width:max-content;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;max-height:272px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 0 1px rgba(155,249,68,.18);transform-origin:top;animation:ddin .16s ease-out}
+.dd.up .ddl{top:auto;bottom:calc(100% + 6px);transform-origin:bottom}
+.ddl li{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.92rem}
+.ddl li .ddk{width:14px;flex:none;opacity:0;color:#4fa800;transform:scale(.5);transition:.18s}
+.ddl li.hi{background:rgba(155,249,68,.18)}.ddl li.on{font-weight:700}.ddl li.on .ddk{opacity:1;transform:none}
+@keyframes ddin{from{opacity:0;transform:translateY(-6px) scaleY(.92)}to{opacity:1;transform:none}}
+.dd.ddc2 .ddb{padding:6px 10px}.dd.ddc2{min-width:160px}
+@media (prefers-reduced-motion:reduce){.ddl{animation:none}.ddc{transition:none}}
 .fld select{font:inherit;font-weight:400;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
 .xres{margin:0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:.78rem;white-space:pre-wrap;overflow:auto;max-height:240px}
 .ligs{margin:0;padding-left:20px;color:var(--fg)}
@@ -678,7 +691,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v304";
+const APP_VERSION="v305";
 
 const SUPPORT=true;
 let majs={},cur=null;
