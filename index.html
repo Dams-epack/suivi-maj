@@ -878,7 +878,7 @@ Copier le message ⇒ Copy the message
 Réglages (flux Power Automate) ⇒ Settings (Power Automate flow)
 URL du flux Power Automate (enregistrée dans ce navigateur) ⇒ Power Automate flow URL (saved in this browser)
 URL du flux Power Automate ⇒ Power Automate flow URL
-Message pour la conversation « Support SGC Automatisation » : ⇒ Message for the "Support SGC Automatisation" conversation:
+Message pour le canal « MAJ PARAM TYPE » : ⇒ Message for the "MAJ PARAM TYPE" channel:
 QM mentionné dans Teams, sous la première ligne ⇒ QM mentioned in Teams, below the first line
 Vérifie le message, puis clique sur « Envoyer dans Teams ». ⇒ Check the message, then click "Send to Teams".
 Aucun flux configuré : copie le message ou renseigne l'URL du flux dans les réglages. ⇒ No flow configured: copy the message or enter the flow URL in the settings.
@@ -2148,7 +2148,7 @@ function openMail(id,type,only){
   md.append(hd,$("p",null,m.title),fl("Type de mail",sel),fl("Objet",si),fl("Texte (modifiable avant de copier)",ta),wn,hn,bar,sl,st);
   fill();sync();
 }
-/* Validation siège : copie « NOM - Maj. validée par le siège » et propose d'ouvrir le canal Teams « Support SGC Automatisation » */
+/* Validation siège : copie « NOM - Maj. validée par le siège » et propose d'ouvrir le canal Teams « MAJ PARAM TYPE » */
 let teamsDlg=null;
 function closeTeams(){if(teamsDlg){const cb=teamsDlg.onClose;teamsDlg.bg.remove();document.removeEventListener("keydown",teamsDlg.key);teamsDlg=null;if(cb)setTimeout(cb,0)}}
 /* Nettoie une URL collée depuis un PDF : espaces, retours à la ligne et tiret perdu de api-version */
@@ -2320,7 +2320,7 @@ function showTeams(m,kind,id,onDone){
   const rg=$("details");rg.style.marginTop="12px";if(!fu.value.trim())rg.open=true;else rg.hidden=true;const sm0=$("summary",null,"Réglages (flux Power Automate)");sm0.style.cursor="pointer";sm0.style.color="var(--muted)";rg.append(sm0);
   const fl=(lab,el)=>{const l=$("label","fld");l.append($("span",null,lab),el);return l};
   rg.append(fl("URL du flux Power Automate (enregistrée dans ce navigateur)",fu));
-  md.append(hd,$("p",null,deb?"Message pour Teams (début de déploiement) :":"Message pour la conversation « Support SGC Automatisation » :"),fl("Message",ta));
+  md.append(hd,$("p",null,deb?"Message pour Teams (début de déploiement) :":"Message pour le canal « MAJ PARAM TYPE » :"),fl("Message",ta));
   if(qmMail)md.appendChild($("p","sub","QM mentionné dans Teams, sous la première ligne : "+qmName));
   md.append(bar,st,rg);
   st.textContent=fu.value.trim()?"Vérifie le message, puis clique sur « Envoyer dans Teams ».":"Aucun flux configuré : copie le message ou renseigne l'URL du flux dans les réglages.";
@@ -4877,7 +4877,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v293",APP_DATE="21/10/2026";
+const APP_VERSION="v294",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
