@@ -47,3 +47,29 @@ cliquer sur « Reconnecter » dans la barre (dans Chrome, choisir « Autoriser �
 - **Téléchargement du XML** : le fichier XML est téléchargé directement (plus de zip).
 - **Lecture du mail** : sans Claude, l'analyse du mail est locale (moins souple). Le « Suivi personnalisé » reste le plus fiable.
 - **Données** : le fichier JSON contient tes MAJ et les groupes. Il reste dans ton SharePoint, jamais sur GitHub.
+
+## Guide rapide des fonctions (à jour v302)
+
+**Accueil**
+- *Rappels* : MAJ dont la validation siège attend depuis 3 jours ou plus, et déploiements dans les 7 jours dont le rétroplanning n'est pas envoyé. Une MAJ « bloquée » n'apparaît pas dans les rappels.
+- *MAJ à venir* : cartes réductibles (bouton ▾, « Tout réduire / Tout développer »), cases de mails à cocher directement.
+
+**Statuts d'une MAJ** (une seule règle partout : badges, filtres, export CSV)
+- *En cours* → *Prête à archiver* (fin de déploiement faite, et seconde passe faite si elle est prévue) → *Archivée*.
+- *Bloquée · attente client* : bouton dans la fiche, pour mettre une MAJ en pause en attendant le client. Se retire d'un clic.
+
+**Recherche**
+- Filtres : statut (dont *Bloquées*), groupement, module, région, **CSM**, **QM**, préparée par (avec **Mes MAJ**), avancement, durée, dates.
+
+**Création depuis un mail**
+- Le lecteur local signale ce qu'il a deviné au lieu de le cacher : région absente (FR supposé), lignes non comprises, plusieurs groupements cités. Chaque alerte propose une question prête à renvoyer au client.
+
+**Synchronisation**
+- La pastille du bandeau (verte / orange / rouge) ouvre le *Journal de synchronisation* : mode de stockage, dernière sauvegarde réussie, 40 derniers événements, boutons *Réessayer* et *Recharger*.
+- En cas d'échec, les modifications restent dans le navigateur ; *Réessayer* les renvoie.
+
+**XML**
+- Chaque génération est notée dans la fiche (date, région, module, fichier, personne).
+- Page Support (`xml.html`) : Excel → XML, Compléter un XML, XML → Excel (en test).
+
+**Langue** : bouton FR / EN dans le bandeau ; les textes dynamiques sont traduits au fil de l'eau.

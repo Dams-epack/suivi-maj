@@ -360,7 +360,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .ndate{display:flex;flex-direction:column;width:104px;flex:none}.ndate b{font-size:1.05rem;text-transform:capitalize}.ndate small{color:var(--muted)}
 .ndate.late b,.ndate.late small{color:var(--bad)}
 .nmid{display:flex;flex-direction:column;flex:1;min-width:0}.nmid small{color:var(--muted)}
-.badge.late{color:var(--bad);border-color:var(--bad)}
+.badge.late{color:var(--bad);border-color:var(--bad)}.badge.block{color:#b26a00;border-color:#d98b00;background:rgba(217,139,0,.12)}.btn.blk.on{border-color:#d98b00;color:#b26a00}
 .nrow:has(.badge.late){border-left-color:var(--bad)}
 .nrow.today{border-left-color:var(--today);background:var(--today-soft)}.nrow.today .ndate b,.nrow.today .ndate small{color:var(--today);font-weight:700}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
@@ -676,7 +676,72 @@ const fdate=t=>new Date(t).toLocaleDateString(LOC());
 const LSLANG="suivi-maj-lang";
 let LANG="fr";try{if(localStorage.getItem(LSLANG)==="en")LANG="en"}catch(e){}
 const LOC=()=>LANG==="en"?"en-GB":"fr-FR";
-const I18N_RAW=String.raw`=Accueil ⇒ Home
+const I18N_RAW=String.raw`Suivi de préparation des majs. ⇒ Update preparation tracker
+=Prêt ⇒ Ready
+À relancer ⇒ To chase
+À envoyer ⇒ To send
+Rappels ⇒ Reminders
+Validation siège en attente depuis ⇒ HQ validation pending for
+rétroplanning pas encore envoyé ⇒ back-planning not sent yet
+Déploiement aujourd'hui ⇒ Deployment today
+Déploiement demain ⇒ Deployment tomorrow
+Version allégée pour l'équipe support : Excel → XML et Compléter un XML, sans suivi de MAJ. S'ouvre dans un nouvel onglet. ⇒ Light version for the support team: Excel → XML and Complete an XML, without update tracking. Opens in a new tab.
+déploiements ⇒ deployments
+déploiement ⇒ deployment
+correctif ⇒ fix
+de correctifs ⇒ of fixes
+cette semaine ⇒ this week
+Cette semaine ⇒ This week
+Ouvrir la fiche ⇒ Open the sheet
+n'a aucune date renseignée ⇒ has no date filled in
+Afficher seulement ⇒ Show only
+Réduire toutes les cartes (titre et prochaine étape seulement) ⇒ Collapse all cards (title and next step only)
+Réduire ou développer la carte ⇒ Collapse or expand the card
+Étapes de la MAJ ⇒ Update steps
+Steps de la MAJ ⇒ Update steps
+cliquer pour l'envoyer ⇒ click to send it
+cliquer pour valider ⇒ click to validate
+cliquer pour décocher ⇒ click to untick
+Bloquée · attente client ⇒ Blocked · waiting for the client
+Bloquée · client ⇒ Blocked · client
+Bloquées / attente client ⇒ Blocked / waiting for the client
+Mes MAJ ⇒ My updates
+Marquer bloquée : attente du client ⇒ Mark as blocked: waiting for the client
+Débloquer (client revenu) ⇒ Unblock (client replied)
+Met la MAJ en pause côté suivi : elle sort des rappels ⇒ Pauses the update in the tracker: it leaves the reminders
+Bloquée depuis le ⇒ Blocked since
+Journal de synchronisation ⇒ Synchronisation log
+Ce navigateur uniquement (non partagé) ⇒ This browser only (not shared)
+Base claude.ai (partagée) ⇒ claude.ai database (shared)
+SharePoint (partagé) ⇒ SharePoint (shared)
+Dernière sauvegarde réussie ⇒ Last successful save
+aucune depuis l'ouverture ⇒ none since opening
+MAJ en attente d'envoi ⇒ Updates waiting to be sent
+Aucun événement pour l'instant. ⇒ No event yet.
+Réessayer l'enregistrement ⇒ Retry saving
+Recharger les données ⇒ Reload data
+Certaines modifications n'ont pas pu être enregistrées. Elles sont gardées dans ce navigateur : clique sur « Réessayer ». ⇒ Some changes could not be saved. They are kept in this browser: click “Retry”.
+Échec d'enregistrement ⇒ Save failed
+Échec : clique pour voir le journal et réessayer ⇒ Failed: click to see the log and retry
+Enregistré à ⇒ Saved at
+Synchronisé à ⇒ Synced at
+Enregistrement… ⇒ Saving…
+Sauvegarde locale uniquement (non partagée) ⇒ Local save only (not shared)
+Synchronisation interrompue ⇒ Synchronisation interrupted
+Connexion rétablie ⇒ Connection restored
+Hors connexion : les modifications restent dans ce navigateur ⇒ Offline: changes stay in this browser
+Lecture SharePoint impossible ⇒ Cannot read SharePoint
+Échec SharePoint ⇒ SharePoint failure
+Région non précisée : FR supposé ⇒ Region not specified: FR assumed
+Lignes que je n'ai pas comprises ⇒ Lines I did not understand
+Plusieurs groupements cités ⇒ Several groups mentioned
+Ces lignes n'ont pas été converties en module : vérifie-les dans le mail. ⇒ These lines were not converted into a module: check them in the email.
+J'ai mis FR par défaut, à corriger si besoin. ⇒ I put FR by default; correct it if needed.
+le mail ne donne aucune région ⇒ the email gives no region
+Le mail cite ⇒ The email mentions
+J'ai retenu ⇒ I kept
+vérifie que c'est le bon ⇒ check it is the right one
+=Accueil ⇒ Home
 Actualisation… ⇒ Refreshing…
 Actualisation ⇒ Refresh
 Recharge la page : dernière version de l'outil et données à jour ⇒ Reloads the page: latest version of the tool and up-to-date data
@@ -1571,6 +1636,8 @@ const endOf=m=>m.prepDoneAt||(m.archived?(m.archivedAt||Date.now()):Date.now());
 const durOf=m=>Math.max(0,endOf(m)-startOf(m)-(m.pausedMs||0)-(m.pausedAt&&!m.archived&&!m.prepDoneAt?Date.now()-m.pausedAt:0));
 /* Une MAJ ne peut être archivée qu'après la fin de déploiement (et la 2nde passe si elle est demandée) */
 const canArchive=m=>{const k=(m&&m.mails)||{};return !!m&&!m.archived&&!!(k.pass2||(k.fin&&!m.secondPass))};
+/* Règle unique du statut d'une MAJ (badges, filtres, export CSV) : [libellé, classe] */
+const majStatus=m=>m.archived?["Archivée","arch"]:m.blocked?["Bloquée · attente client","block"]:canArchive(m)?["Prête à archiver","ready"]:["En cours","live"];
 function syncDone(m){if(!m||m.archived||!m.mods)return;const st=stats(m),now=Date.now();if(st.total&&st.pct===100){if(!m.prepDoneAt){m.prepDoneAt=now;if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,now-m.pausedAt);m.pausedAt=null}}}else if(m.prepDoneAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,now-m.prepDoneAt);delete m.prepDoneAt}}
 function togglePause(id){const m=majs[id];if(!m||m.archived||m.prepDoneAt)return;if(m.pausedAt){m.pausedMs=(m.pausedMs||0)+Math.max(0,Date.now()-m.pausedAt);m.pausedAt=null}else m.pausedAt=Date.now();persist(id);render()}
 function fmtClock(ms){const s=Math.floor(ms/1000),d=Math.floor(s/86400),hh=Math.floor(s%86400/3600),mm=Math.floor(s%3600/60),ss=s%60,p=n=>String(n).padStart(2,"0");return (d?d+" j ":"")+p(hh)+":"+p(mm)+":"+p(ss)}
@@ -1706,13 +1773,15 @@ function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmD
 /* « France/BE FR/BE NL » saisi d'un bloc : une ligne par région (FR, BE FR, BE NL) */
 const splitReg=l=>{const o=[];String(l).split("/").map(x=>x.trim()).filter(Boolean).forEach(p=>{p=/^france$/i.test(p)?"FR":p;if(!o.includes(p))o.push(p)});return o.length?o:[String(l)]};
 const norm=l=>String(l).replace(/\bblux(?:embourg)?[\s-]*(FR|NL)\b/i,(m,c)=>"BE-"+c.toUpperCase());
+const parseSkipped=[];
 function localParse(mail){
-  const mods=[];
+  const mods=[];parseSkipped.length=0;
   mail.split(/\r?\n/).forEach(raw=>{
     const line=raw.replace(/^[\s•\-\*–·▪●○◦>\d.)]+/,"").trim();
     const m=line.match(/^(.+?)\s*\(([^)]+)\)\s*\.?$/);
     if(!m){
-      if(/^\s*[•\-\*–·▪●○◦]\s+/.test(raw)&&line.length>=3&&line.length<=80&&!/[:?!]$/.test(line))mods.push({name:line.replace(/[.;,]+$/,"").trim(),regions:["FR"]});
+      if(/\([^)]*\)/.test(line)&&line.length<120)parseSkipped.push(line);
+      if(/^\s*[•\-\*–·▪●○◦]\s+/.test(raw)&&line.length>=3&&line.length<=80&&!/[:?!]$/.test(line))mods.push({name:line.replace(/[.;,]+$/,"").trim(),regions:["FR"],d:true});
       return;
     }
     const name=m[1].trim();
@@ -1740,7 +1809,7 @@ function proseModules(mail){
   for(const m of mail.matchAll(/\bmodules?\s+(?:d['’]\s*)?([\p{L}'’-]{3,})/giu)){
     const w=m[1];if(STOPW.has(w.toLowerCase()))continue;
     const name=w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
-    if(!out.some(x=>x.name.toLowerCase()===name.toLowerCase()))out.push({name,regions:["FR"]});
+    if(!out.some(x=>x.name.toLowerCase()===name.toLowerCase()))out.push({name,regions:["FR"],d:true});
   }
   return out;
 }
@@ -1759,7 +1828,7 @@ const MOD_ALIASES=[
 ];
 function catalogModules(text){
   const f=" "+fold(text)+" ",out=[];
-  MOD_ALIASES.forEach(([rx,name])=>{if(rx.test(f)&&!out.some(x=>x.name===name))out.push({name,regions:["FR"]})});
+  MOD_ALIASES.forEach(([rx,name])=>{if(rx.test(f)&&!out.some(x=>x.name===name))out.push({name,regions:["FR"],d:true})});
   return out;
 }
 function localSite(text){
@@ -1856,6 +1925,11 @@ function mailIssues(){
     if(ex)out.push({title:"Une MAJ existe déjà pour ce groupement",text:"« "+ex.title+" » est déjà suivie ("+(ex.archived?"archivée":"en cours")+"). Vérifie qu'il ne s'agit pas de la même demande avant d'en créer une nouvelle."});
   }
   (info.unclear||[]).forEach(u=>out.push({title:"Point à préciser",text:u.point,ask:u.question||null}));
+  {const gs=draft.guess;if(gs){
+    if(gs.defReg&&gs.defReg.length)out.push({title:"Région non précisée : FR supposé",text:"Pour "+gs.defReg.map(n=>"« "+n+" »").join(", ")+", le mail ne donne aucune région. J'ai mis FR par défaut, à corriger si besoin.",ask:"Pour quels pays ou langues (FR, BE-FR, BE-NL…) faut-il mettre à jour "+gs.defReg.join(", ")+" ?"});
+    if(gs.skipped&&gs.skipped.length)out.push({title:"Lignes que je n'ai pas comprises",text:gs.skipped.map(l=>"« "+l+" »").join(" · ")+". Ces lignes n'ont pas été converties en module : vérifie-les dans le mail.",ask:"Pouvez-vous préciser ces lignes : "+gs.skipped.join(" ; ")+" ?"});
+    if(gs.groups&&gs.groups.length)out.push({title:"Plusieurs groupements cités",text:"Le mail cite "+gs.groups.join(", ")+". J'ai retenu « "+(draft.group||"?")+" » : vérifie que c'est le bon.",ask:null});
+  }}
   if(!(typeof info.file==="boolean"?info.file:RX_FILE.test(mail)))
     out.push({title:"Aucun fichier mentionné",text:"Le mail ne parle d'aucun fichier Excel ni d'aucune pièce jointe. Vérifie dans le mail d'origine qu'une pièce jointe ne t'a pas échappé.",ask:"Pourriez-vous nous transmettre le fichier Excel contenant les éléments à mettre à jour ?"});
   return out;
@@ -1989,6 +2063,11 @@ async function analyse(){
   if(!group){const top=topMessage(mail);group=localGroup(top)||detectGroupsInText(top)[0]||domainGroup(top)||localGroup(mail)||domainGroup(mail)}
   {const dom=domainGroup(mail);if(dom&&group&&dom.toLowerCase().includes(group.toLowerCase())&&dom.length>group.length)group=dom}
   draft.group=group.replace(/\s+/g," ").trim().slice(0,60).toUpperCase();
+  draft.guess=null;
+  if(!sampleFn||!draft.info||!Object.keys(draft.info).length){
+    const topT=topMessage(mail),gr=(typeof detectGroupsInText==="function"?detectGroupsInText(topT):[]);
+    draft.guess={defReg:mods.filter(m=>m.d).map(m=>m.name),skipped:parseSkipped.slice(0,4),groups:gr.length>1?gr.slice(0,4):[]};
+  }
   mods=mods.map(m=>({name:m.name,regions:[...new Set(m.regions.flatMap(splitReg).map(norm))]}));
   draft.busy=false;
   if(!mods.length){draft.msg="Je n'ai trouvé aucun module dans ce mail. Vérifie le texte collé.";draft.err=true;draft.parsed=null}
@@ -2593,6 +2672,7 @@ function viewMaj(app,id){
   const metarow=$("div","metarow");app.appendChild(metarow);
   {const sp=$("p","sub","Créée le "+fdate(m.created)+(m.createdBy?" par "+who(m.createdBy):""));
    if(!m.createdBy){const b=$("button","btn ghost","Indiquer qui l'a préparée");b.type="button";b.style.marginLeft="8px";b.onclick=async()=>{await ensureName();const k=meKey();if(!k)return;m.createdBy=k;persist(id);render()};sp.appendChild(b)}
+   if(!m.archived){const bb=$("button","btn ghost blk"+(m.blocked?" on":""),m.blocked?"Débloquer (client revenu)":"Marquer bloquée : attente du client");bb.type="button";bb.style.marginLeft="8px";bb.title=m.blocked?"Bloquée depuis le "+fdate(m.blocked.at)+(m.blocked.by?" par "+who(m.blocked.by):""):"Met la MAJ en pause côté suivi : elle sort des rappels";bb.onclick=()=>{m.blocked=m.blocked?null:{at:Date.now(),by:meKey()};persist(id);render()};sp.appendChild(bb)}
    metarow.appendChild(sp)}
   {const c=csmOf(m);if(c)app.appendChild($("p","sub","CSM du groupe : "+c.csm+" · QM : "+(c.qm||"aucun")))}
   {const tp=$("p","timer");tp.setAttribute("role","timer");
@@ -4047,7 +4127,7 @@ function csvCell(v){v=String(v==null?"":v);return /[";\r\n]/.test(v)?'"'+v.repla
 function exportCsv(){
   const head=["Titre","Groupement","Type","Statut","Créée le","Archivée le","Durée (heures)","Avancement (%)","Préparée par","Modules","Régions"];
   const rows=Object.keys(majs).map(k=>majs[k]).sort((a,b)=>b.created-a.created).map(m=>{
-    const s=stats(m),st=m.archived?"Archivée":canArchive(m)?"Prête à archiver":"En cours";
+    const s=stats(m),st=majStatus(m)[0];
     return [m.title,groupOf(m),m.type==="correctif"?"Correctif":"Déploiement",st,fdate(m.created),m.archived?fdate(m.archivedAt||m.created):"",(durOf(m)/3600000).toFixed(2).replace(".",","),s.pct,m.createdBy?(who(m.createdBy)||""):"",[...new Set(m.mods.map(M=>M.name))].join(", "),[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ")];
   });
   const txt="﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n");
@@ -4126,6 +4206,24 @@ function isLateEv(e,n,t0){
   return true;
 }
 const isIntl=m=>new Set((m.mods||[]).flatMap(M=>(M.regions||[]).map(r=>paysCode(r.label))).filter(Boolean)).size>1;
+/* Rappels : actions qui traînent ou échéances proches sans rétroplanning */
+const REMIND_DAYS=3;
+function reminders(){
+  const out=[],now=Date.now(),t0=startOfToday();
+  Object.keys(majs).forEach(id=>{const m=majs[id];if(!m||m.archived||m.blocked)return;const k=m.mails||{};
+    if(k.siege&&!k.validSiege){const d=Math.floor((now-k.siege)/86400000);if(d>=REMIND_DAYS)out.push({id,m,sev:2,txt:"Validation siège en attente depuis "+d+" jours"})}
+    const D=parseD(m.dateDeploiement);
+    if(D&&m.type!=="correctif"&&!k.prise&&D>=t0&&D-t0<=7*86400000){const j=Math.round((D-t0)/86400000);out.push({id,m,sev:1,txt:"Déploiement "+(j===0?"aujourd'hui":j===1?"demain":"dans "+j+" jours")+" : rétroplanning pas encore envoyé"})}
+  });
+  return out.sort((a,b)=>b.sev-a.sev);
+}
+function viewReminders(app){
+  const R=reminders();if(!R.length)return;
+  const sec=$("section","panel acc rem");const hd=$("div","hubtop");hd.append($("h2",null,"Rappels"),$("span","badge late",String(R.length)));sec.appendChild(hd);
+  const ul=$("div","nextlist");
+  R.slice(0,6).forEach(r=>{const b=$("button","nrow");b.type="button";const mid=$("span","nmid");mid.append($("strong",null,r.m.title),$("small",null,r.txt));const bd=$("span","badge "+(r.sev>1?"late":"live"),r.sev>1?"À relancer":"À envoyer");b.append(mid,bd);b.onclick=()=>{setCur(r.id);render()};ul.appendChild(b)});
+  sec.appendChild(ul);app.appendChild(sec);
+}
 function viewHubNext(app){
   const t0=startOfToday(),ev=majEvents().map(e=>({e,n:nextStep(e)})).filter(x=>x.n);
   const part=(title,kind,first)=>{
@@ -4143,7 +4241,7 @@ function viewHubNext(app){
       const r=$("button","nrow"+(d===0?" today":""));r.type="button";
       const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString(LOC(),{day:"2-digit",month:"short"})),$("small",null,when));if(lt)dt.classList.add("late");
       const mid=$("span","nmid");mid.append($("strong",null,e.m.title),$("small",null,n[0]));
-      const bd=$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":wv?"En attente du siège":"À traiter");
+      const bd=e.m.blocked?$("span","badge block","Bloquée · client"):$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":wv?"En attente du siège":"À traiter");
       r.append(dt,mid,bd);r.onclick=()=>{focusEv={id:e.id,kind:e.kind};openUpcoming()};ul.appendChild(r);
     });
     sec.appendChild(ul);app.appendChild(sec);
@@ -4246,6 +4344,7 @@ function viewHub(app){
     tiles.appendChild(t);
   });
   app.appendChild(tiles);
+  viewReminders(app);
   viewHubNext(app);
   // outils
   app.appendChild($("h2",null,"Outils"));
@@ -4336,7 +4435,7 @@ app.appendChild(tl);
 /*HUB-END*/
 
 /*SEARCH-START*/
-const SF0={q:"",status:"",group:"",mod:"",reg:"",who:"",dfield:"created",from:"",to:"",prog:"",dur:"",sort:"recent"};
+const SF0={q:"",status:"",group:"",mod:"",reg:"",who:"",csm:"",qm:"",dfield:"created",from:"",to:"",prog:"",dur:"",sort:"recent"};
 let sf=Object.assign({},SF0);let backTo=null;let sfOpen=false;
 function openSearch(){page="search";render()}
 function openLive(){page="live";backTo=null;render()}
@@ -4464,7 +4563,7 @@ function viewLive(app,arch){
   rows.forEach(x=>{
     const m=x.m,b=$("button","sitem acc"+(m_isFix(x.m)?" fixcard":""));
     const top=$("div","stop");{const tt=$("span","ttl");if(m_isFix(m))tt.appendChild($("span","gpill fix","Correctif"));tt.appendChild($("strong",null,m.title));top.appendChild(tt)}
-    const st=arch?["Archivée","arch"]:canArchive(x.m)?["Prête à archiver","ready"]:["En cours","live"];top.appendChild($("span","badge "+st[1],st[0]));
+    const st=majStatus(x.m);top.appendChild($("span","badge "+st[1],st[0]));
     const lvl=x.s.pct>=100?"full":x.s.pct>=50?"mid":"low";
     const bar=$("div","bar"+(x.s.pct===0?" zero":"")+(lvl==="full"?" full":lvl==="mid"?" mid":""));const bi=$("i");bi.style.width=x.s.pct+"%";bar.appendChild(bi);
     const meta=$("small",null,x.s.pct+" % · "+x.s.done+" / "+x.s.total+" étapes · créée le "+fdate(m.created)+(arch?" · archivée le "+fdate(m.archivedAt||m.created):"")+" · "+fmtDur(durOf(m))+(m.createdBy?" · "+(who(m.createdBy)||""):""));
@@ -4503,17 +4602,19 @@ function viewSearch(app){
     const s=$("select");opts.forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===sf[key])o.selected=true;s.appendChild(o)});
     s.onchange=()=>{sf[key]=s.value;update()};l.appendChild(s);grid.appendChild(l);return s};
   const inp=(lab,key,type)=>{const l=$("label","fld");l.appendChild($("span",null,lab));const i=$("input");i.type=type;i.value=sf[key];i.oninput=()=>{sf[key]=i.value;update()};l.appendChild(i);grid.appendChild(l)};
-  sel("Statut","status",[["","Tous"],["live","En cours"],["ready","Prêtes à archiver"],["arch","Archivées"]]);
+  sel("Statut","status",[["","Tous"],["live","En cours"],["ready","Prêtes à archiver"],["block","Bloquées / attente client"],["arch","Archivées"]]);
   sel("Groupement","group",[["","Tous"],...groups.map(g=>[g,g])]);
   sel("Module","mod",[["","Tous"],...mods.map(g=>[g,g])]);
   sel("Région / langue","reg",[["","Toutes"],...regs.map(g=>[g,g])]);
-  sel("Préparée par","who",[["","Tous"],...whos.map(g=>[g,who(g)||"Un collègue"])]);
+  sel("Préparée par","who",[["","Tous"],["__me","Mes MAJ"],...whos.map(g=>[g,who(g)||"Un collègue"])]);
+  sel("CSM","csm",[["","Tous"],...uniq(all.map(x=>{const c=csmOf(x.m);return c&&c.csm}))].map(a=>Array.isArray(a)?a:[a,a]));
+  sel("QM","qm",[["","Tous"],...uniq(all.map(x=>{const c=csmOf(x.m);return c&&c.qm}))].map(a=>Array.isArray(a)?a:[a,a]));
   sel("Avancement","prog",[["","Tous"],["low","Moins de 50 %"],["mid","50 à 99 %"],["full","100 %"]]);
   sel("Durée","dur",[["","Toutes"],["h1","Moins d'1 h"],["d1","1 h à 24 h"],["d7","1 à 7 jours"],["d7p","Plus de 7 jours"]]);
   sel("Date de","dfield",[["created","Création"],["archived","Archivage"]]);
   inp("Du","from","date");inp("Au","to","date");
   panel.appendChild(grid);
-  const nAct=()=>["status","group","mod","reg","who","prog","dur","from","to"].filter(k=>sf[k]).length;
+  const nAct=()=>["status","group","mod","reg","who","csm","qm","prog","dur","from","to"].filter(k=>sf[k]).length;
   const paintF=()=>{grid.hidden=!sfOpen;fb.setAttribute("aria-expanded",String(sfOpen));fb.classList.toggle("on",sfOpen);const n=nAct();fbn.textContent=n?String(n):"";fbn.hidden=!n;fb.setAttribute("aria-label","Filtres"+(n?" ("+n+" actif"+(n>1?"s":"")+")":""))};
   fb.onclick=()=>{sfOpen=!sfOpen;paintF()};paintF();
   const bar=$("div","actions");
@@ -4574,10 +4675,13 @@ function viewSearch(app){
       if(sf.status==="live"&&m.archived)return false;
       if(sf.status==="arch"&&!m.archived)return false;
       if(sf.status==="ready"&&!canArchive(m))return false;
+      if(sf.status==="block"&&!(m.blocked&&!m.archived))return false;
+      if(sf.csm){const c=csmOf(m);if(!c||c.csm!==sf.csm)return false}
+      if(sf.qm){const c=csmOf(m);if(!c||c.qm!==sf.qm)return false}
       if(sf.group&&groupOf(m)!==sf.group)return false;
       if(sf.mod&&!m.mods.some(M=>M.name===sf.mod))return false;
       if(sf.reg&&!m.mods.some(M=>M.regions.some(r=>norm(r.label)===sf.reg)))return false;
-      if(sf.who&&m.createdBy!==sf.who)return false;
+      if(sf.who==="__me"){if(m.createdBy!==meKey()&&m.createdBy!==myId)return false}else if(sf.who&&m.createdBy!==sf.who)return false;
       if(sf.prog==="low"&&x.s.pct>=50)return false;
       if(sf.prog==="mid"&&(x.s.pct<50||x.s.pct>=100))return false;
       if(sf.prog==="full"&&x.s.pct<100)return false;
@@ -4601,7 +4705,7 @@ function viewSearch(app){
     rows.forEach(x=>{
       const m=x.m,b=$("button","sitem acc"+(m_isFix(x.m)?" fixcard":""));
       const top=$("div","stop");{const tt=$("span","ttl");if(m_isFix(m))tt.appendChild($("span","gpill fix","Correctif"));tt.appendChild($("strong",null,m.title));top.appendChild(tt)}
-      const st=m.archived?["Archivée","arch"]:canArchive(x.m)?["Prête à archiver","ready"]:["En cours","live"];
+      const st=majStatus(m);
       top.appendChild($("span","badge "+st[1],st[0]));
       const names=[...new Set(m.mods.map(M=>M.name))];
       const rg=[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))];
@@ -4965,7 +5069,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v300",APP_DATE="21/10/2026";
+const APP_VERSION="v302",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}

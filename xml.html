@@ -360,7 +360,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .ndate{display:flex;flex-direction:column;width:104px;flex:none}.ndate b{font-size:1.05rem;text-transform:capitalize}.ndate small{color:var(--muted)}
 .ndate.late b,.ndate.late small{color:var(--bad)}
 .nmid{display:flex;flex-direction:column;flex:1;min-width:0}.nmid small{color:var(--muted)}
-.badge.late{color:var(--bad);border-color:var(--bad)}
+.badge.late{color:var(--bad);border-color:var(--bad)}.badge.block{color:#b26a00;border-color:#d98b00;background:rgba(217,139,0,.12)}.btn.blk.on{border-color:#d98b00;color:#b26a00}
 .nrow:has(.badge.late){border-left-color:var(--bad)}
 .nrow.today{border-left-color:var(--today);background:var(--today-soft)}.nrow.today .ndate b,.nrow.today .ndate small{color:var(--today);font-weight:700}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
@@ -671,7 +671,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v300";
+const APP_VERSION="v302";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -683,7 +683,72 @@ const persist=()=>{},groupOf=()=>"",zipGroup=()=>"",zipName=(id,b)=>b+".zip",meK
 const LSLANG="suivi-maj-lang";
 let LANG="fr";try{if(localStorage.getItem(LSLANG)==="en")LANG="en"}catch(e){}
 const LOC=()=>LANG==="en"?"en-GB":"fr-FR";
-const I18N_RAW=String.raw`=Accueil ⇒ Home
+const I18N_RAW=String.raw`Suivi de préparation des majs. ⇒ Update preparation tracker
+=Prêt ⇒ Ready
+À relancer ⇒ To chase
+À envoyer ⇒ To send
+Rappels ⇒ Reminders
+Validation siège en attente depuis ⇒ HQ validation pending for
+rétroplanning pas encore envoyé ⇒ back-planning not sent yet
+Déploiement aujourd'hui ⇒ Deployment today
+Déploiement demain ⇒ Deployment tomorrow
+Version allégée pour l'équipe support : Excel → XML et Compléter un XML, sans suivi de MAJ. S'ouvre dans un nouvel onglet. ⇒ Light version for the support team: Excel → XML and Complete an XML, without update tracking. Opens in a new tab.
+déploiements ⇒ deployments
+déploiement ⇒ deployment
+correctif ⇒ fix
+de correctifs ⇒ of fixes
+cette semaine ⇒ this week
+Cette semaine ⇒ This week
+Ouvrir la fiche ⇒ Open the sheet
+n'a aucune date renseignée ⇒ has no date filled in
+Afficher seulement ⇒ Show only
+Réduire toutes les cartes (titre et prochaine étape seulement) ⇒ Collapse all cards (title and next step only)
+Réduire ou développer la carte ⇒ Collapse or expand the card
+Étapes de la MAJ ⇒ Update steps
+Steps de la MAJ ⇒ Update steps
+cliquer pour l'envoyer ⇒ click to send it
+cliquer pour valider ⇒ click to validate
+cliquer pour décocher ⇒ click to untick
+Bloquée · attente client ⇒ Blocked · waiting for the client
+Bloquée · client ⇒ Blocked · client
+Bloquées / attente client ⇒ Blocked / waiting for the client
+Mes MAJ ⇒ My updates
+Marquer bloquée : attente du client ⇒ Mark as blocked: waiting for the client
+Débloquer (client revenu) ⇒ Unblock (client replied)
+Met la MAJ en pause côté suivi : elle sort des rappels ⇒ Pauses the update in the tracker: it leaves the reminders
+Bloquée depuis le ⇒ Blocked since
+Journal de synchronisation ⇒ Synchronisation log
+Ce navigateur uniquement (non partagé) ⇒ This browser only (not shared)
+Base claude.ai (partagée) ⇒ claude.ai database (shared)
+SharePoint (partagé) ⇒ SharePoint (shared)
+Dernière sauvegarde réussie ⇒ Last successful save
+aucune depuis l'ouverture ⇒ none since opening
+MAJ en attente d'envoi ⇒ Updates waiting to be sent
+Aucun événement pour l'instant. ⇒ No event yet.
+Réessayer l'enregistrement ⇒ Retry saving
+Recharger les données ⇒ Reload data
+Certaines modifications n'ont pas pu être enregistrées. Elles sont gardées dans ce navigateur : clique sur « Réessayer ». ⇒ Some changes could not be saved. They are kept in this browser: click “Retry”.
+Échec d'enregistrement ⇒ Save failed
+Échec : clique pour voir le journal et réessayer ⇒ Failed: click to see the log and retry
+Enregistré à ⇒ Saved at
+Synchronisé à ⇒ Synced at
+Enregistrement… ⇒ Saving…
+Sauvegarde locale uniquement (non partagée) ⇒ Local save only (not shared)
+Synchronisation interrompue ⇒ Synchronisation interrupted
+Connexion rétablie ⇒ Connection restored
+Hors connexion : les modifications restent dans ce navigateur ⇒ Offline: changes stay in this browser
+Lecture SharePoint impossible ⇒ Cannot read SharePoint
+Échec SharePoint ⇒ SharePoint failure
+Région non précisée : FR supposé ⇒ Region not specified: FR assumed
+Lignes que je n'ai pas comprises ⇒ Lines I did not understand
+Plusieurs groupements cités ⇒ Several groups mentioned
+Ces lignes n'ont pas été converties en module : vérifie-les dans le mail. ⇒ These lines were not converted into a module: check them in the email.
+J'ai mis FR par défaut, à corriger si besoin. ⇒ I put FR by default; correct it if needed.
+le mail ne donne aucune région ⇒ the email gives no region
+Le mail cite ⇒ The email mentions
+J'ai retenu ⇒ I kept
+vérifie que c'est le bon ⇒ check it is the right one
+=Accueil ⇒ Home
 Actualisation… ⇒ Refreshing…
 Actualisation ⇒ Refresh
 Recharge la page : dernière version de l'outil et données à jour ⇒ Reloads the page: latest version of the tool and up-to-date data
