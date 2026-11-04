@@ -3,11 +3,20 @@
 const X2E=(()=>{
   const SHEETS={Fridges:"Température frigo",Cleanings:"Nettoyage des postes",ControlsList:"Liste de contrôles",ControlsList2:"Liste de contrôles 2",ControlsList3:"Liste de contrôles 3",ControlsManager:"Contrôles manager",CheckLists:"Check lists",ProductsStickers:"Étiquettes produits",ProductsProduction:"Traçabilité produits",ProductsStockIn:"Réception marchandises",ProductsService:"Température de service",ProductsFreezing:"Mise en congélation",ProductsFrozen:"Décongélation",ProductsWarming:"Mise en température",ProductsStickersDelivery:"Étiquettes livraisons",ProductsStickersDefrosting:"Étiquettes décongélation",ProductsCookingSousVide:"Cuisson sous vide",Cookings:"Cuissons",ProductionsTemp:"Température de production",ProductionsTempType:"Types de productions",PlatsTemoins:"Plats témoins",ControlesDivers:"Contrôles divers",Actions:"Actions correctives",Methods:"Méthodes",Notes:"Notes",Steps:"Étapes",PresetText:"Textes prédéfinis",PresetTemp:"Températures prédéfinies",Moments:"Moments",Timers:"Minuteurs",AddressBook:"Carnet d'adresses",PrintersMapping:"Imprimantes",OptionsUI:"Boutons principaux",Usernames:"Utilisateurs",Company:"Société",Options:"Options"};
   const LBL={Name:"Désignation",Firstname:"Prénom",Category:"Catégorie",TempMin:"Temp. min",TempMax:"Temp. max",TempLimit:"Temp. limite",TempMaxExcu:"Temp. max exception",DureeMaxExcu:"Durée max exception (min)",Sensor_Name:"Sonde",Sensor_Id:"Id sonde",Sensor_CanChangeValue:"Valeur modifiable (sonde)",Recurrence:"Récurrence",CheckList_Name:"Check list",CheckList_AllMandatoryToValid:"Tous les éléments obligatoires",DateLimit:"DLC",DLType:"Unité DLC",Fridge:"Frigo",Printer:"Imprimante",MustIndicateOrigin:"Origine à indiquer",IsDDM:"DDM",Dlc:"DLC",Ddm:"DDM",Du:"Unité",TypeFunction:"Module",State:"État",ButtonText:"Texte du bouton",ButtonImage:"Image",ButtonAction:"Action",ModulePosition:"Position",ProductReference:"Référence produit",DLCTheorique:"DLC théorique",NumLot:"N° de lot",Quantity:"Quantité",Job:"Poste",Phone:"Téléphone",Admin:"Administrateur",eMail:"E-mail",Type:"Type",ProviderCode:"Code fournisseur",PrinterName:"Nom imprimante",Copies:"Copies",MesureMin:"Mesure min",MesureMax:"Mesure max",MesureUnit:"Unité",Conservation:"Conservation (jours)",TimeFrom:"Heure de début",Libelle:"Libellé",Message:"Message",Jours:"Jours",Son:"Son",Couleur:"Couleur",TempStart_Min:"Temp. départ min",TempStart_Max:"Temp. départ max",TempFinish_Min:"Temp. fin min",TempFinish_Max:"Temp. fin max",Alert_MaxTime:"Durée max alerte",ConditionTempInf:"Condition temp. inférieure",ConditionTempSup:"Condition temp. supérieure",ConditionCheckList:"Condition check list",ConditionCheckListElements:"Éléments check list conditionnels",IsTempMeth:"Méthode de température",Items:"Éléments",Language_Default:"Langue",ProductCode:"Code produit",CookingTime:"Durée de cuisson"};
-  const HIDE=new Set(["Id","TS","Delete","Disable","idFileAttente","Photo","_IsSensorError","IsSensorError","Password","RoleId","Icon","Icone","ButtonImage","TimeStartTicks","TimeEndTicks","IsWebEPH","CanGoBackHome","Paper_Size","Paper_Source","IsCollate","Duplex","IsColor","MAC","IsLandscape"]);
+  const HIDE=new Set(["MyDate","MyNote_Text","MyNote_Photo","MyNote_Username","UserName","Id","TS","Delete","Disable","idFileAttente","Photo","_IsSensorError","IsSensorError","Password","RoleId","Icon","Icone","ButtonImage","TimeStartTicks","TimeEndTicks","IsWebEPH","CanGoBackHome","Paper_Size","Paper_Source","IsCollate","Duplex","IsColor","MAC","IsLandscape"]);
   const DLT={"-1":"Selon l'interface","0":"Jours","1":"Services","2":"Heures","3":"Minutes"};
   const DAYS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
   const DOW={Monday:"Lun",Tuesday:"Mar",Wednesday:"Mer",Thursday:"Jeu",Friday:"Ven",Saturday:"Sam",Sunday:"Dim"};
   const OFF_BY_DEFAULT=new Set(["Options","Company"]);
+  /* dates ISO -> lisibles ; année 0001 = « non renseigné » ; heures seules pour les débuts de moment */
+  const ISO=/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/;
+  function fmtDate(v,tag){
+    const m=ISO.exec(v);if(!m)return v;
+    if(+m[1]<1900)return "";
+    if(/^Time(From|To|Start|End)?$|^Heure/.test(tag))return m[4]+":"+m[5];
+    const d=m[3]+"/"+m[2]+"/"+m[1];
+    return (m[4]==="00"&&m[5]==="00"&&(!m[6]||m[6]==="00"))?d:d+" "+m[4]+":"+m[5];
+  }
   const ln=n=>n.replace(/^\{.*\}/,"").replace(/^.*:/,"");
   const kids=e=>Array.from(e.children);
   const txt=e=>(e.textContent||"").trim();
@@ -59,11 +68,11 @@ const X2E=(()=>{
     const ty=txt(r.querySelector(":scope > Type")||{textContent:""});
     const nb=parseInt(txt(r.querySelector(":scope > Nb")||{textContent:"0"}),10)||0;
     const dis=txt(r.querySelector(":scope > IsDisable")||{textContent:""})==="true";
-    const ms=[];
+    const ms=[];const UNK="(moment supprimé)";
     kids(r).filter(c=>ln(c.tagName)==="Moments").forEach(M=>kids(M).forEach(m=>{
       const id=txt(m.querySelector(":scope > MomentId")||{textContent:""});
       const days=[1,2,3,4,5,6,7].map(i=>txt(m.querySelector(":scope > Day"+i)||{textContent:""})==="true");
-      ms.push({n:mom[id]||id,days});
+      ms.push({n:mom[id]||UNK,days});
     }));
     let s;
     if(ty==="None"||!ty)return dis?"Aucune (désactivée)":"Aucune";
@@ -76,7 +85,7 @@ const X2E=(()=>{
       return m.n+" ("+(on.length===7?"tous les jours":on.join(", "))+")";
     }).filter(Boolean);
     if(ty==="xDays"&&!parts.length&&ms.length)return s+" – "+ms.map(m=>m.n).join(", ")+(dis?" [désactivée]":"");
-    if(parts.length)s+=" – "+parts.join(" ; ");
+    if(parts.length){const cnt=new Map();parts.forEach(p=>cnt.set(p,(cnt.get(p)||0)+1));s+=" – "+[...cnt].map(([p,n])=>n>1?p+" ×"+n:p).join(" ; ")}
     else if(ty==="Daily")s+=" – aucun jour coché";
     return s+(dis?" [désactivée]":"");
   }
@@ -90,10 +99,12 @@ const X2E=(()=>{
     if(tag==="Recurrence")return recur(e,mom);
     if(tag==="Jours")return k.map(c=>DOW[txt(c)]||txt(c)).join(", ");
     if(tag==="DLType")return DLT[txt(e)]??txt(e);
-    if(tag==="MomentId"||tag==="Moment")return mom[txt(e)]||txt(e);
+    if(tag==="MomentId"||tag==="Moment"){const q=txt(e);return q?(mom[q]||"(moment supprimé)"):""}
     if(k.length)return generic(e,mom,0);
     let v=txt(e).replace(/[\uE000-\uF8FF]/g,"").trim();
     if(tag==="Language_Default")v=v.replace(/^Language\./,"");
+    if(tag==="TypeFunction"&&v==="ALL")return "Tous les modules";
+    if(ISO.test(v))return fmtDate(v,tag);
     if(v==="true")return "Oui";if(v==="false")return "Non";
     if(/^-?\d+(\.\d+)?$/.test(v)&&v.length<16&&!/^0\d/.test(v))return Number(v);
     return v;
@@ -176,22 +187,32 @@ const X2E=(()=>{
     return {mods,bad,moments:mf?Object.keys(mom).length:0};
   }
 
-  function build(mods){
+  function build(mods,opt){
     const wb=XLSX.utils.book_new(),used=new Set();
+    const titles=[];
     mods.forEach(m=>{
       const ws=XLSX.utils.aoa_to_sheet([m.head].concat(m.rows));
       ws["!cols"]=m.head.map((h,i)=>{let w=String(h).length;m.rows.slice(0,300).forEach(r=>{const l=String(r[i]??"").length;if(l>w)w=l});return {wch:Math.min(60,Math.max(10,w+2))}});
       ws["!freeze"]={xSplit:0,ySplit:1};
       if(m.head.length)ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(0,m.rows.length),c:m.head.length-1}})};
-      XLSX.utils.book_append_sheet(wb,ws,sheetTitle(m.sheet,used));
+      const tt=sheetTitle(m.sheet,used);titles.push(tt);
+      XLSX.utils.book_append_sheet(wb,ws,tt);
     });
+    if(opt&&opt.summary&&mods.length>1){
+      const rows=[["Module","Onglet","Lignes"]].concat(mods.map((m,i)=>[m.name,titles[i],m.rows.length]));
+      const sm=XLSX.utils.aoa_to_sheet(rows);
+      mods.forEach((m,i)=>{sm["B"+(i+2)].l={Target:"#'"+titles[i].replace(/'/g,"''")+"'!A1",Tooltip:"Aller à l'onglet"}});
+      sm["!cols"]=[{wch:28},{wch:34},{wch:9}];
+      const sn=sheetTitle("Sommaire",used);XLSX.utils.book_append_sheet(wb,sm,sn);
+      wb.SheetNames.unshift(wb.SheetNames.pop());
+    }
     return new Uint8Array(XLSX.write(wb,{bookType:"xlsx",type:"array"}));
   }
   return {unzip,load,build,convert,SHEETS,OFF_BY_DEFAULT};
 })();
 
 function openX2E(){
-  const st={mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
+  const st={showEmpty:false,prev:"",summary:true,mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","x2t");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const close=()=>{bg.remove();document.removeEventListener("keydown",kd)};
@@ -228,7 +249,7 @@ function openX2E(){
     st.msg="";const c=chosen();
     if(!c.length){st.msg="Coche au moins un module.";paint();return}
     let data;
-    try{data=X2E.build(c)}catch(e){st.msg="Création du fichier Excel impossible : "+((e&&e.message)||"erreur");paint();return}
+    try{data=X2E.build(c,{summary:st.summary})}catch(e){st.msg="Création du fichier Excel impossible : "+((e&&e.message)||"erreur");paint();return}
     const filename=fname();
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
@@ -259,17 +280,26 @@ function openX2E(){
     const nonEmpty=st.mods.filter(m=>m.count>0).length;
     md.appendChild($("p",null,st.mods.length+" module(s) trouvé(s), dont "+nonEmpty+" avec des données."+(st.moments?" Les moments sont affichés par leur nom.":"")));
     const lst=$("div","x2list");
-    st.mods.forEach(m=>{
+    st.mods.filter(m=>m.count>0||st.showEmpty).forEach(m=>{
       const l=$("label","x2row"+(m.count?"":" empty"));
       const cb=$("input");cb.type="checkbox";cb.checked=st.sel.has(m.name);cb.onchange=()=>{cb.checked?st.sel.add(m.name):st.sel.delete(m.name);paint()};
-      l.append(cb,$("span","x2n",m.sheet),$("small",null,m.count?m.count+" ligne"+(m.count>1?"s":""):"vide"));
+      const pv=$("button","chip x2pv"+(st.prev===m.name?" on":""),"Aperçu");pv.type="button";pv.disabled=!m.count;pv.onclick=e=>{e.preventDefault();e.stopPropagation();st.prev=st.prev===m.name?"":m.name;paint()};
+      l.append(cb,$("span","x2n",m.sheet),$("small",null,m.count?m.count+" ligne"+(m.count>1?"s":""):"vide"),pv);
       lst.appendChild(l);
     });
     md.appendChild(lst);
+    if(nonEmpty<st.mods.length){const te=$("button","chip",st.showEmpty?"Masquer les modules vides":"Afficher les "+(st.mods.length-nonEmpty)+" modules vides");te.type="button";te.style.marginTop="8px";te.style.alignSelf="flex-start";te.onclick=()=>{st.showEmpty=!st.showEmpty;paint()};md.appendChild(te)}
+    {const pm=st.mods.find(m=>m.name===st.prev);if(pm){
+      const bx=$("div","x2prev");bx.appendChild($("p","x2pt","Aperçu : "+pm.sheet+" ("+pm.rows.length+" ligne"+(pm.rows.length>1?"s":"")+")"));
+      const sc=$("div","x2sc"),tb=$("table");const th=$("tr");pm.head.forEach(h=>th.appendChild($("th",null,String(h))));tb.appendChild(th);
+      pm.rows.slice(0,5).forEach(r=>{const tr=$("tr");r.forEach(v=>tr.appendChild($("td",null,String(v==null?"":v).slice(0,70))));tb.appendChild(tr)});
+      sc.appendChild(tb);bx.appendChild(sc);md.appendChild(bx)}}
     const q=$("div","actions");
     const a1=$("button","chip","Tout cocher");a1.type="button";a1.onclick=()=>{st.sel=new Set(st.mods.filter(m=>m.count>0).map(m=>m.name));paint()};
     const a2=$("button","chip","Tout décocher");a2.type="button";a2.onclick=()=>{st.sel=new Set();paint()};
-    q.append(a1,a2);md.appendChild(q);
+    q.append(a1,a2);
+    if(st.mods.length>1){const sl=$("label","x2sum");const sc=$("input");sc.type="checkbox";sc.checked=st.summary;sc.onchange=()=>{st.summary=sc.checked};sl.append(sc,$("span",null," Ajouter un onglet Sommaire (liens vers chaque onglet)"));q.appendChild(sl)}
+    md.appendChild(q);
     md.appendChild($("p","ghint","Les éléments supprimés ne sont pas repris. Les mots de passe des utilisateurs ne sont jamais exportés."));
     if(st.bad.length)md.appendChild($("p","warnmsg","Fichier(s) illisible(s), ignoré(s) : "+st.bad.join(", ")));
     if(st.msg)md.appendChild($("p","msg",st.msg));

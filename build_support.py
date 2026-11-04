@@ -108,9 +108,14 @@ extra_css='''<style>
 @media (prefers-reduced-motion:reduce){.tools .tool,.tool .tarr,.tool .tspk,.gtile.on .gtk{animation:none!important}.tool::after{display:none}.tool,.btn,.gtile,.chip,.tool .ticon{transition:none!important}}
 /* XML → Excel */
 .wip{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55)}
-.x2list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;border:1px solid var(--border,#ccc);border-radius:10px;padding:6px}
+.x2list{flex:none;min-height:min(150px,30vh);display:flex;flex-direction:column;gap:2px;max-height:34vh;overflow:auto;border:1px solid var(--border,#ccc);border-radius:10px;padding:6px}
 .x2row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;cursor:pointer}
 .x2row:hover{background:rgba(155,249,68,.12)}.x2row.empty{opacity:.55}
+.modal:has(.x2list){max-height:92vh;overflow:auto}
+.x2row small{margin-left:auto;opacity:.7}.x2pv{padding:2px 10px;font-size:.78rem}.x2pv.on{border-color:#9BF944;background:rgba(155,249,68,.18)}.x2pv:disabled{opacity:.35;cursor:default}
+.x2prev{margin:10px 0;border:1px solid var(--border,#ccc);border-radius:10px;padding:8px 10px;animation:ddin .18s ease-out}.x2pt{margin:0 0 6px;font-weight:700}
+.x2sc{overflow:auto;max-width:100%}.x2prev table{border-collapse:collapse;font-size:.8rem;min-width:100%}.x2prev th,.x2prev td{border:1px solid var(--border,#ccc);padding:3px 8px;text-align:left;white-space:nowrap}.x2prev th{background:rgba(155,249,68,.16)}
+.x2sum{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;margin-left:10px}
 .x2n{flex:1}
 </style>
 '''
