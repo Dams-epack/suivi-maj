@@ -2319,7 +2319,9 @@ function showTeams(m,kind,id,onDone){
   const copy=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
     if(!ok){try{ta.focus();ta.select();ok=document.execCommand("copy")}catch(e){}}
     st.textContent=ok?"Message copié : colle-le dans le canal (Ctrl+V puis Entrée).":"Copie automatique impossible : sélectionne le texte et fais Ctrl+C.";st.classList.toggle("tmok",ok);
-    if(ok)flash(bc,"Copié ✓","done")};
+    if(ok){flash(bc,"Copié ✓","done");ensureValid()}};
+  /* filet de sécurité : après envoi ou copie du message, la case « Validation siège » est (re)cochée si elle ne l'est plus */
+  const ensureValid=()=>{if(deb||!id)return;const cm=majs[id];if(cm&&!(cm.mails&&cm.mails.validSiege)){setMail(cm,"validSiege",true);persist(id);render()}};
   const flash=(b,t,c)=>{const sp=b.querySelector(".tml");if(!sp)return;if(!sp.dataset.o)sp.dataset.o=sp.textContent;sp.textContent=t;b.classList.add(c);clearTimeout(b._t);b._t=setTimeout(()=>{sp.textContent=sp.dataset.o;b.classList.remove(c)},2200)};
   const fu=$("input");fu.type="url";fu.placeholder="URL du flux Power Automate (https://…)";fu.value=deb?(getFlow(LSDEB)||teamsFlow()):teamsFlow();fu.setAttribute("aria-label","URL du flux Power Automate");
   fu.oninput=()=>{setFlow(deb?LSDEB:"suivi-maj-flow",fu.value);bs.hidden=!fu.value.trim()};
@@ -2334,7 +2336,7 @@ function showTeams(m,kind,id,onDone){
   const toTitle=t=>"<h3>"+esc(String(t))+"</h3>";
   const flowUrl=u=>{const ps=ta.value.split(/\r?\n/),hd0=ps[0]||"",tl=ps.slice(1).join("\n").replace(/^\s+/,"");return u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toTitle(hd0))+"&tail="+encodeURIComponent(toHtml(tl))+(qmMail?"&qm="+encodeURIComponent(qmMail):"")};
   const send=async()=>{const u=cleanUrl(fu.value);if(!u)return;st.textContent="Envoi dans Teams…";st.classList.remove("tmok");bs.classList.add("fly");
-    try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans le canal Teams.";st.classList.add("tmok");bs.classList.remove("fly");flash(bs,"Envoyé ✓","done")}
+    try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans le canal Teams.";st.classList.add("tmok");bs.classList.remove("fly");flash(bs,"Envoyé ✓","done");ensureValid()}
     catch(e){await copy();
       let w=null;try{w=window.open(flowUrl(u),"_blank");if(w){try{w.opener=null}catch(e3){}setTimeout(()=>{try{w.close()}catch(e4){}},3000)}}catch(e2){}
       st.textContent=w!==null?"Message envoyé via un onglet qui se ferme tout seul (si l'onglet reste ouvert, tu peux le fermer). Vérifie dans Teams ; sinon le message est copié, colle-le dans la conversation.":"Envoi bloqué par le navigateur. Message copié : colle-le dans la conversation."}};
@@ -4318,7 +4320,7 @@ function viewUpcoming(app){
   if(upFilter){const rs=$("button","chip","✕ Tout afficher");rs.type="button";rs.onclick=()=>{upFilter="";render()};sm.appendChild(rs)}
   app.appendChild(sm);
   const toggle=(m,id,k)=>{const was=!!(m.mails&&m.mails[k]);setMail(m,k,!was);persist(id);render();if(was)return;
-    if(k==="validSiege")openTeams(m);
+    if(k==="validSiege")openTeams(m,"valid",id);
     else if(k==="prise")openMail(id,delayOf(m)===5?"5j":"7j",["5j","7j"]);
     else if(k==="siege")openMail(id,"siege",["siege"]);
     else if(k==="debut")openTeams(m,"debut",id,()=>openMail(id,"debut",["debut"]));
@@ -4905,7 +4907,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v296",APP_DATE="21/10/2026";
+const APP_VERSION="v297",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
