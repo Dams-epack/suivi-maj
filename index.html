@@ -497,7 +497,15 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .hubtop{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
 .sfilters{display:flex;flex-direction:column;gap:12px}
 .sfilters input[type=search],.sfilters input[type=date],.sfilters select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.fsec{border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;background:rgba(127,127,127,.05);display:flex;flex-direction:column;gap:10px}
+.fsh{display:flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fsi{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:rgba(155,249,68,.16);color:var(--accent)}
+.fsb{display:flex;flex-direction:column;gap:10px}.frow2{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.frow2 .fld,.frow2 input{min-width:0;max-width:100%}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}.fchips[hidden]{display:none}
+.fchip{display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:.82rem;padding:4px 6px 4px 10px;border-radius:999px;border:1px solid #9BF944;background:rgba(155,249,68,.12);color:var(--fg);cursor:pointer;animation:ddin .18s ease-out}
+.fchip .fx{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;margin-left:2px;background:rgba(127,127,127,.25);line-height:1;transition:background .2s,color .2s}
+.fchip:hover .fx{background:#e5484d;color:#fff}
 .fgrid .fld{font-weight:600;font-size:.85rem}
 .sfilters .actions select{width:auto}
 .sres{display:flex;flex-direction:column;gap:8px}
@@ -4642,24 +4650,34 @@ function viewSearch(app){
   fb.append(ic,fbl,fbn,cr);
   srow.append(si,fb);panel.appendChild(srow);
   const grid=$("div","fgrid");grid.id="fpanel";
+  let tgt=grid;const FL={},REF={};
+  const sect=(title,svg)=>{const c=$("div","fsec"),h=$("div","fsh");const ic=$("span","fsi");ic.innerHTML=svg;h.append(ic,$("span",null,title));c.appendChild(h);const b=$("div","fsb");c.appendChild(b);grid.appendChild(c);tgt=b;return b};
   const sel=(lab,key,opts)=>{
     const l=$("div","fld");l.appendChild($("span",null,lab));
-    l.appendChild(mkDD(opts,()=>sf[key],v=>{sf[key]=v;update()}));grid.appendChild(l);return l};
-  const inp=(lab,key,type)=>{const l=$("label","fld");l.appendChild($("span",null,lab));const i=$("input");i.type=type;i.value=sf[key];i.oninput=()=>{sf[key]=i.value;update()};l.appendChild(i);grid.appendChild(l)};
+    const dd=mkDD(opts,()=>sf[key],v=>{sf[key]=v;update()});FL[key]={lab,opts};REF[key]=()=>dd.repaint();
+    l.appendChild(dd);tgt.appendChild(l);return l};
+  const inp=(lab,key,type)=>{const l=$("label","fld");l.appendChild($("span",null,lab));const i=$("input");i.type=type;i.value=sf[key];i.oninput=()=>{sf[key]=i.value;update()};FL[key]={lab,opts:null};REF[key]=()=>{i.value=sf[key]};l.appendChild(i);tgt.appendChild(l);return l};
+  const SV=p=>'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+  sect("Quoi",SV('<path d="M4 7l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/>'));
   sel("Statut","status",[["","Tous"],["live","En cours"],["ready","Prêtes à archiver"],["block","Bloquées / attente client"],["arch","Archivées"]]);
   sel("Groupement","group",[["","Tous"],...groups.map(g=>[g,g])]);
   sel("Module","mod",[["","Tous"],...mods.map(g=>[g,g])]);
   sel("Région / langue","reg",[["","Toutes"],...regs.map(g=>[g,g])]);
+  sect("Qui",SV('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 010 7M18.5 14.8c1.6.8 2.7 2.4 3 5.2"/>'));
   sel("Préparée par","who",[["","Tous"],["__me","Mes MAJ"],...whos.map(g=>[g,who(g)||"Un collègue"])]);
   sel("CSM","csm",[["","Tous"],...uniq(all.map(x=>{const c=csmOf(x.m);return c&&c.csm}))].map(a=>Array.isArray(a)?a:[a,a]));
   sel("QM","qm",[["","Tous"],...uniq(all.map(x=>{const c=csmOf(x.m);return c&&c.qm}))].map(a=>Array.isArray(a)?a:[a,a]));
+  sect("Quand et avancement",SV('<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>'));
   sel("Avancement","prog",[["","Tous"],["low","Moins de 50 %"],["mid","50 à 99 %"],["full","100 %"]]);
   sel("Durée","dur",[["","Toutes"],["h1","Moins d'1 h"],["d1","1 h à 24 h"],["d7","1 à 7 jours"],["d7p","Plus de 7 jours"]]);
   sel("Date de","dfield",[["created","Création"],["archived","Archivage"]]);
-  inp("Du","from","date");inp("Au","to","date");
-  panel.appendChild(grid);
+  {const r2=$("div","frow2");const keep=tgt;tgt=r2;inp("Du","from","date");inp("Au","to","date");tgt=keep;keep.appendChild(r2)}
+  const chips=$("div","fchips");chips.setAttribute("aria-label","Filtres actifs");
+  const paintChips=()=>{chips.textContent="";Object.keys(FL).forEach(k=>{if(!sf[k]||(k==="dfield"))return;const f=FL[k];const o=f.opts?(f.opts.find(x=>x[0]===sf[k])||[0,sf[k]])[1]:sf[k];
+    const c=$("button","fchip");c.type="button";c.title="Retirer ce filtre";c.append($("span",null,f.lab+" : "),$("b",null,o),$("span","fx","×"));c.onclick=()=>{sf[k]="";REF[k]();update()};chips.appendChild(c)});chips.hidden=!chips.childNodes.length};
+  panel.appendChild(grid);panel.appendChild(chips);
   const nAct=()=>["status","group","mod","reg","who","csm","qm","prog","dur","from","to"].filter(k=>sf[k]).length;
-  const paintF=()=>{grid.hidden=!sfOpen;fb.setAttribute("aria-expanded",String(sfOpen));fb.classList.toggle("on",sfOpen);const n=nAct();fbn.textContent=n?String(n):"";fbn.hidden=!n;fb.setAttribute("aria-label","Filtres"+(n?" ("+n+" actif"+(n>1?"s":"")+")":""))};
+  const paintF=()=>{paintChips();grid.hidden=!sfOpen;fb.setAttribute("aria-expanded",String(sfOpen));fb.classList.toggle("on",sfOpen);const n=nAct();fbn.textContent=n?String(n):"";fbn.hidden=!n;fb.setAttribute("aria-label","Filtres"+(n?" ("+n+" actif"+(n>1?"s":"")+")":""))};
   fb.onclick=()=>{sfOpen=!sfOpen;paintF()};paintF();
   const bar=$("div","actions");
   const so=$("div","fld");so.style.flexDirection="row";so.style.alignItems="center";so.style.gap="8px";so.appendChild($("span",null,"Trier par"));
@@ -5112,7 +5130,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v305",APP_DATE="21/10/2026";
+const APP_VERSION="v306",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}

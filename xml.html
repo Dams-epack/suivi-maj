@@ -497,7 +497,15 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .hubtop{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
 .sfilters{display:flex;flex-direction:column;gap:12px}
 .sfilters input[type=search],.sfilters input[type=date],.sfilters select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.fsec{border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;background:rgba(127,127,127,.05);display:flex;flex-direction:column;gap:10px}
+.fsh{display:flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fsi{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:rgba(155,249,68,.16);color:var(--accent)}
+.fsb{display:flex;flex-direction:column;gap:10px}.frow2{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.frow2 .fld,.frow2 input{min-width:0;max-width:100%}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}.fchips[hidden]{display:none}
+.fchip{display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:.82rem;padding:4px 6px 4px 10px;border-radius:999px;border:1px solid #9BF944;background:rgba(155,249,68,.12);color:var(--fg);cursor:pointer;animation:ddin .18s ease-out}
+.fchip .fx{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;margin-left:2px;background:rgba(127,127,127,.25);line-height:1;transition:background .2s,color .2s}
+.fchip:hover .fx{background:#e5484d;color:#fff}
 .fgrid .fld{font-weight:600;font-size:.85rem}
 .sfilters .actions select{width:auto}
 .sres{display:flex;flex-direction:column;gap:8px}
@@ -691,7 +699,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v305";
+const APP_VERSION="v306";
 
 const SUPPORT=true;
 let majs={},cur=null;
