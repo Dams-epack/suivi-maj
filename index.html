@@ -1606,7 +1606,9 @@ function mergeMaj(l,r){
 }
 function setMail(m,k,on){
   m.mails=Object.assign({},m.mails);m.mailsOff=Object.assign({},m.mailsOff);
-  if(on){m.mails[k]=Date.now();delete m.mailsOff[k]}else{delete m.mails[k];m.mailsOff[k]=Date.now()}
+  /* l'horodatage doit dépasser celui du dernier geste contraire, même si l'horloge d'un autre poste avance */
+  const nv=v=>typeof v==="number"?v:(v?1:0),t=Math.max(Date.now(),nv(m.mails[k])+1,nv(m.mailsOff[k])+1);
+  if(on){m.mails[k]=t;delete m.mailsOff[k]}else{delete m.mails[k];m.mailsOff[k]=t}
   if(!Object.keys(m.mailsOff).length)delete m.mailsOff;
 }
 function persist(id,what){
@@ -4903,7 +4905,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v295",APP_DATE="21/10/2026";
+const APP_VERSION="v296",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
