@@ -444,6 +444,13 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 @media (prefers-reduced-motion:reduce){.tool:hover,.kpi.link:hover{transform:none}}
 .tool:hover{border-color:var(--accent)}
 .tool:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tool .ticon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(155,249,68,.16);color:var(--accent);margin-bottom:4px;transition:transform .25s,background .25s}
+.tool .ticon svg{width:26px;height:26px;overflow:visible}
+.tool:hover .ticon,.tool:focus-visible .ticon{background:rgba(155,249,68,.3);transform:rotate(-6deg) scale(1.08)}
+.tool .ticon .pl,.tool .ticon .mg,.tool .ticon .ar{transform-box:fill-box;transform-origin:center;transition:transform .3s}
+.tool:hover .ticon .pl{animation:tpop 1s ease-in-out infinite}.tool:hover .ticon .mg{animation:twig 1.1s ease-in-out infinite}.tool:hover .ticon .ar{animation:tnu 0.9s ease-in-out infinite}
+@keyframes tpop{50%{transform:scale(1.25) rotate(90deg)}}@keyframes twig{25%{transform:translate(2px,-2px)}75%{transform:translate(-2px,2px)}}@keyframes tnu{50%{transform:translate(2px,-2px)}}
+@media (prefers-reduced-motion:reduce){.tool .ticon *{animation:none!important}}
 /* Cartes d'accueil : projecteur qui suit la souris, reflet, inclinaison 3D, entrée en cascade, appui */
 .tool{position:relative;overflow:hidden;isolation:isolate;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s,border-color .25s;will-change:transform;animation:toolin .55s cubic-bezier(.2,.8,.2,1) backwards}
 .tool:nth-child(2){animation-delay:.07s}.tool:nth-child(3){animation-delay:.14s}.tool:nth-child(4){animation-delay:.21s}
@@ -4348,13 +4355,14 @@ function viewHub(app){
   viewHubNext(app);
   // outils
   app.appendChild($("h2",null,"Outils"));
+  const tIc=h=>{const i=$("span","ticon");i.setAttribute("aria-hidden","true");i.innerHTML=h;return i};
   const tl=$("div","tools");
-  const tb=$("button","tool");tb.append($("strong",null,"Créer un suivi de MAJ"),$("span",null,"Importer le mail client, suivre les étapes par module et par région, générer les XML depuis l'Excel."),$("small",null,live.length+" en cours · "+arch.length+" archivées"));
+  const tb=$("button","tool");tb.append(tIc('<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="4" y="3" width="13" height="18" rx="2"/><path d="M8 8h5M8 12h5M8 16h3"/><g class="pl"><circle cx="18" cy="17" r="4.5" fill="var(--surface)"/><path d="M18 15v4M16 17h4"/></g></svg>'),$("strong",null,"Créer un suivi de MAJ"),$("span",null,"Importer le mail client, suivre les étapes par module et par région, générer les XML depuis l'Excel."),$("small",null,live.length+" en cours · "+arch.length+" archivées"));
   tb.onclick=openTool;tl.appendChild(tb);
-  const sb=$("button","tool");sb.append($("strong",null,"Recherche de MAJ"),$("span",null,"Retrouver une MAJ par mot-clé, groupement, module, région, collègue, date ou durée."),$("small",null,(live.length+arch.length)+" MAJ indexées"));
+  const sb=$("button","tool");sb.append(tIc('<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><g class="mg"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></g><path d="M8 10.5h5"/></svg>'),$("strong",null,"Recherche de MAJ"),$("span",null,"Retrouver une MAJ par mot-clé, groupement, module, région, collègue, date ou durée."),$("small",null,(live.length+arch.length)+" MAJ indexées"));
   sb.onclick=openSearch;tl.appendChild(sb);
   {const xa=$("a","tool");xa.href="https://dams-epack.github.io/suivi-maj/xml.html";xa.target="_blank";xa.rel="noopener noreferrer";xa.style.textDecoration="none";
-   xa.append($("strong",null,"Outils XML (Support) ↗"),$("span",null,"Version allégée pour l'équipe support : Excel → XML et Compléter un XML, sans suivi de MAJ. S'ouvre dans un nouvel onglet."),$("small",null,"xml.html · GitHub Pages"));tl.appendChild(xa)}
+   xa.append(tIc('<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M7 4h7l4 4v12H7z"/><path d="M14 4v4h4"/><g class="ar"><path d="M10 15l2 2 3-3.5"/></g></svg>'),$("strong",null,"Outils XML (Support) ↗"),$("span",null,"Version allégée pour l'équipe support : Excel → XML et Compléter un XML, sans suivi de MAJ. S'ouvre dans un nouvel onglet."),$("small",null,"xml.html · GitHub Pages"));tl.appendChild(xa)}
 app.appendChild(tl);
   // diagrammes
   const barList=(rows,opt)=>{
@@ -5069,7 +5077,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v302",APP_DATE="21/10/2026";
+const APP_VERSION="v303",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
