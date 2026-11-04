@@ -2883,6 +2883,10 @@ const X2E=(()=>{
   const SHEETS={Fridges:"Température frigo",Cleanings:"Nettoyage des postes",ControlsList:"Liste de contrôles",ControlsList2:"Liste de contrôles 2",ControlsList3:"Liste de contrôles 3",ControlsManager:"Contrôles manager",CheckLists:"Check lists",ProductsStickers:"Étiquettes produits",ProductsProduction:"Traçabilité produits",ProductsStockIn:"Réception marchandises",ProductsService:"Température de service",ProductsFreezing:"Mise en congélation",ProductsFrozen:"Décongélation",ProductsWarming:"Mise en température",ProductsStickersDelivery:"Étiquettes livraisons",ProductsStickersDefrosting:"Étiquettes décongélation",ProductsCookingSousVide:"Cuisson sous vide",Cookings:"Cuissons",ProductionsTemp:"Température de production",ProductionsTempType:"Types de productions",PlatsTemoins:"Plats témoins",ControlesDivers:"Contrôles divers",Actions:"Actions correctives",Methods:"Méthodes",Notes:"Notes",Steps:"Étapes",PresetText:"Textes prédéfinis",PresetTemp:"Températures prédéfinies",Moments:"Moments",Timers:"Minuteurs",AddressBook:"Carnet d'adresses",PrintersMapping:"Imprimantes",OptionsUI:"Boutons principaux",Usernames:"Utilisateurs",Company:"Société",Options:"Options"};
   const LBL={Name:"Désignation",Firstname:"Prénom",Category:"Catégorie",TempMin:"Temp. min",TempMax:"Temp. max",TempLimit:"Temp. limite",TempMaxExcu:"Temp. max exception",DureeMaxExcu:"Durée max exception (min)",Sensor_Name:"Sonde",Sensor_Id:"Id sonde",Sensor_CanChangeValue:"Valeur modifiable (sonde)",Recurrence:"Récurrence",CheckList_Name:"Check list",CheckList_AllMandatoryToValid:"Tous les éléments obligatoires",DateLimit:"DLC",DLType:"Unité DLC",Fridge:"Frigo",Printer:"Imprimante",MustIndicateOrigin:"Origine à indiquer",IsDDM:"DDM",Dlc:"DLC",Ddm:"DDM",Du:"Unité",TypeFunction:"Module",State:"État",ButtonText:"Texte du bouton",ButtonImage:"Image",ButtonAction:"Action",ModulePosition:"Position",ProductReference:"Référence produit",DLCTheorique:"DLC théorique",NumLot:"N° de lot",Quantity:"Quantité",Job:"Poste",Phone:"Téléphone",Admin:"Administrateur",eMail:"E-mail",Type:"Type",ProviderCode:"Code fournisseur",PrinterName:"Nom imprimante",Copies:"Copies",MesureMin:"Mesure min",MesureMax:"Mesure max",MesureUnit:"Unité",Conservation:"Conservation (jours)",TimeFrom:"Heure de début",Libelle:"Libellé",Message:"Message",Jours:"Jours",Son:"Son",Couleur:"Couleur",TempStart_Min:"Temp. départ min",TempStart_Max:"Temp. départ max",TempFinish_Min:"Temp. fin min",TempFinish_Max:"Temp. fin max",Alert_MaxTime:"Durée max alerte",ConditionTempInf:"Condition temp. inférieure",ConditionTempSup:"Condition temp. supérieure",ConditionCheckList:"Condition check list",ConditionCheckListElements:"Éléments check list conditionnels",IsTempMeth:"Méthode de température",Items:"Éléments",Language_Default:"Langue",ProductCode:"Code produit",CookingTime:"Durée de cuisson"};
   const HIDE=new Set(["MyDate","MyNote_Text","MyNote_Photo","MyNote_Username","UserName","Id","TS","Delete","Disable","idFileAttente","Photo","_IsSensorError","IsSensorError","Password","RoleId","Icon","Icone","ButtonImage","TimeStartTicks","TimeEndTicks","IsWebEPH","CanGoBackHome","Paper_Size","Paper_Source","IsCollate","Duplex","IsColor","MAC","IsLandscape"]);
+  /* TypeFunction (colonne « Module ») : code technique -> nom du module en français */
+  const FUNC={Fridge:"Température frigo",Frozen:"Décongélation",Defrosting:"Étiquettes décongélation",StockIn:"Réception marchandises",DeliveryTemp:"Température à la livraison",Tracking:"Traçabilité",Oil:"Suivi huiles",Warming:"Mise en température",ServiceTemp:"Température de service",StickerProduct:"Étiquettes produits",Cleaning:"Nettoyage des postes",Scheduler:"Planning",Custom:"Personnalisé",ALL:"Tous les modules"};
+  const TYPE_AB={Supplier:"Fournisseur",Customer:"Client"};
+  const HIDE_BY={Actions:["State"]};
   const DLT={"-1":"Selon l'interface","0":"Jours","1":"Services","2":"Heures","3":"Minutes"};
   const DAYS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
   const DOW={Monday:"Lun",Tuesday:"Mar",Wednesday:"Mer",Thursday:"Jeu",Friday:"Ven",Saturday:"Sam",Sunday:"Dim"};
@@ -2982,7 +2986,8 @@ const X2E=(()=>{
     if(k.length)return generic(e,mom,0);
     let v=txt(e).replace(/[\uE000-\uF8FF]/g,"").trim();
     if(tag==="Language_Default")v=v.replace(/^Language\./,"");
-    if(tag==="TypeFunction"&&v==="ALL")return "Tous les modules";
+    if(tag==="TypeFunction"&&FUNC[v])return FUNC[v];
+    if(tag==="Type"&&TYPE_AB[v])return TYPE_AB[v];
     if(ISO.test(v))return fmtDate(v,tag);
     if(v==="true")return "Oui";if(v==="false")return "Non";
     if(/^-?\d+(\.\d+)?$/.test(v)&&v.length<16&&!/^0\d/.test(v))return Number(v);
@@ -3009,7 +3014,7 @@ const X2E=(()=>{
       const o={};
       kids(r).forEach(c=>{
         let t=ln(c.tagName);
-        if(HIDE.has(t))return;
+        if(HIDE.has(t)||(HIDE_BY[name]&&HIDE_BY[name].includes(t)))return;
         if(name==="Usernames"&&/^CanAccess_/.test(t)){
           if(txt(c)==="true"){o.__acc=(o.__acc?o.__acc+", ":"")+t.replace("CanAccess_","");}
           return;
