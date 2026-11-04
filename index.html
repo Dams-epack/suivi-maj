@@ -2286,11 +2286,13 @@ function openFin(m,id){
 }
 function openTeams(m,kind,id,onDone){
   if(kind==="debut"){(async()=>{
-    const langs=majLangs(m),multi=langs.length>1,total=multi?langs.length:1,old=m.liens||{};
-    const a=old.ressources||"";
+    const langs=majLangs(m),multi=langs.length>1,old=m.liens||{};
+    let a=old.ressources||"";const needR=!a,total=(multi?langs.length:1)+(needR?1:0),off=needR?1:0;
+    /* le lien des ressources n'a pas été saisi à la validation siège : on le demande ici (« Continuer sans lien » possible) */
+    if(needR){const r0=await askLink(1,total,"Début de déploiement","Copier/coller le lien SharePoint des ressources de la MAJ","");if(r0===null){if(onDone)onDone();return}a=r0}
     let b="",rap=Object.assign({},old.rapports);
-    if(multi){for(let i=0;i<langs.length;i++){const [c,n]=langs[i];const v=await askLink(i+1,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention - "+n.toUpperCase(),rap[c]||"");if(v===null){if(onDone)onDone();return}rap[c]=v}}
-    else{b=await askLink(1,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention"+(langs.length?" - "+langs[0][1].toUpperCase():""),old.rapport||"");if(b===null){if(onDone)onDone();return}}
+    if(multi){for(let i=0;i<langs.length;i++){const [c,n]=langs[i];const v=await askLink(i+1+off,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention - "+n.toUpperCase(),rap[c]||"");if(v===null){if(onDone)onDone();return}rap[c]=v}}
+    else{b=await askLink(1+off,total,"Début de déploiement","Copier/coller le lien d'accès au rapport d'intervention"+(langs.length?" - "+langs[0][1].toUpperCase():""),old.rapport||"");if(b===null){if(onDone)onDone();return}}
     const mm=(id&&majs[id])||m;mm.liens=Object.assign({},mm.liens,{ressources:a,rapport:multi?(old.rapport||""):b,rapports:rap});if(id)persist(id);
     showTeams(mm,kind,id,onDone)})();return}
   (async()=>{
@@ -4907,7 +4909,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v297",APP_DATE="21/10/2026";
+const APP_VERSION="v298",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
