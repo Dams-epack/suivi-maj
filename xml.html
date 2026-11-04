@@ -3064,7 +3064,7 @@ const X2E=(()=>{
     let meta=null;
     if(recRows.some(o=>o.__rec)){
       let ml=(opt&&opt.momList&&opt.momList.length)?opt.momList:null;
-      if(!ml){const ids=[];recRows.forEach(o=>o.__rec&&Object.keys(o.__rec.days).forEach(id=>{if(!ids.includes(id))ids.push(id)}));ml=ids.map(id=>({id,name:mom[id]||"(moment supprimé)"}))}
+      if(!ml){const ids=[];recRows.forEach(o=>o.__rec&&Object.keys(o.__rec.days).forEach(id=>{if(!ids.includes(id))ids.push(id)}));ml=ids.map(id=>({id,name:mom[id]||"(moment supprimé)"})).filter(M=>!/^\s*maintenant\s*$/i.test(M.name))}
       const anyDis=recRows.some(o=>o.__rec&&o.__rec.dis);
       meta={recCol:head.length};head.push("Récurrence");
       if(anyDis){meta.disCol=head.length;head.push("Récurrence désactivée")}
@@ -3099,6 +3099,7 @@ const X2E=(()=>{
     if(mf){const r=parse(mf.bytes);if(r){const seen=new Map();kids(r).forEach(m=>{
       if(txt(m.querySelector(":scope > Delete")||{textContent:"false"})==="true")return;
       const id=txt(m.querySelector(":scope > Id")||{textContent:""});let n=txt(m.querySelector(":scope > Name")||{textContent:""});if(!id)return;
+      if(/^\s*maintenant\s*$/i.test(n))return;
       const k=n.toLowerCase();seen.set(k,(seen.get(k)||0)+1);if(seen.get(k)>1)n+=" ("+seen.get(k)+")";momList.push({id,name:n})})}}
     const mods=[],bad=[];
     xml.forEach(x=>{
