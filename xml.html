@@ -3105,6 +3105,7 @@ function openX2E(){
       if(!r.mods.length)throw new Error("Aucun fichier XML trouvé dans ce que tu as déposé.");
       st.mods=r.mods;st.bad=r.bad;st.moments=r.moments;
       st.name=(fl.length===1?fl[0].name.replace(/\.(zip|xml)$/i,""):"Configuration");
+      st.zip=fl.length===1&&/\.zip$/i.test(fl[0].name);
       st.sel=new Set(r.mods.filter(m=>m.count>0&&!(r.mods.length>1&&X2E.OFF_BY_DEFAULT.has(m.name))).map(m=>m.name));
     }catch(e){st.mods=null;st.err=(e&&e.message)||"Lecture impossible."}
     st.busy=false;paint();
@@ -3119,8 +3120,17 @@ function openX2E(){
     const w=$("div");w.append(d,inp);return w;
   };
   function chosen(){return st.mods.filter(m=>st.sel.has(m.name))}
+  /* « 20210406242 - BOULANGERIE X - VILLE.zip » -> « BOULANGERIE X - VILLE - Configuration de la solution.xlsx » */
+  function clientOf(n){
+    let c=n.replace(/\.zip$/i,"").replace(/\s*\(\d+\)\s*$/,"");
+    c=c.replace(/^[\s\d]+[\s_-]+/,"");
+    if(!/\s/.test(c))c=c.replace(/_+-?_*/g,m=>m.includes("-")?" - ":" ");
+    else c=c.replace(/_/g," ");
+    return c.replace(/[\\\/:*?"<>|]/g," ").replace(/\s+/g," ").replace(/^[\s-]+|[\s-]+$/g,"");
+  }
   function fname(){
     const c=chosen();
+    if(st.zip){const cl=clientOf(st.name);if(cl)return cl+" - Configuration de la solution.xlsx"}
     const b=c.length===1?c[0].sheet:st.name.replace(/[\\\/:*?"<>|]/g," ").trim()||"Configuration";
     return b+".xlsx";
   }
