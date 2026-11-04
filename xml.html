@@ -2986,6 +2986,8 @@ const X2E=(()=>{
     if(k.length)return generic(e,mom,0);
     let v=txt(e).replace(/[\uE000-\uF8FF]/g,"").trim();
     if(tag==="Language_Default")v=v.replace(/^Language\./,"");
+    /* unité stockée en JSON {"left":"Gr","right":""} : rien dans l'Excel (on ne garde que le texte de droite s'il existe) */
+    if(/^\{\s*"left"\s*:/.test(v)){try{const j=JSON.parse(v);return String(j.right||"").trim()}catch(x){return ""}}
     if(tag==="TypeFunction"&&FUNC[v])return FUNC[v];
     if(tag==="Type"&&TYPE_AB[v])return TYPE_AB[v];
     if(ISO.test(v))return fmtDate(v,tag);
