@@ -2880,11 +2880,12 @@ const setMyName=v=>{v=String(v||"").replace(/\s+/g," ").trim().slice(0,60);try{i
 /*X2E-START*/
 /* XML → Excel : moteur (lecture ZIP sans dépendance, conversion des XML de configuration en classeur) + dialogue */
 const X2E=(()=>{
-  const SHEETS={Fridges:"Température frigo",Cleanings:"Nettoyage des postes",ControlsList:"Liste de contrôles",ControlsList2:"Liste de contrôles 2",ControlsList3:"Liste de contrôles 3",ControlsManager:"Contrôles manager",CheckLists:"Check lists",ProductsStickers:"Étiquettes produits",ProductsProduction:"Traçabilité produits",ProductsStockIn:"Réception marchandises",ProductsService:"Température de service",ProductsFreezing:"Mise en congélation",ProductsFrozen:"Décongélation",ProductsWarming:"Mise en température",ProductsStickersDelivery:"Étiquettes livraisons",ProductsStickersDefrosting:"Étiquettes décongélation",ProductsCookingSousVide:"Cuisson sous vide",Cookings:"Cuissons",ProductionsTemp:"Température de production",ProductionsTempType:"Types de productions",PlatsTemoins:"Plats témoins",ControlesDivers:"Contrôles divers",Actions:"Actions correctives",Methods:"Méthodes",Notes:"Notes",Steps:"Étapes",PresetText:"Textes prédéfinis",PresetTemp:"Températures prédéfinies",Moments:"Moments",Timers:"Timers",AddressBook:"Carnet d'adresses",PrintersMapping:"Imprimantes",OptionsUI:"Liste des modules",Usernames:"Utilisateurs",Company:"Société",Options:"Options"};
+  const SHEETS={Fridges:"Température frigo",Cleanings:"Nettoyage des postes",ControlsList:"Liste de contrôles",ControlsList2:"Liste de contrôles 2",ControlsList3:"Liste de contrôles 3",ControlsManager:"Contrôles manager",CheckLists:"Check lists",ProductsStickers:"Étiquettes produits",ProductsProduction:"Traçabilité produits",ProductsStockIn:"Réception marchandises",ProductsService:"Température de service",ProductsFreezing:"Mise en congélation",ProductsFrozen:"Décongélation",ProductsWarming:"Mise en température",ProductsStickersDelivery:"Étiquettes livraisons",ProductsStickersDefrosting:"Stickers décongélation",ProductsCookingSousVide:"Cuisson sous vide",Cookings:"Cuissons",ProductionsTemp:"Température de production",ProductionsTempType:"Types de productions",PlatsTemoins:"Plats témoins",ControlesDivers:"Contrôles divers",Actions:"Actions correctives",Methods:"Méthodes",Notes:"Notes",Steps:"Étapes",PresetText:"Textes prédéfinis",PresetTemp:"Températures prédéfinies",Moments:"Moments",Timers:"Timers",AddressBook:"Carnet d'adresses",PrintersMapping:"Imprimantes",OptionsUI:"Liste des modules",Usernames:"Utilisateurs",Company:"Société",Options:"Options"};
   const LBL={Name:"Désignation",Firstname:"Prénom",Category:"Catégorie",TempMin:"Temp. min",TempMax:"Temp. max",TempLimit:"Temp. limite",TempMaxExcu:"Temp. max exception",DureeMaxExcu:"Durée max exception (min)",Sensor_Name:"Sonde",Sensor_Id:"Id sonde",Sensor_CanChangeValue:"Valeur modifiable (sonde)",Recurrence:"Récurrence",CheckList_Name:"Check list",CheckList_AllMandatoryToValid:"Tous les éléments obligatoires",DateLimit:"DLC",DLType:"Unité DLC",Fridge:"Frigo",Printer:"Imprimante",MustIndicateOrigin:"Origine à indiquer",IsDDM:"DDM",Dlc:"DLC",Ddm:"DDM",Du:"Unité",TypeFunction:"Module",State:"État",ButtonText:"Texte du bouton",ButtonImage:"Image",ButtonAction:"Action",ModulePosition:"Position",ProductReference:"Référence produit",DLCTheorique:"DLC théorique",NumLot:"N° de lot",Quantity:"Quantité",Job:"Poste",Phone:"Téléphone",Admin:"Administrateur",eMail:"E-mail",Type:"Type",ProviderCode:"Code fournisseur",PrinterName:"Nom imprimante",Copies:"Copies",MesureMin:"Mesure min",MesureMax:"Mesure max",MesureUnit:"Unité",Conservation:"Conservation (jours)",TimeFrom:"Heure de début",Libelle:"Libellé",Message:"Message",Jours:"Jours",Son:"Son",Couleur:"Couleur",TempStart_Min:"Temp. départ min",TempStart_Max:"Temp. départ max",TempFinish_Min:"Temp. fin min",TempFinish_Max:"Temp. fin max",Alert_MaxTime:"Durée max alerte",ConditionTempInf:"Condition temp. inférieure",ConditionTempSup:"Condition temp. supérieure",ConditionCheckList:"Condition check list",ConditionCheckListElements:"Éléments check list conditionnels",IsTempMeth:"Méthode de température",Items:"Éléments",Language_Default:"Langue",ProductCode:"Code produit",CookingTime:"Durée de cuisson"};
   const HIDE=new Set(["MyDate","MyNote_Text","MyNote_Photo","MyNote_Username","UserName","Id","TS","Delete","Disable","idFileAttente","Photo","_IsSensorError","IsSensorError","Password","RoleId","Icon","Icone","ButtonImage","TimeStartTicks","TimeEndTicks","IsWebEPH","CanGoBackHome","Paper_Size","Paper_Source","IsCollate","Duplex","IsColor","MAC","IsLandscape"]);
   /* TypeFunction (colonne « Module ») : code technique -> nom du module en français */
   const FUNC={Fridge:"Température frigo",Frozen:"Refroidissement",Defrosting:"Étiquettes décongélation",StockIn:"Réception marchandises",DeliveryTemp:"Température de livraison",Tracking:"Traçabilité",Oil:"Suivi huiles",Warming:"Mise en température",ServiceTemp:"Température de service",StickerProduct:"Étiquettes produits",Cleaning:"Nettoyage des postes",Scheduler:"Planning",Custom:"Personnalisé",ALL:"Tous les modules"};
+  const ACC={OrderEpack:"Commande ePack",Stickers:"Étiquettes",ControlList:"Liste de contrôles",ControlList2:"Liste de contrôles 2",ControlList3:"Liste de contrôles 3",ControlManager:"Contrôles manager",Cooking:"Cuissons",MeatOrigin:"Origine des viandes",MyDocuments:"Mes documents",MyHistory:"Mon historique",Options:"Options",Decontamination:"Décontamination",CheckControlPoint:"Points de contrôle",Deconditioning:"Déconditionnement",CookingSousVide:"Cuisson sous vide",StickersDefrosting:"Stickers décongélation",Manipulation:"Manipulation",DLCPlusQuatre:"DLC + 4 jours",VenteAEmporter:"Vente à emporter",AnalyseSurface:"Analyse de surface",DlcSecondaire:"DLC secondaire",DeleteHistory:"Suppression de l'historique",ManageUsers:"Gestion des utilisateurs",Evaluation:"Évaluation",Etiquetage:"Étiquetage",Freezing:"Mise en congélation",Production:"Traçabilité produits",Service:"Température de service",LaboCommande_Inventaire:"Labo commande : inventaire",LaboCommande_Pertes:"Labo commande : pertes",LaboCommande_Commande:"Labo commande : commande"};
   const TYPE_AB={Supplier:"Fournisseur",Customer:"Client"};
   const HIDE_BY={Actions:["State"]};
   const DLT={"-1":"Selon l'interface","0":"Jours","1":"Services","2":"Heures","3":"Minutes"};
@@ -3029,22 +3030,21 @@ const X2E=(()=>{
     const rows=[];
     const expand=name==="CheckLists";
     const addCol=t=>{if(!seen.has(t)){seen.add(t);cols.push(t)}};
-    const recRows=[];
+    const recRows=[];const accList=[];
     recs.forEach(r=>{
       const o={};
       kids(r).forEach(c=>{
         let t=ln(c.tagName);
         if(HIDE.has(t)||(HIDE_BY[name]&&HIDE_BY[name].includes(t)))return;
         if(name==="Usernames"&&/^CanAccess_/.test(t)){
-          if(txt(c)==="true"){o.__acc=(o.__acc?o.__acc+", ":"")+t.replace("CanAccess_","");}
+          const mn=t.replace("CanAccess_","");if(!accList.includes(mn))accList.push(mn);
+          (o.__accM=o.__accM||{})[mn]=txt(c)==="true";
           return;
         }
         if(expand&&t==="Items")return;
         if(t==="Recurrence"){o.__rec=parseRec(c);return}
         o[t]=cell(t,c,mom);addCol(t);
       });
-      if(o.__acc){o["Accès aux modules"]=o.__acc;addCol("Accès aux modules")}
-      delete o.__acc;
       if(expand){
         const it=r.querySelector(":scope > Items");
         const its=it?kids(it).filter(i=>txt(i.querySelector(":scope > Delete")||{textContent:"false"})!=="true"):[];
@@ -3060,9 +3060,18 @@ const X2E=(()=>{
     keep.sort((a,b)=>(a==="Name"?-1:0)-(b==="Name"?-1:0)||(a==="Category"?-1:0)-(b==="Category"?-1:0)||0);
     const stable=cols.filter(t=>keep.includes(t));
     const ordered=["Name","Category"].filter(t=>stable.includes(t)).concat(stable.filter(t=>t!=="Name"&&t!=="Category"));
-    const head=ordered.map(t=>t==="Name"?(name==="Moments"?"Moment":name==="Usernames"?"Nom":hum(t)):hum(t));
+    const head=ordered.map(t=>t==="Name"?(name==="Moments"?"Moment":name==="Usernames"?"Nom":hum(t)):(name==="Usernames"&&{CanAddProduct:"Peut ajouter un produit",IsAdminLaboCommande:"Admin labo commande"}[t])||hum(t));
     const body=recRows.map(o=>ordered.map(t=>o[t]===undefined?"":o[t]));
     if(name==="OptionsUI"){const pi=ordered.indexOf("ModulePosition");if(pi>=0)body.sort((a,b)=>(Number(a[pi])||0)-(Number(b[pi])||0)||String(a[0]).localeCompare(String(b[0]),"fr"))}
+    let ynCols=null;
+    if(name==="Usernames"&&accList.length){
+      const used2=accList.filter(m=>recRows.some(o=>o.__accM&&o.__accM[m]));
+      if(used2.length){
+        ynCols={start:head.length,count:used2.length};
+        used2.forEach(m=>head.push(ACC[m]||FUNC[m]||m));
+        recRows.forEach((o,i)=>used2.forEach(m=>body[i].push(o.__accM&&o.__accM[m]?"Oui":"Non")));
+      }
+    }
     let meta=null,outRows=body;
     if(recRows.some(o=>o.__rec)){
       const ml=(opt&&opt.momList&&opt.momList.length)?opt.momList:[];
@@ -3095,7 +3104,7 @@ const X2E=(()=>{
         });
       });
     }
-    return {name,sheet:sheetName,head,rows:outRows,count:recs.length,rec:meta};
+    return {name,sheet:sheetName,head,rows:outRows,count:recs.length,rec:meta,yn:ynCols};
   }
 
   function sheetTitle(s,used){
@@ -3181,6 +3190,15 @@ const X2E=(()=>{
         if(day)ws.getColumn(i+1).alignment={horizontal:"center"};
       });
       if(nc)ws.autoFilter={from:{row:1,column:1},to:{row:1,column:nc}};
+      if(m.yn&&nr){
+        const L0=i=>ws.getColumn(i+1).letter;
+        for(let c=m.yn.start;c<m.yn.start+m.yn.count;c++){ws.getColumn(c+1).width=Math.max(12,Math.min(24,String(m.head[c]).length+4));ws.getColumn(c+1).alignment={horizontal:"center",wrapText:true};
+          for(let r=2;r<=nr+1;r++)ws.getCell(r,c+1).dataValidation={type:"list",allowBlank:true,formulae:['"Oui,Non"'],showErrorMessage:true,errorStyle:"stop",errorTitle:"Oui ou Non",error:"Choisis Oui ou Non."}}
+        const refY=L0(m.yn.start)+"2:"+L0(m.yn.start+m.yn.count-1)+(nr+1);
+        ws.addConditionalFormatting({ref:refY,rules:[
+          {type:"cellIs",operator:"equal",formulae:['"Oui"'],style:{fill:{type:"pattern",pattern:"solid",bgColor:{argb:"FFC8F0A0"}},font:{bold:true,color:{argb:"FF1B5E20"}}}},
+          {type:"cellIs",operator:"equal",formulae:['"Non"'],style:{font:{color:{argb:"FF9AA3A0"}}}}]});
+      }
       if(m.rec&&nr){
         const L=i=>ws.getColumn(i+1).letter;
         const yn=(title)=>({type:"list",allowBlank:true,formulae:['"Oui,Non"'],showErrorMessage:true,errorStyle:"stop",errorTitle:title,error:"Choisis Oui ou Non."});
