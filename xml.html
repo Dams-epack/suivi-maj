@@ -3091,7 +3091,7 @@ const X2E=(()=>{
 })();
 
 function openX2E(){
-  const st={showEmpty:false,prev:"",summary:true,mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
+  const st={showEmpty:false,prev:"",summary:false,mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","x2t");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const close=()=>{bg.remove();document.removeEventListener("keydown",kd)};
@@ -3187,7 +3187,6 @@ function openX2E(){
     const a1=$("button","chip","Tout cocher");a1.type="button";a1.onclick=()=>{st.sel=new Set(st.mods.filter(m=>m.count>0).map(m=>m.name));paint()};
     const a2=$("button","chip","Tout décocher");a2.type="button";a2.onclick=()=>{st.sel=new Set();paint()};
     q.append(a1,a2);
-    if(st.mods.length>1){const sl=$("label","x2sum");const sc=$("input");sc.type="checkbox";sc.checked=st.summary;sc.onchange=()=>{st.summary=sc.checked};sl.append(sc,$("span",null," Ajouter un onglet Sommaire (liens vers chaque onglet)"));q.appendChild(sl)}
     md.appendChild(q);
     md.appendChild($("p","ghint","Les éléments supprimés ne sont pas repris. Les mots de passe des utilisateurs ne sont jamais exportés."));
     if(st.bad.length)md.appendChild($("p","warnmsg","Fichier(s) illisible(s), ignoré(s) : "+st.bad.join(", ")));
