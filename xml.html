@@ -3061,22 +3061,39 @@ const X2E=(()=>{
     const head=ordered.map(t=>t==="Name"?(name==="Moments"?"Moment":name==="Usernames"?"Nom":hum(t)):hum(t));
     const body=recRows.map(o=>ordered.map(t=>o[t]===undefined?"":o[t]));
     if(name==="OptionsUI"){const pi=ordered.indexOf("ModulePosition");if(pi>=0)body.sort((a,b)=>(Number(a[pi])||0)-(Number(b[pi])||0)||String(a[0]).localeCompare(String(b[0]),"fr"))}
-    let meta=null;
+    let meta=null,outRows=body;
     if(recRows.some(o=>o.__rec)){
-      let ml=(opt&&opt.momList&&opt.momList.length)?opt.momList:null;
-      if(!ml){const ids=[];recRows.forEach(o=>o.__rec&&Object.keys(o.__rec.days).forEach(id=>{if(!ids.includes(id))ids.push(id)}));ml=ids.map(id=>({id,name:mom[id]||"(moment supprimé)"})).filter(M=>!/^\s*maintenant\s*$/i.test(M.name))}
+      const ml=(opt&&opt.momList&&opt.momList.length)?opt.momList:[];
+      const MAINT=/^\s*maintenant\s*$/i;
       const anyDis=recRows.some(o=>o.__rec&&o.__rec.dis);
-      meta={recCol:head.length};head.push("Récurrence");
+      meta={recCol:head.length,starts:[],momNames:ml.map(M=>M.name)};head.push("Récurrence");
       if(anyDis){meta.disCol=head.length;head.push("Récurrence désactivée")}
-      meta.dayStart=head.length;meta.dayCount=ml.length*DAYS.length;
-      ml.forEach(M=>DAYS.forEach(d=>head.push(M.name+" – "+d)));
+      meta.momCol=head.length;head.push("Moment");
+      meta.dayStart=head.length;meta.dayCount=DAYS.length;DAYS.forEach(d=>head.push(d));
+      outRows=[];
       recRows.forEach((o,i)=>{
-        const r=o.__rec;body[i].push(r?r.label:"");
-        if(anyDis)body[i].push(r&&r.dis?"Oui":"Non");
-        ml.forEach(M=>DAYS.forEach((d,di)=>body[i].push(r&&r.days[M.id]&&r.days[M.id][di]?"Oui":"Non")));
+        const r=o.__rec,base=body[i];
+        /* un moment par ligne : le produit est répété pour chaque moment de la récurrence */
+        const ms=[];
+        if(r)Object.keys(r.days).forEach(id=>{
+          const M=ml.find(x=>x.id===id);
+          if(M)ms.push({n:M.name,d:r.days[id],k:ml.indexOf(M)});
+          else if(!MAINT.test(mom[id]||""))ms.push({n:"(moment supprimé)",d:r.days[id],k:999});
+        });
+        ms.sort((x,y)=>x.k-y.k);
+        if(!ms.length)ms.push({n:"",d:[]});
+        meta.starts.push(outRows.length+2);
+        ms.forEach(m=>{
+          const row=base.slice();
+          row.push(r?r.label:"");
+          if(anyDis)row.push(r&&r.dis?"Oui":"Non");
+          row.push(m.n);
+          DAYS.forEach((d,di)=>row.push(m.d[di]?"Oui":"Non"));
+          outRows.push(row);
+        });
       });
     }
-    return {name,sheet:sheetName,head,rows:body,count:recs.length,rec:meta};
+    return {name,sheet:sheetName,head,rows:outRows,count:recs.length,rec:meta};
   }
 
   function sheetTitle(s,used){
@@ -3147,28 +3164,38 @@ const X2E=(()=>{
       const ws=wb.addWorksheet(sheetTitle(m.sheet,used),{views:[{state:"frozen",xSplit:m.head.length>1?1:0,ySplit:1}]});
       ws.addRow(m.head);
       m.rows.forEach(r=>ws.addRow(r.map(v=>v===""?null:v)));
-      const hr=ws.getRow(1);hr.height=m.rec&&m.rec.dayCount?46:22;
+      const hr=ws.getRow(1);hr.height=24;
       hr.eachCell((c,i)=>{
-        const isRec=!!m.rec&&(i-1===m.rec.recCol||i-1===m.rec.disCol||(i-1>=m.rec.dayStart));
+        const isRec=!!m.rec&&(i-1>=m.rec.recCol);
         c.font={bold:true,color:{argb:"FF1F2D2A"}};
         c.fill={type:"pattern",pattern:"solid",fgColor:{argb:isRec?"FFFFE9B8":"FFD9F2C0"}};
-        c.alignment={vertical:"middle",horizontal:isRec&&i-1>=m.rec.dayStart?"center":"left",wrapText:true};
+        c.alignment={vertical:"middle",horizontal:!!m.rec&&i-1>=m.rec.dayStart?"center":"left",wrapText:true};
         c.border={bottom:{style:"thin",color:{argb:"FF7A9A66"}}};
       });
       m.head.forEach((h,i)=>{
         let w=String(h).length;m.rows.slice(0,300).forEach(r=>{const l=String(r[i]??"").length;if(l>w)w=l});
         const day=!!m.rec&&i>=m.rec.dayStart;
-        ws.getColumn(i+1).width=day?15:Math.min(60,Math.max(10,w+2));
+        ws.getColumn(i+1).width=day?7:(m.rec&&i===m.rec.momCol?18:(m.rec&&i===m.rec.recCol?20:Math.min(60,Math.max(10,w+2))));
         if(day)ws.getColumn(i+1).alignment={horizontal:"center"};
       });
       if(nc)ws.autoFilter={from:{row:1,column:1},to:{row:1,column:nc}};
       if(m.rec&&nr){
         const L=i=>ws.getColumn(i+1).letter;
         const yn=(title)=>({type:"list",allowBlank:true,formulae:['"Oui,Non"'],showErrorMessage:true,errorStyle:"stop",errorTitle:title,error:"Choisis Oui ou Non."});
+        const ml='"'+m.rec.momNames.join(",")+'"';
+        const mlOk=m.rec.momNames.length&&ml.length<=255&&!m.rec.momNames.some(x=>x.includes(","));
+        const startSet=new Set(m.rec.starts);
         for(let r=2;r<=nr+1;r++){
           ws.getCell(r,m.rec.recCol+1).dataValidation={type:"list",allowBlank:true,formulae:[REC_LIST],showErrorMessage:true,errorStyle:"warning",errorTitle:"Récurrence",error:"Valeurs habituelles : Journalier, Sans récurrence, Tous les X jours. Garder cette valeur ?"};
           if(m.rec.disCol!=null)ws.getCell(r,m.rec.disCol+1).dataValidation=yn("Oui ou Non");
+          if(mlOk)ws.getCell(r,m.rec.momCol+1).dataValidation={type:"list",allowBlank:true,formulae:[ml],showErrorMessage:true,errorStyle:"warning",errorTitle:"Moment",error:"Moment absent de la liste du client. Garder cette valeur ?"};
           for(let c=m.rec.dayStart;c<m.rec.dayStart+m.rec.dayCount;c++)ws.getCell(r,c+1).dataValidation=yn("Oui ou Non");
+          const first=startSet.has(r);
+          for(let c=1;c<=nc;c++){
+            const cell=ws.getCell(r,c);
+            if(first&&r>2)cell.border={top:{style:"thin",color:{argb:"FFB5C4AE"}}};
+            if(!first&&c<=m.rec.recCol)cell.font={name:"Calibri",size:11,color:{argb:"FFA7B0AC"}};
+          }
         }
         const ref=L(m.rec.dayStart)+"2:"+L(m.rec.dayStart+m.rec.dayCount-1)+(nr+1);
         ws.addConditionalFormatting({ref,rules:[
