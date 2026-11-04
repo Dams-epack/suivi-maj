@@ -2996,6 +2996,22 @@ const X2E=(()=>{
     return v;
   }
 
+  /* Récurrence structurée : type + jours cochés par moment */
+  function parseRec(r){
+    const g=t=>txt(r.querySelector(":scope > "+t)||{textContent:""});
+    const ty=g("Type"),nb=parseInt(g("Nb"),10)||0,dis=g("IsDisable")==="true";
+    let label;
+    if(!ty||ty==="None")label="Sans récurrence";
+    else if(ty==="Daily")label="Journalier";
+    else if(ty==="xDays")label=nb===1?"Tous les jours":"Tous les "+nb+" jours";
+    else label=ty+(nb?" ("+nb+")":"");
+    const days={};
+    kids(r).filter(c=>ln(c.tagName)==="Moments").forEach(M=>kids(M).forEach(m=>{
+      const id=txt(m.querySelector(":scope > MomentId")||{textContent:""});
+      if(id)days[id]=[1,2,3,4,5,6,7].map(i=>txt(m.querySelector(":scope > Day"+i)||{textContent:""})==="true");
+    }));
+    return {label,dis,days};
+  }
   /* ---- Conversion d'un module ---- */
   function convert(name,root,mom,opt){
     const rn=ln(root.tagName);
@@ -3022,6 +3038,7 @@ const X2E=(()=>{
           return;
         }
         if(expand&&t==="Items")return;
+        if(t==="Recurrence"){o.__rec=parseRec(c);return}
         o[t]=cell(t,c,mom);addCol(t);
       });
       if(o.__acc){o["Accès aux modules"]=o.__acc;addCol("Accès aux modules")}
@@ -3044,7 +3061,22 @@ const X2E=(()=>{
     const head=ordered.map(t=>t==="Name"?(name==="Moments"?"Moment":name==="Usernames"?"Nom":hum(t)):hum(t));
     const body=recRows.map(o=>ordered.map(t=>o[t]===undefined?"":o[t]));
     if(name==="OptionsUI"){const pi=ordered.indexOf("ModulePosition");if(pi>=0)body.sort((a,b)=>(Number(a[pi])||0)-(Number(b[pi])||0)||String(a[0]).localeCompare(String(b[0]),"fr"))}
-    return {name,sheet:sheetName,head,rows:body,count:recs.length};
+    let meta=null;
+    if(recRows.some(o=>o.__rec)){
+      let ml=(opt&&opt.momList&&opt.momList.length)?opt.momList:null;
+      if(!ml){const ids=[];recRows.forEach(o=>o.__rec&&Object.keys(o.__rec.days).forEach(id=>{if(!ids.includes(id))ids.push(id)}));ml=ids.map(id=>({id,name:mom[id]||"(moment supprimé)"}))}
+      const anyDis=recRows.some(o=>o.__rec&&o.__rec.dis);
+      meta={recCol:head.length};head.push("Récurrence");
+      if(anyDis){meta.disCol=head.length;head.push("Récurrence désactivée")}
+      meta.dayStart=head.length;meta.dayCount=ml.length*DAYS.length;
+      ml.forEach(M=>DAYS.forEach(d=>head.push(M.name+" – "+d)));
+      recRows.forEach((o,i)=>{
+        const r=o.__rec;body[i].push(r?r.label:"");
+        if(anyDis)body[i].push(r&&r.dis?"Oui":"Non");
+        ml.forEach(M=>DAYS.forEach((d,di)=>body[i].push(r&&r.days[M.id]&&r.days[M.id][di]?"Oui":"Non")));
+      });
+    }
+    return {name,sheet:sheetName,head,rows:body,count:recs.length,rec:meta};
   }
 
   function sheetTitle(s,used){
@@ -3063,39 +3095,94 @@ const X2E=(()=>{
     const mom={};
     const mf=xml.find(x=>base(x.name).toLowerCase()==="moments");
     if(mf){const r=parse(mf.bytes);if(r)kids(r).forEach(m=>{const id=txt(m.querySelector(":scope > Id")||{textContent:""}),n=txt(m.querySelector(":scope > Name")||{textContent:""});if(id)mom[id]=n})}
+    const momList=[];
+    if(mf){const r=parse(mf.bytes);if(r){const seen=new Map();kids(r).forEach(m=>{
+      if(txt(m.querySelector(":scope > Delete")||{textContent:"false"})==="true")return;
+      const id=txt(m.querySelector(":scope > Id")||{textContent:""});let n=txt(m.querySelector(":scope > Name")||{textContent:""});if(!id)return;
+      const k=n.toLowerCase();seen.set(k,(seen.get(k)||0)+1);if(seen.get(k)>1)n+=" ("+seen.get(k)+")";momList.push({id,name:n})})}}
     const mods=[],bad=[];
     xml.forEach(x=>{
       const nm=base(x.name);const r=parse(x.bytes);
       if(!r){bad.push(nm);return}
-      const m=convert(nm,r,mom);
+      const m=convert(nm,r,mom,{momList});
       mods.push(m);
     });
     mods.sort((a,b)=>(b.name==="OptionsUI")-(a.name==="OptionsUI")||a.sheet.localeCompare(b.sheet,"fr"));
     return {mods,bad,moments:mf?Object.keys(mom).length:0};
   }
 
-  function build(mods,opt){
+  /* Export SheetJS : sans listes déroulantes ni mise en forme (solution de repli) */
+  function buildSJ(mods){
     const wb=XLSX.utils.book_new(),used=new Set();
-    const titles=[];
     mods.forEach(m=>{
       const ws=XLSX.utils.aoa_to_sheet([m.head].concat(m.rows));
       ws["!cols"]=m.head.map((h,i)=>{let w=String(h).length;m.rows.slice(0,300).forEach(r=>{const l=String(r[i]??"").length;if(l>w)w=l});return {wch:Math.min(60,Math.max(10,w+2))}});
-      ws["!freeze"]={xSplit:0,ySplit:1};
       if(m.head.length)ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(0,m.rows.length),c:m.head.length-1}})};
-      const tt=sheetTitle(m.sheet,used);titles.push(tt);
-      XLSX.utils.book_append_sheet(wb,ws,tt);
+      XLSX.utils.book_append_sheet(wb,ws,sheetTitle(m.sheet,used));
     });
-    if(opt&&opt.summary&&mods.length>1){
-      const rows=[["Module","Onglet","Lignes"]].concat(mods.map((m,i)=>[m.name,titles[i],m.rows.length]));
-      const sm=XLSX.utils.aoa_to_sheet(rows);
-      mods.forEach((m,i)=>{sm["B"+(i+2)].l={Target:"#'"+titles[i].replace(/'/g,"''")+"'!A1",Tooltip:"Aller à l'onglet"}});
-      sm["!cols"]=[{wch:28},{wch:34},{wch:9}];
-      const sn=sheetTitle("Sommaire",used);XLSX.utils.book_append_sheet(wb,sm,sn);
-      wb.SheetNames.unshift(wb.SheetNames.pop());
-    }
     return new Uint8Array(XLSX.write(wb,{bookType:"xlsx",type:"array"}));
   }
-  return {unzip,load,build,convert,SHEETS,OFF_BY_DEFAULT};
+  /* ExcelJS (chargé à la demande) : en-têtes mis en forme, listes déroulantes Oui/Non et récurrence */
+  let EJP=null;
+  function loadEJ(){
+    if(typeof ExcelJS!=="undefined")return Promise.resolve(ExcelJS);
+    if(EJP)return EJP;
+    EJP=new Promise((res,rej)=>{
+      const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js";
+      const to=setTimeout(()=>rej(new Error("délai dépassé")),10000);
+      sc.onload=()=>{clearTimeout(to);typeof ExcelJS!=="undefined"?res(ExcelJS):rej(new Error("indisponible"))};
+      sc.onerror=()=>{clearTimeout(to);rej(new Error("chargement impossible"))};
+      document.head.appendChild(sc);
+    }).catch(e=>{EJP=null;throw e});
+    return EJP;
+  }
+  const REC_LIST='"Journalier,Sans récurrence,Tous les 2 jours,Tous les 3 jours,Tous les 7 jours"';
+  async function buildEJ(mods){
+    const EJ=await loadEJ();
+    const wb=new EJ.Workbook();wb.creator="ePackPro";wb.created=new Date();
+    const used=new Set();
+    mods.forEach(m=>{
+      const nc=m.head.length,nr=m.rows.length;
+      const ws=wb.addWorksheet(sheetTitle(m.sheet,used),{views:[{state:"frozen",xSplit:m.head.length>1?1:0,ySplit:1}]});
+      ws.addRow(m.head);
+      m.rows.forEach(r=>ws.addRow(r.map(v=>v===""?null:v)));
+      const hr=ws.getRow(1);hr.height=m.rec&&m.rec.dayCount?46:22;
+      hr.eachCell((c,i)=>{
+        const isRec=!!m.rec&&(i-1===m.rec.recCol||i-1===m.rec.disCol||(i-1>=m.rec.dayStart));
+        c.font={bold:true,color:{argb:"FF1F2D2A"}};
+        c.fill={type:"pattern",pattern:"solid",fgColor:{argb:isRec?"FFFFE9B8":"FFD9F2C0"}};
+        c.alignment={vertical:"middle",horizontal:isRec&&i-1>=m.rec.dayStart?"center":"left",wrapText:true};
+        c.border={bottom:{style:"thin",color:{argb:"FF7A9A66"}}};
+      });
+      m.head.forEach((h,i)=>{
+        let w=String(h).length;m.rows.slice(0,300).forEach(r=>{const l=String(r[i]??"").length;if(l>w)w=l});
+        const day=!!m.rec&&i>=m.rec.dayStart;
+        ws.getColumn(i+1).width=day?15:Math.min(60,Math.max(10,w+2));
+        if(day)ws.getColumn(i+1).alignment={horizontal:"center"};
+      });
+      if(nc)ws.autoFilter={from:{row:1,column:1},to:{row:1,column:nc}};
+      if(m.rec&&nr){
+        const L=i=>ws.getColumn(i+1).letter;
+        const yn=(title)=>({type:"list",allowBlank:true,formulae:['"Oui,Non"'],showErrorMessage:true,errorStyle:"stop",errorTitle:title,error:"Choisis Oui ou Non."});
+        for(let r=2;r<=nr+1;r++){
+          ws.getCell(r,m.rec.recCol+1).dataValidation={type:"list",allowBlank:true,formulae:[REC_LIST],showErrorMessage:true,errorStyle:"warning",errorTitle:"Récurrence",error:"Valeurs habituelles : Journalier, Sans récurrence, Tous les X jours. Garder cette valeur ?"};
+          if(m.rec.disCol!=null)ws.getCell(r,m.rec.disCol+1).dataValidation=yn("Oui ou Non");
+          for(let c=m.rec.dayStart;c<m.rec.dayStart+m.rec.dayCount;c++)ws.getCell(r,c+1).dataValidation=yn("Oui ou Non");
+        }
+        const ref=L(m.rec.dayStart)+"2:"+L(m.rec.dayStart+m.rec.dayCount-1)+(nr+1);
+        ws.addConditionalFormatting({ref,rules:[
+          {type:"cellIs",operator:"equal",formulae:['"Oui"'],style:{fill:{type:"pattern",pattern:"solid",bgColor:{argb:"FFC8F0A0"}},font:{bold:true,color:{argb:"FF1B5E20"}}}},
+          {type:"cellIs",operator:"equal",formulae:['"Non"'],style:{font:{color:{argb:"FF9AA3A0"}}}}]});
+      }
+    });
+    return new Uint8Array(await wb.xlsx.writeBuffer());
+  }
+  let X2E_FALLBACK=false;
+  async function build(mods){
+    try{const d=await buildEJ(mods);X2E_FALLBACK=false;return d}
+    catch(e){X2E_FALLBACK=true;return buildSJ(mods)}
+  }
+  return {unzip,load,build,convert,SHEETS,OFF_BY_DEFAULT,fallback:()=>X2E_FALLBACK};
 })();
 
 function openX2E(){
@@ -3146,13 +3233,13 @@ function openX2E(){
     st.msg="";const c=chosen();
     if(!c.length){st.msg="Coche au moins un module.";paint();return}
     let data;
-    try{data=X2E.build(c,{summary:st.summary})}catch(e){st.msg="Création du fichier Excel impossible : "+((e&&e.message)||"erreur");paint();return}
+    try{data=await X2E.build(c)}catch(e){st.msg="Création du fichier Excel impossible : "+((e&&e.message)||"erreur");paint();return}
     const filename=fname();
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"nodl"};
       await d.save({filename,data});
-      st.msg="Fichier téléchargé : "+filename+" ("+c.length+" onglet"+(c.length>1?"s":"")+").";
+      st.msg="Fichier téléchargé : "+filename+" ("+c.length+" onglet"+(c.length>1?"s":"")+")."+(X2E.fallback()?" Attention : les listes déroulantes n’ont pas pu être ajoutées (bibliothèque non chargée).":"");
     }catch(e){
       if(e&&e.code==="declined")st.msg="Téléchargement annulé.";
       else{
