@@ -2891,7 +2891,7 @@ const X2E=(()=>{
   const DAYS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
   const DOW={Monday:"Lun",Tuesday:"Mar",Wednesday:"Mer",Thursday:"Jeu",Friday:"Ven",Saturday:"Sam",Sunday:"Dim"};
   /* modules jamais repris dans l'Excel */
-  const EXCLUDED=new Set(["PrintersMapping","Notes","ProduitsEtiquetageEtiquette","ProduitsEtiquetageMetadonnee"]);
+  const EXCLUDED=new Set(["PrintersMapping","Notes","ProduitsEtiquetageEtiquette","ProduitsEtiquetageMetadonnee","Sessions","StickerProducts","Stickers","PresetText"]);
   const OFF_BY_DEFAULT=new Set(["Options","Company"]);
   /* dates ISO -> lisibles ; année 0001 = « non renseigné » ; heures seules pour les débuts de moment */
   const ISO=/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/;
