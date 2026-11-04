@@ -276,6 +276,13 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .btn.tmcopy:hover .cb{animation:tmcb .5s ease}@keyframes tmcb{50%{transform:translate(-1.5px,-1.5px)}}
 .msg.tmok{color:var(--cta);font-weight:600}
 @media (prefers-reduced-motion:reduce){.modal.tm,.tmico *,.btn.tmsend *,.btn.tmsend,.btn.tmcopy,.btn.tmcopy *{animation:none!important;transition:none!important}}
+.synbtn{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid transparent;border-radius:999px;padding:3px 10px 3px 8px;cursor:pointer;font:inherit;font-size:.78rem;color:var(--band-fg);opacity:.9;max-width:260px}
+.synbtn .syt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.synbtn:hover{border-color:rgba(255,255,255,.35)}
+.synbtn .syd{width:8px;height:8px;border-radius:50%;background:#8aa;flex:none}.synbtn.ok .syd{background:#9bf944}.synbtn.warn .syd{background:#ffb020}.synbtn.err{color:#ffb4ad;border-color:#e5484d;opacity:1}.synbtn.err .syd{background:#e5484d;animation:sypulse 1s infinite}.synbtn.busy .syd{background:#9fb5b2;animation:sypulse .8s infinite}
+@keyframes sypulse{50%{opacity:.3}}
+.synsum{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}.synrow{display:flex;justify-content:space-between;gap:12px;padding:6px 10px;border-radius:8px;background:rgba(127,127,127,.12)}
+.synlog{list-style:none;margin:0 0 12px;padding:0;max-height:34vh;overflow:auto;display:flex;flex-direction:column;gap:3px}.synlog li{display:flex;gap:10px;padding:5px 8px;border-radius:6px;font-size:.86rem;border-left:3px solid #8aa}.synlog li.ok{border-left-color:#5aa800}.synlog li.warn{border-left-color:#ffb020}.synlog li.err{border-left-color:#e5484d}.synlog time{opacity:.65;font-variant-numeric:tabular-nums;flex:none}
+@media (max-width:640px){.synbtn .syt{display:none}}
 .bver{font-size:.7rem;font-weight:600;letter-spacing:.04em;color:var(--band-fg);opacity:.75;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 9px;user-select:text;white-space:nowrap}
 .stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
 .row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
@@ -628,6 +635,10 @@ const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dép�
 const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?STEPS2:STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
 let userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
+/* Journal de synchronisation : état courant + 40 derniers événements, consultable depuis le bandeau */
+let syncKind="",lastOk=0;const syncLog=[],syncFail=new Set();
+const hhmm=t=>{const d=new Date(t),p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds())};
+function slog(kind,msg,id){syncKind=kind;syncTxt=msg;if(kind!=="busy"){const last=syncLog[0];if(!(last&&last.kind===kind&&last.msg===msg&&Date.now()-last.t<2000)){syncLog.unshift({t:Date.now(),kind,msg});if(syncLog.length>40)syncLog.length=40}}if(kind==="ok")lastOk=Date.now();if(id){kind==="err"?syncFail.add(id):syncFail.delete(id)}paintSync()}
 /* MAJ en cours créées avec l'ancien flux (Configurateur + Moulinette) : passage aux 2 étapes, la coche Import est conservée */
 function upgradeMaj(m){
   if(!m||m.archived||!Array.isArray(m.mods))return false;let ch=false;
@@ -1615,7 +1626,7 @@ function persist(id,what){
   const m=majs[id];syncDone(m);
   if(m){m.updatedAt=Date.now();if(!col)m._pending=true}
   try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
-  if(!col){spQueue();return}
+  if(!col){if(!spOn())slog("warn","Sauvegarde locale uniquement (non partagée)");spQueue();return}
   if(!m)return;
   const ts=m.updatedAt;
   if(what==='*')Object.keys(m.prog).forEach(k=>{m.prog[k].t=ts});else if(what&&what!=='new'&&m.prog[what])m.prog[what].t=ts;
@@ -1628,7 +1639,7 @@ function persist(id,what){
     if(what!=="*")delete c.prog;
     data=c;
   }
-  syncTxt="Enregistrement…";
+  slog("busy","Enregistrement…");
   const run=async()=>{
     const ref=col.doc(id);
     try{
@@ -1637,13 +1648,43 @@ function persist(id,what){
         try{await ref.update(data)}
         catch(e){const f=JSON.parse(JSON.stringify(majs[id]||m));delete f._pending;await ref.set(f)}
       }
-      syncTxt="Enregistré";
-    }catch(e){syncTxt="Échec d'enregistrement"}
-    paintSync();
+      slog("ok","Enregistré à "+hhmm(Date.now()),id);
+    }catch(e){slog("err","Échec d'enregistrement : "+((e&&(e.message||e.code))||"erreur"),id)}
   };
   wq[id]=(wq[id]||Promise.resolve()).then(run,run);
 }
-function paintSync(){const e=document.getElementById("sync");if(e)e.textContent=syncTxt}
+function paintSync(){const e=document.getElementById("sync");if(!e)return;const t=e.querySelector(".syt");if(t)t.textContent=syncTxt||"Prêt";e.className="msg synbtn "+(syncKind||"idle");e.title=(syncKind==="err"?"Échec : clique pour voir le journal et réessayer":"Journal de synchronisation")+(lastOk?" · dernière sauvegarde réussie à "+hhmm(lastOk):"")}
+/* Journal de synchronisation (fenêtre) */
+function openSyncLog(){
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");
+  const md=$("div","modal xml");md.style.maxWidth="560px";bg.appendChild(md);document.body.appendChild(bg);
+  const close=()=>{bg.remove();document.removeEventListener("keydown",kd)};const kd=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",kd);
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+  const paint=()=>{
+    md.textContent="";
+    const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;
+    const hd=$("div","xhead");hd.append($("h2",null,"Journal de synchronisation"),x);md.appendChild(hd);
+    const mode=col?"Base claude.ai (partagée)":spOn()?"SharePoint (partagé)":"Ce navigateur uniquement (non partagé)";
+    const pend=Object.keys(majs).filter(k=>majs[k]&&majs[k]._pending).length,fail=syncFail.size;
+    const box=$("div","synsum");
+    [["Mode",mode],["Dernière sauvegarde réussie",lastOk?hhmm(lastOk):"aucune depuis l'ouverture"],["MAJ en attente d'envoi",String(col?fail:pend)]].forEach(([a,b])=>{const r=$("div","synrow");r.append($("span",null,a),$("b",null,b));box.appendChild(r)});
+    md.appendChild(box);
+    if(fail||syncKind==="err"){const e=$("p","msg err","Certaines modifications n'ont pas pu être enregistrées. Elles sont gardées dans ce navigateur : clique sur « Réessayer ».");e.setAttribute("role","alert");md.appendChild(e)}
+    const ul=$("ul","synlog");
+    if(!syncLog.length)ul.appendChild($("li",null,"Aucun événement pour l'instant."));
+    syncLog.forEach(l=>{const li=$("li",l.kind);li.append($("time",null,hhmm(l.t)),$("span",null,l.msg));ul.appendChild(li)});
+    md.appendChild(ul);
+    const ac=$("div","actions");
+    const rt=$("button","btn ico","Réessayer l'enregistrement");rt.type="button";
+    rt.onclick=()=>{if(col){[...syncFail].forEach(k=>{if(majs[k])persist(k,"*")})}else if(spOn())spSave();else slog("warn","Sauvegarde locale uniquement (non partagée)");setTimeout(paint,900)};
+    const rl=$("button","btn ghost","Recharger les données");rl.type="button";rl.onclick=()=>{try{location.reload()}catch(e){}};
+    const no=$("button","btn ghost","Fermer");no.type="button";no.onclick=close;
+    ac.append(rt,rl,no);md.appendChild(ac);
+  };
+  paint();
+}
+window.addEventListener("online",()=>slog("ok","Connexion rétablie"));
+window.addEventListener("offline",()=>slog("warn","Hors connexion : les modifications restent dans ce navigateur"));
 function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
 
 /* ---- Analyse du mail ---- */
@@ -4157,7 +4198,7 @@ function buildBar(){
   const rb=$("button","btn ghost gear refresh");rb.type="button";rb.title="Recharge la page : dernière version de l'outil et données à jour";rb.setAttribute("aria-label","Actualisation");
   rb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12A9 9 0 0 1 18.5 5.8L21 8"/><path d="M21 3v5h-5"/></svg>';
   rb.onclick=()=>{rb.disabled=true;rb.classList.add("spin");try{location.reload()}catch(e){render();rb.disabled=false;rb.classList.remove("spin")}};
-  const sy=$("span","msg",syncTxt);sy.id="sync";
+  const sy=$("button","msg synbtn "+(syncKind||"idle"));sy.type="button";sy.id="sync";sy.append($("span","syd"),$("span","syt",syncTxt||"Prêt"));sy.onclick=openSyncLog;
   const gb=$("button","btn ghost gear cog");gb.type="button";gb.setAttribute("aria-label","Paramètres");gb.title="Paramètres";
   gb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
   if(!teamsFlow()||!calFlow()){const dt=$("span","gdot");gb.appendChild(dt);gb.title="Paramètres (un réglage obligatoire manque)"}
@@ -4879,26 +4920,26 @@ async function spLoad(){
   try{
     spMerge(spParse(await spPost("read")));
     if(cur&&!majs[cur])cur=null;
-    syncTxt="Synchronisé via SharePoint ("+spStamp()+")";
+    slog("ok","Synchronisé à "+hhmm(Date.now())+" (SharePoint)");
     const a=document.activeElement;
     if(before!==JSON.stringify(majs)+JSON.stringify(gmap)&&!(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA")))render();else paintSync();
     if(!spReady){spReady=true;spQueue()}
-  }catch(e){syncTxt="Lecture SharePoint impossible : "+(e&&e.message||e);paintSync()}
+  }catch(e){slog("err","Lecture SharePoint impossible : "+(e&&e.message||e))}
 }
 async function spSave(){
   spT=null;
   if(!spOn())return;
   if(spBusy){spAgain=true;return}
-  spBusy=true;syncTxt="Enregistrement…";paintSync();
+  spBusy=true;slog("busy","Enregistrement…");
   try{
     spMerge(spParse(await spPost("read")));
     const out={format:"suivi-maj-donnees",version:2,savedAt:Date.now(),majs:{},deleted:spTomb,groupes:{},delai:gdelai};
     Object.keys(majs).forEach(k=>{const c=JSON.parse(JSON.stringify(majs[k]));delete c._pending;out.majs[k]=c});
     allGroups().forEach(g=>{out.groupes[gkey(g)]=g});
     await spPost("write",JSON.stringify(out));
-    syncTxt="Enregistré dans SharePoint ("+spStamp()+")";
-  }catch(e){syncTxt="Échec SharePoint : "+(e&&e.message||e)}
-  spBusy=false;paintSync();
+    slog("ok","Enregistré à "+hhmm(Date.now())+" (SharePoint)");
+  }catch(e){slog("err","Échec SharePoint : "+(e&&e.message||e))}
+  spBusy=false;
   if(spAgain){spAgain=false;spQueue()}
 }
 function spQueue(){if(!spOn())return;clearTimeout(spT);spT=setTimeout(spSave,1200)}
@@ -4909,7 +4950,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v298",APP_DATE="21/10/2026";
+const APP_VERSION="v299",APP_DATE="21/10/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
@@ -4937,7 +4978,7 @@ render();
     c.use("sample").then(s=>{sampleFn=s||null}).catch(()=>{});
     c.use("user").then(async u=>{if(u){userApi=u;try{myId=await u.id()}catch(e){}resolveNames()}}).catch(()=>{});
     const db=await c.use("db");
-    if(!db){syncTxt="Sauvegarde locale uniquement";paintSync();spInit();return}
+    if(!db){slog("warn","Sauvegarde locale uniquement (non partagée)");spInit();return}
     gcol=db.collection("groupes");xcol=db.collection("xmlfiles");
     gcol.onSnapshot(sn=>{
       gdelai={};sn.docs.forEach(d=>{const v=d.data();if(v&&v.name)gmap[d.id]=v.name;if(v&&v.delai===5)gdelai[d.id]=5});try{localStorage.setItem("suivi-maj-delai",JSON.stringify(gdelai))}catch(e){}
@@ -4958,12 +4999,12 @@ render();
       if(cur&&!majs[cur])cur=null;
       /* le titre est recalculé en local uniquement : l'écrire en base à chaque synchro provoquait des aller-retours entre postes (et des écrasements de cases cochées) */
       Object.keys(majs).forEach(k=>{stampTitle(majs[k])});
-      syncTxt="Synchronisé";resolveNames();
+      slog("ok","Synchronisé à "+hhmm(Date.now()));resolveNames();
       try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
       const a=document.activeElement;
       if(!(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA")))render();else paintSync();
-    },()=>{syncTxt="Sauvegarde locale uniquement";paintSync()});
-  }catch(e){syncTxt="Sauvegarde locale uniquement";paintSync()}
+    },er=>{slog("err","Synchronisation interrompue : "+((er&&er.message)||"connexion perdue"))});
+  }catch(e){slog("warn","Sauvegarde locale uniquement (non partagée)")}
 })();
 </script>
 

@@ -276,6 +276,13 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .btn.tmcopy:hover .cb{animation:tmcb .5s ease}@keyframes tmcb{50%{transform:translate(-1.5px,-1.5px)}}
 .msg.tmok{color:var(--cta);font-weight:600}
 @media (prefers-reduced-motion:reduce){.modal.tm,.tmico *,.btn.tmsend *,.btn.tmsend,.btn.tmcopy,.btn.tmcopy *{animation:none!important;transition:none!important}}
+.synbtn{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid transparent;border-radius:999px;padding:3px 10px 3px 8px;cursor:pointer;font:inherit;font-size:.78rem;color:var(--band-fg);opacity:.9;max-width:260px}
+.synbtn .syt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.synbtn:hover{border-color:rgba(255,255,255,.35)}
+.synbtn .syd{width:8px;height:8px;border-radius:50%;background:#8aa;flex:none}.synbtn.ok .syd{background:#9bf944}.synbtn.warn .syd{background:#ffb020}.synbtn.err{color:#ffb4ad;border-color:#e5484d;opacity:1}.synbtn.err .syd{background:#e5484d;animation:sypulse 1s infinite}.synbtn.busy .syd{background:#9fb5b2;animation:sypulse .8s infinite}
+@keyframes sypulse{50%{opacity:.3}}
+.synsum{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}.synrow{display:flex;justify-content:space-between;gap:12px;padding:6px 10px;border-radius:8px;background:rgba(127,127,127,.12)}
+.synlog{list-style:none;margin:0 0 12px;padding:0;max-height:34vh;overflow:auto;display:flex;flex-direction:column;gap:3px}.synlog li{display:flex;gap:10px;padding:5px 8px;border-radius:6px;font-size:.86rem;border-left:3px solid #8aa}.synlog li.ok{border-left-color:#5aa800}.synlog li.warn{border-left-color:#ffb020}.synlog li.err{border-left-color:#e5484d}.synlog time{opacity:.65;font-variant-numeric:tabular-nums;flex:none}
+@media (max-width:640px){.synbtn .syt{display:none}}
 .bver{font-size:.7rem;font-weight:600;letter-spacing:.04em;color:var(--band-fg);opacity:.75;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 9px;user-select:text;white-space:nowrap}
 .stepcell{display:flex;flex-direction:column;gap:4px;min-width:0}
 .row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
@@ -651,7 +658,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v298";
+const APP_VERSION="v299";
 
 const SUPPORT=true;
 let majs={},cur=null;
