@@ -708,6 +708,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v308";
+const SUPPORT_BUILD="Support 71 · 05/11 11:29";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3367,7 +3368,7 @@ function buildBar(){
 function render(){
   buildBar();
   const app=document.getElementById("app");app.textContent="";
-  const ver=document.getElementById("appver");if(ver)ver.textContent=APP_VERSION;
+  const ver=document.getElementById("appver");if(ver){ver.textContent=SUPPORT_BUILD;ver.title="Version en ligne : "+SUPPORT_BUILD+" (moteur "+APP_VERSION+")"}
   app.appendChild($("h1",null,"Outils XML"));
   app.appendChild($("p","sub","Génère ou complète les XML des modules à partir des fichiers du client. Rien n'est enregistré : les fichiers restent dans ton navigateur."));
   const tl=$("div","tools");
