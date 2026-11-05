@@ -85,8 +85,8 @@ function render(){
 render();
 '''
 import datetime,zoneinfo
-SB=71
-build_label='Support %d · %s'%(SB,datetime.datetime.now(zoneinfo.ZoneInfo('Europe/Paris')).strftime('%d/%m %H:%M'))
+SB=72
+build_label='v%d'%SB
 ver=re.search(r'const APP_VERSION="(v\d+)"',src).group(1)
 extra_css='''<style>
 /* animations propres à la page Support */
