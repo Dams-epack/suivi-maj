@@ -3301,6 +3301,11 @@ function openX2E(){
     paint();
   }
   function paint(){
+    const ol=md.querySelector(".x2list"),ls=ol?ol.scrollTop:0,ms=md.scrollTop;
+    paint0();
+    const nl=md.querySelector(".x2list");if(nl&&ls)nl.scrollTop=ls;if(ms)md.scrollTop=ms;
+  }
+  function paint0(){
     md.textContent="";
     const h=$("h2",null,"XML → Excel");h.id="x2t";
     const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;const bt=$("span","x2beta","BÊTA");bt.title="Version bêta : utilisable, mais ton retour est attendu";h.appendChild(document.createTextNode(" "));h.appendChild(bt);hd.append(h,x);
