@@ -85,9 +85,9 @@ function render(){
 render();
 '''
 import datetime,zoneinfo
-SB=72
-build_label='v%d'%SB
-ver=re.search(r'const APP_VERSION="(v\d+)"',src).group(1)
+SB='0.9.0'
+build_label='v'+SB
+ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
 /* animations propres à la page Support */
 .tool{position:relative;overflow:hidden}

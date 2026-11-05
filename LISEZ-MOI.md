@@ -48,7 +48,7 @@ cliquer sur « Reconnecter » dans la barre (dans Chrome, choisir « Autoriser �
 - **Lecture du mail** : sans Claude, l'analyse du mail est locale (moins souple). Le « Suivi personnalisé » reste le plus fiable.
 - **Données** : le fichier JSON contient tes MAJ et les groupes. Il reste dans ton SharePoint, jamais sur GitHub.
 
-## Guide rapide des fonctions (à jour v302)
+## Guide rapide des fonctions (à jour v2.0.0)
 
 **Accueil**
 - *Rappels* : MAJ dont la validation siège attend depuis 3 jours ou plus, et déploiements dans les 7 jours dont le rétroplanning n'est pas envoyé. Une MAJ « bloquée » n'apparaît pas dans les rappels.
