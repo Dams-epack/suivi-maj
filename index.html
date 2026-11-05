@@ -1688,11 +1688,11 @@ function groupOf(m){
 }
 /* Répartition des groupements par CSM, et QM associé à chaque CSM */
 const CSM_QM={"Cynthia LOBET":"Marion LE STANG","Lauriane GOUISSEM":"Nathan LAFFEZ","Guillaume TAVERNIERS":"Sylvain HAMELIN","Gerda MEVEL":""};
-const GROUP_CSM={"Cynthia LOBET":["O TACOS","DOMINOS","CHAMAS TACOS","DEL ARTE","ALL PIZZA PASTA","EMERA","ATELIER PAPILLES","MUSIAM","COTE ET LARETE","BRIOCHE DOREE"],
-"Lauriane GOUISSEM":["BOULANGERIE ANGE","BERTRAND","BECAM","COLUMBUS","TACOS AVENUE","BOUCHERIE","SOPHIE LE BRUEILLY","MIE DE PAIN","VVF","TOA SUSHI/TOANE","TAO BENTO"],
-"Gerda MEVEL":["CIRCLE K"],"Guillaume TAVERNIERS":["PARADIS DU FRUIT"]};
+const GROUP_CSM={"Cynthia LOBET":["O TACOS","DOMINOS","CHAMAS TACOS","DEL ARTE","ALL PIZZA PASTA","EMERA","MUSIAM","COTE ET LARETE","BRIOCHE DOREE"],
+"Lauriane GOUISSEM":["BOULANGERIE ANGE","BERTRAND","BECAM","MAISON BECAM","COLUMBUS","TACOS AVENUE","BOUCHERIE","SOPHIE LE BRUEILLY","MIE DE PAIN","VVF","TOA SUSHI/TOANE","TAO BENTO"],
+"Gerda MEVEL":["CIRCLE K"],"Guillaume TAVERNIERS":["PARADIS DU FRUIT","ATELIER PAPILLES"]};
 /* Groupes de Guillaume TAVERNIERS (congé maternité), répartis sur d'autres CSM mais gardant son QM */
-const GROUPES_GT=["O TACOS","DOMINOS","CHAMAS TACOS","DEL ARTE","ALL PIZZA PASTA","BOULANGERIE ANGE","BERTRAND","BECAM","COLUMBUS","TACOS AVENUE","BOUCHERIE","SOPHIE LE BRUEILLY","MIE DE PAIN","EMERA"];
+const GROUPES_GT=["O TACOS","DOMINOS","CHAMAS TACOS","DEL ARTE","ALL PIZZA PASTA","BOULANGERIE ANGE","BERTRAND","BECAM","MAISON BECAM","COLUMBUS","TACOS AVENUE","BOUCHERIE","SOPHIE LE BRUEILLY","MIE DE PAIN","EMERA"];
 const akey=n=>String(n||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
 const CSM_OF={};Object.entries(GROUP_CSM).forEach(([c,l])=>l.forEach(g=>{CSM_OF[akey(g)]=c}));
 const QM_MAIL={"Marion LE STANG":"m.lestang@epack-hygiene.fr","Nathan LAFFEZ":"n.laffez@epack-hygiene.fr","Sylvain HAMELIN":"s.hamelin@epack-hygiene.fr"};
@@ -5174,7 +5174,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.0.2",APP_DATE="05/11/2026";
+const APP_VERSION="v2.0.3",APP_DATE="05/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
