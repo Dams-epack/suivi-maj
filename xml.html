@@ -3101,7 +3101,7 @@ const X2E=(()=>{
           row.push(r?r.label:"");
           if(anyDis)row.push(r&&r.dis?"Oui":"Non");
           row.push(m.n);
-          const none=!r||/^sans/i.test(r.label||"");
+          const none=!r||/^(sans|tous les)/i.test(r.label||"");
           DAYS.forEach((d,di)=>row.push(none?"":(m.d[di]?"Oui":"Non")));
           outRows.push(row);
         });
