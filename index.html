@@ -3757,6 +3757,42 @@ function openGen(m,k,id,M,r){
     }catch(e){st.err="Fichier illisible : vérifie que c'est bien un classeur Excel (.xlsx).";st.file="";st.sheets=[]}
     paint();
   }
+  function missingDefs(){
+    const out=[],sh=[...st.sel].map(i=>st.sheets[i]);
+    TYPES().forEach(ty=>{const mt=GENX.MODS[ty];
+      const miss=mt.req.filter(x=>['int','num'].includes((mt.cols.find(c=>c[0]===x)||[])[1])&&sh.some(z=>GENX.resolve(ty,z,st.map)[x]<0));
+      if(miss.length)out.push([ty,miss]);
+    });
+    return out;
+  }
+  function askDefs(blocks,go){
+    const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.style.zIndex=10001;
+    const md=$("div","modal xml");md.style.maxWidth="460px";bg.appendChild(md);document.body.appendChild(bg);
+    const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true)};
+    const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}};document.addEventListener("keydown",kd,true);
+    bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+    md.appendChild($("h2",null,"Informations manquantes"));
+    md.appendChild($("p","ghint","Ces informations ne sont pas dans l'Excel du client. La valeur saisie sera appliquée à toutes les lignes du type concerné. Laisse vide pour mettre -1."));
+    const first=[];
+    blocks.forEach(([ty,miss])=>{
+      const row=$("div","gdefs");row.appendChild($("strong",null,GEN_LABEL[ty]||ty));
+      miss.forEach(x=>{const l=$("label","fld");l.style.display="block";l.style.marginTop="6px";const i=$("input");i.type="text";i.inputMode="decimal";
+        i.placeholder=GENX.isDef(ty,x)?"-1":"requis";i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
+        i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;err.textContent=""};
+        i.onkeydown=e=>{if(e.key==="Enter")ok.click()};
+        l.append($("span",null,DEFLAB[x]||x),i);row.appendChild(l);first.push(i)});
+      md.appendChild(row);
+    });
+    const err=$("p","msg err");md.appendChild(err);
+    const ac=$("div","gact");ac.style.cssText="display:flex;gap:8px;justify-content:flex-end;margin-top:12px";
+    const cn=$("button","btn ghost","Annuler");cn.type="button";cn.onclick=close;
+    const ok=$("button","btn","Valider et générer");ok.type="button";
+    ok.onclick=()=>{
+      const bad=[];blocks.forEach(([ty,miss])=>miss.forEach(x=>{const v=((st.defs[ty]||{})[x]||"").trim();if(v===""&&!GENX.isDef(ty,x))bad.push((GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));else if(v!==""&&isNaN(Number(v.replace(",","."))))bad.push((GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x)+" (nombre attendu)")}));
+      if(bad.length){err.textContent="À renseigner : "+bad.join(" · ");return}
+      close();go()};
+    ac.append(cn,ok);md.appendChild(ac);setTimeout(()=>first[0]&&first[0].focus(),30);
+  }
   function run(){
     const p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true",moments:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)).map(z=>z.id):[],momTime:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)&&z.time).map(z=>z.time).sort()[0]||"":""};
     st.msg="";st.ticked=false;st.open={};
@@ -3916,25 +3952,6 @@ function openGen(m,k,id,M,r){
       });
       dt.appendChild(gr);if(Object.keys(st.map).some(t=>st.map[t].t!=="auto"))dt.open=true;md.appendChild(dt);
     }
-    if(MULTI){
-      const blocks=[];
-      TYPES().forEach(ty=>{
-        const mt=T[ty],miss=mt.req.filter(x=>['int','num'].includes((mt.cols.find(c=>c[0]===x)||[])[1])&&chosen.some(s=>GENX.resolve(ty,s,st.map)[x]<0));
-        if(miss.length)blocks.push([ty,miss]);
-      });
-      if(blocks.length){
-        const bx=$("div","gdefs");bx.appendChild($("strong",null,"Valeurs à appliquer (colonnes absentes de l'Excel)"));
-        bx.appendChild($("p","ghint","Ces informations ne sont pas dans le fichier du client. La valeur saisie est appliquée à toutes les lignes ; vide = -1 (ou bloqué si le module n'accepte pas -1)."));
-        blocks.forEach(([ty,miss])=>{
-          const row=$("div","gdefrow");row.appendChild($("span","gdeft",GEN_LABEL[ty]||ty));
-          miss.forEach(x=>{const l=$("label","fld");const i=$("input");i.type="text";i.inputMode="decimal";i.size=6;i.placeholder=GENX.isDef(ty,x)?"-1":"requis";i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
-            i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;st.res=null};
-            l.append($("span",null,DEFLAB[x]||x),i);row.appendChild(l)});
-          bx.appendChild(row);
-        });
-        md.appendChild(bx);
-      }
-    }
     if(TYPES().some(ty=>T[ty].params)){
       const pw=$("div","gparams");
       pw.appendChild(field("Type de DLC",sel([["","À choisir"],["-1","-1 · interface"],["0","0 · jours"],["1","1 · services"],["2","2 · heures"],["3","3 · minutes"]],st.dl,v=>{st.dl=v})));
@@ -3976,7 +3993,7 @@ function openGen(m,k,id,M,r){
       md.appendChild(mb);
     }
     const ac=$("div","actions");
-    const gb=$("button","btn",TYPES().length>1?"Générer les XML":"Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=run;ac.appendChild(gb);
+    const gb=$("button","btn",TYPES().length>1?"Générer les XML":"Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=()=>{const bl=MULTI?missingDefs():[];if(bl.length)askDefs(bl,run);else run()};ac.appendChild(gb);
     if(!chosen.length)ac.appendChild($("span","msg","Coche au moins un onglet."));else if(needMom)ac.appendChild($("span","msg","Choisis le moment des contrôles."));
     md.appendChild(ac);
     /* résultats */
