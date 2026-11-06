@@ -709,7 +709,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.1.1";
-const SUPPORT_BUILD="v0.11.0";
+const SUPPORT_BUILD="v0.11.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2506,7 +2506,7 @@ function openGen(m,k,id,M,r){
       d.onclick=()=>inp.click();
       d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
       d.ondrop=e=>{e.preventDefault();d.classList.remove("over");const f=e.dataTransfer.files[0];if(f)onFile(f)};
-      const w=$("div");w.append(d,inp);md.appendChild(w);return;
+      const w=$("div");w.append(d,inp);md.appendChild(w);const g0=md.querySelector(".gtl");if(g0)g0.before(w);const er=md.querySelector("p.msg.err");if(er)w.after(er);return;
     }
     const fl=subP;fl.append("Fichier : ",$("b",null,st.file)," ");
     const ch=$("button","chip","Changer de fichier");ch.type="button";ch.onclick=()=>inp.click();fl.append(ch,inp);

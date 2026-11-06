@@ -62,6 +62,9 @@ code=code.replace(a,'$("strong",null,"Mail au client : DLC manquantes")')
 a='ta.setAttribute("aria-label","Mail au siège")'
 assert code.count(a)==1
 code=code.replace(a,'ta.setAttribute("aria-label","Mail au client")')
+a='const w=$("div");w.append(d,inp);md.appendChild(w);return;'
+assert code.count(a)==1
+code=code.replace(a,'const w=$("div");w.append(d,inp);md.appendChild(w);const g0=md.querySelector(".gtl");if(g0)g0.before(w);const er=md.querySelector("p.msg.err");if(er)w.after(er);return;')
 prelude=r'''
 const SUPPORT=true;
 let majs={},cur=null;
@@ -100,7 +103,7 @@ function render(){
 render();
 '''
 import datetime,zoneinfo
-SB='0.11.0'
+SB='0.11.1'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
