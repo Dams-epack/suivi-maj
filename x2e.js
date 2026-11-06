@@ -427,9 +427,8 @@ function openX2E(){
   function paint0(){
     md.textContent="";
     const h=$("h2",null,"XML → Excel");h.id="x2t";
-    const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;const bt=$("span","x2beta","BÊTA");bt.title="Version bêta : utilisable, mais ton retour est attendu";h.appendChild(document.createTextNode(" "));h.appendChild(bt);hd.append(h,x);
+    const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;hd.append(h,x);
     md.append(hd,$("p",null,"Dépose le ZIP de la configuration du client (ou un seul XML) : je produis un Excel avec un onglet par module. Rien n'est envoyé, tout reste dans ton navigateur."));
-    md.appendChild($("p","x2bn","Version bêta : un doute, une colonne en trop ou un nom à corriger ? Note-le et transmets-le à Dam's."));
     if(st.busy){md.appendChild($("p","msg","Lecture en cours…"));return}
     if(!st.mods){
       if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}

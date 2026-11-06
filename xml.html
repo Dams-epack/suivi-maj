@@ -736,7 +736,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.2.0";
-const SUPPORT_BUILD="v0.13.6";
+const SUPPORT_BUILD="v1.0.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3437,9 +3437,8 @@ function openX2E(){
   function paint0(){
     md.textContent="";
     const h=$("h2",null,"XML → Excel");h.id="x2t";
-    const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;const bt=$("span","x2beta","BÊTA");bt.title="Version bêta : utilisable, mais ton retour est attendu";h.appendChild(document.createTextNode(" "));h.appendChild(bt);hd.append(h,x);
+    const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;hd.append(h,x);
     md.append(hd,$("p",null,"Dépose le ZIP de la configuration du client (ou un seul XML) : je produis un Excel avec un onglet par module. Rien n'est envoyé, tout reste dans ton navigateur."));
-    md.appendChild($("p","x2bn","Version bêta : un doute, une colonne en trop ou un nom à corriger ? Note-le et transmets-le à Dam's."));
     if(st.busy){md.appendChild($("p","msg","Lecture en cours…"));return}
     if(!st.mods){
       if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
@@ -3521,7 +3520,7 @@ function render(){
   const IC3='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6M12 11v7"/></svg>';
   one("Excel → XML","Dépose l'Excel du client, choisis le type d'XML (Warming, Stickers, Contrôles divers…), récupère le XML dans un ZIP.","Un onglet = un XML",()=>openGen(ctx,null,null,XM,XR),IC1);
   one("Compléter un XML","Dépose un export XML du configurateur : j'ajoute les balises manquantes et je normalise le fichier.","Produits, checklists, plans de nettoyage",()=>openXml(ctx,null,null),IC2);
-  one("XML → Excel","Dépose le ZIP de la configuration du client (ou un seul XML) : j'en fais un Excel, un onglet par module.","Un onglet = un module",()=>openX2E(),IC3,true);
+  one("XML → Excel","Dépose le ZIP de la configuration du client (ou un seul XML) : j'en fais un Excel, un onglet par module.","Un onglet = un module",()=>openX2E(),IC3);
   app.appendChild(tl);
   trSchedule();
 }
