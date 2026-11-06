@@ -709,8 +709,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.1.2";
-const SUPPORT_BUILD="v0.12.0";
+const APP_VERSION="v2.2.0";
+const SUPPORT_BUILD="v0.13.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2267,17 +2267,18 @@ function resolve(t,s,mp){
   return idx;
 }
 const isDef=(t,x)=>!MODS[t].noDef&&MODS[t].req.includes(x)&&['int','num'].includes(MODS[t].cols.find(c=>c[0]===x)[1]);
-function normalized(t,s,mp){
+function normalized(t,s,mp,defs){
   const m=MODS[t],idx=resolve(t,s,mp),has=x=>idx[x]>=0;
-  const tags=m.cols.map(c=>c[0]).filter(x=>has(x)||isDef(t,x));
-  const errs=[],notes=[],filled={},missing=[],cleanEx=[];let nClean=0;
+  defs=defs||{};const hasD=x=>defs[x]!==undefined&&String(defs[x]).trim()!=='',gD=x=>String(defs[x]).trim().replace(',','.');
+  const tags=m.cols.map(c=>c[0]).filter(x=>has(x)||isDef(t,x)||hasD(x));
+  const errs=[],notes=[],filled={},filledD={},missing=[],cleanEx=[];let nClean=0;
   /* DLC saisie sous forme « J+3 », « J+ 3 jours », « 3 jours » : on ne garde que le nombre de jours */
   const dayNb=(v,x)=>{if(typeof v!=='string')return v;
     if(t==='Stickers'&&x==='DateLimit'){const sp=splitDlc(v);if(sp&&sp.unit!==null)return v;const jj=/^\s*J\s*\+\s*(-?\d+)\s*(?:j|jr|jrs|jour|jours)?\s*\.?\s*$/i.exec(v);if(jj)return jj[1]+' jours'}
     const mm=/^\s*(?:J\s*\+\s*)?(-?\d+(?:[.,]\d+)?)\s*(?:j|jr|jrs|jour|jours)?\s*\.?\s*$/i.exec(v);return mm&&!/^\s*-?\d+(?:[.,]\d+)?\s*$/.test(v)?mm[1].replace(',','.'):v};
   const cellS=(r,x)=>has(x)&&r[idx[x]]!=null?String(r[idx[x]]).trim():'';
-  tags.filter(x=>!has(x)).forEach(x=>notes.push(`${x} : aucune colonne trouvée dans cet onglet, -1 appliqué`));
-  m.req.filter(x=>!isDef(t,x)&&!has(x)).forEach(x=>errs.push(`Colonne ${x} introuvable dans cet onglet (en-têtes lues : ${s.header.filter(Boolean).join(', ')||'aucune'})`));
+  tags.filter(x=>!has(x)).forEach(x=>notes.push(hasD(x)?`${x} : colonne absente de l'Excel, valeur ${gD(x)} appliquée à toutes les lignes`:`${x} : aucune colonne trouvée dans cet onglet, -1 appliqué`));
+  m.req.filter(x=>!isDef(t,x)&&!has(x)&&!hasD(x)).forEach(x=>errs.push(`Colonne ${x} introuvable dans cet onglet (en-têtes lues : ${s.header.filter(Boolean).join(', ')||'aucune'})`));
   const CD=t==='ControleDivers',unitRe=/^\s*-?\d+(?:[.,]\d+)?\s*([^\d\s.,\-][^\d]*)$/,numRe=/^\s*(-?\d+(?:[.,]\d+)?)\s*[^\d\s.,\-][^\d]*$/;
   const unitFrom=r=>{for(const x of ['MesureMin','MesureMax']){if(!has(x))continue;const v=r[idx[x]];if(typeof v==='string'){const mm=unitRe.exec(v);if(mm)return mm[1].trim().toUpperCase()}}return ''};
   let nUnit=0;
@@ -2288,15 +2289,17 @@ function normalized(t,s,mp){
     if(src.length&&src.every(v=>v==null||String(v).trim()==='')){aoa.push(tags.map(()=>null));return}
     const ru=CD?unitFrom(r):'';
     aoa.push(tags.map(x=>{
-      let v=has(x)?r[idx[x]]:null;
+      let v=has(x)?r[idx[x]]:(hasD(x)?gD(x):null);
       if(CD){if(x==='MesureUnit'&&!has(x))return ru||null;if((x==='MesureMin'||x==='MesureMax')&&typeof v==='string'){const mm=numRe.exec(v);if(mm)v=mm[1].replace(',','.')}}
-      if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x)){if(x==='DateLimit'||x==='Dlc')missing.push({tag:x,row:i+s.hdrRow+1,name:cellS(r,'Name'),cat:cellS(r,'Category')});else filled[x]=(filled[x]||0)+1}}
+      if(isDef(t,x)&&(v==null||String(v).trim()==='')&&hasD(x)){v=gD(x);filledD[x]=(filledD[x]||0)+1}
+      else if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x)){if(x==='DateLimit'||x==='Dlc')missing.push({tag:x,row:i+s.hdrRow+1,name:cellS(r,'Name'),cat:cellS(r,'Category')});else filled[x]=(filled[x]||0)+1}}
       if(has(x)&&typeof v==='string'&&['int','num'].includes((m.cols.find(c=>c[0]===x)||[])[1])){const c=dayNb(v,x);if(c!==v){nClean++;if(cleanEx.length<2&&!cleanEx.includes(v.trim()))cleanEx.push(v.trim());v=c}}
       return v;
     }));
   });
   if(nClean)notes.push(`${nClean} valeur(s) nettoyée(s) pour ne garder que le nombre de jours (ex. « ${cleanEx.join(' », « ')} »)`);
   Object.keys(filled).forEach(x=>notes.push(`${x} : ${filled[x]} cellule(s) vide(s) remplacée(s) par -1`));
+  Object.keys(filledD).forEach(x=>notes.push(`${x} : ${filledD[x]} cellule(s) vide(s) remplacée(s) par ${gD(x)}`));
   if(missing.length)errs.unshift(`DLC manquante sur ${missing.length} produit(s) : génération bloquée. Complète la DLC dans l'Excel (saisis -1 si le produit n'a pas de DLC).`);
   return {aoa,errs,notes,idx,missing};
 }
@@ -2364,7 +2367,11 @@ function logXml(id,k,file,kind,bytes){
 function openGen(m,k,id,M,r){
   if(genDlg)closeGen();
   const isAnge=/boulangerie\s+ange/i.test(m.group||m.title||"");
-  const st={mom:null,type:guessType(M.name),sheets:[],file:"",sel:new Set(),map:{},dl:"0",dd:"false",ange:isAnge,res:null,msg:"",err:"",ticked:false,open:{}};
+  const MULTI=typeof SUPPORT!=="undefined"&&SUPPORT;
+  const st={mom:null,type:guessType(M.name),sheets:[],file:"",sel:new Set(),map:{},dl:"0",dd:"false",ange:isAnge,res:null,msg:"",err:"",ticked:false,open:{},types:new Set(),defs:{}};
+  if(st.type)st.types.add(st.type);
+  const TYPES=()=>MULTI?Object.keys(GENX.MODS).filter(t=>st.types.has(t)):(st.type?[st.type]:[]);
+  const DEFLAB={TempMin:"Temp. mini",TempMax:"Temp. maxi",TempLimit:"Temp. limite",MesureMin:"Mesure mini",MesureMax:"Mesure maxi",Dlc:"DLC",Ddm:"DDM",Du:"Unité",DateLimit:"DLC",Conservation:"Conservation (jours)"};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","gt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeGen()};document.addEventListener("keydown",key);
@@ -2402,14 +2409,17 @@ function openGen(m,k,id,M,r){
     paint();
   }
   function run(){
-    const t=st.type,p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true",moments:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)).map(z=>z.id):[],momTime:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)&&z.time).map(z=>z.time).sort()[0]||"":""},nf=GENX.nowFn(t);
+    const p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true",moments:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)).map(z=>z.id):[],momTime:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)&&z.time).map(z=>z.time).sort()[0]||"":""};
     st.msg="";st.ticked=false;st.open={};
-    st.res=[...st.sel].sort((a,b)=>a-b).map(i=>{
-      const s=st.sheets[i],n=GENX.normalized(t,s,st.map);
-      const g=n.errs.length?{xml:null,errs:n.errs,warns:[],count:0,cleaned:0,file:GENX.MODS[t].out}:GENX.generate(t,n.aoa,p,nf,s.hdrRow-1);
-      if(g.xml)g.warns=n.notes.concat(g.warns);
-      g.missing=n.missing||[];
-      return {sheet:s.name,dir:GENX.dirCode(s.name),g};
+    st.res=[];
+    TYPES().forEach(t=>{const nf=GENX.nowFn(t);
+      [...st.sel].sort((a,b)=>a-b).forEach(i=>{
+        const s=st.sheets[i],n=GENX.normalized(t,s,st.map,st.defs[t]||{});
+        const g=n.errs.length?{xml:null,errs:n.errs,warns:[],count:0,cleaned:0,file:GENX.MODS[t].out}:GENX.generate(t,n.aoa,p,nf,s.hdrRow-1);
+        if(g.xml)g.warns=n.notes.concat(g.warns);
+        g.missing=n.missing||[];
+        st.res.push({type:t,sheet:s.name,dir:GENX.dirCode(s.name),g});
+      });
     });
     flag();markOk();paint();
   }
@@ -2460,9 +2470,16 @@ function openGen(m,k,id,M,r){
   const okRes=()=>(st.res||[]).filter(x=>x.g.xml);
   function zipOf(){
     const ok=okRes(),enc=new TextEncoder(),used=new Set(),files=[];
+    const nt=new Set(ok.map(x=>x.type)).size;
+    if(nt>1){
+      const per={};ok.forEach(x=>{per[x.type]=(per[x.type]||0)+1});
+      ok.forEach(x=>{const top=x.g.file.replace(/\.xml$/i,"");let d=(per[x.type]>1?x.dir+"/":""),full=top+"/"+d+x.g.file,n=2;while(used.has(full)){full=top+"/"+x.dir+"_"+(n++)+"/"+x.g.file}used.add(full);files.push({name:full,data:enc.encode(x.g.xml)})});
+      const base=(st.file||"Excel").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").trim()||"Excel";
+      return {name:base+" - XML.zip",bytes:makeZipMany(files)};
+    }
     ok.forEach(x=>{let d=x.dir,n=2;while(used.has(d))d=x.dir+"_"+(n++);used.add(d);files.push({name:(ok.length>1?d+"/":"")+x.g.file,data:enc.encode(x.g.xml)})});
     const part=(ok.length>1?"REGIONS":ok[0].dir).replace(/[^A-Za-z0-9_-]+/g,"-");
-    const ob=GENX.MODS[st.type].out.replace(/\.xml$/i,"");return {name:zipGroup(id)?zipName(id,ob):(ok.length>1?part+"_":"")+ob+".zip",bytes:makeZipMany(files)};
+    const ob=GENX.MODS[ok[0].type||st.type].out.replace(/\.xml$/i,"");return {name:zipGroup(id)?zipName(id,ob):(ok.length>1?part+"_":"")+ob+".zip",bytes:makeZipMany(files)};
   }
   async function save(){
     st.msg="";
@@ -2496,10 +2513,10 @@ function openGen(m,k,id,M,r){
     const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
     const subP=$("p","gsubp gfile");md.append(hd,subP);
     const T=GENX.MODS;
-    {const gl=$("div","gtl","Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role","radiogroup");gr.setAttribute("aria-label","Type d'XML");
-     Object.keys(T).forEach(t=>{const on=st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
+    {const gl=$("div","gtl",MULTI?"Type(s) d'XML (un ou plusieurs)":"Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role",MULTI?"group":"radiogroup");gr.setAttribute("aria-label","Type d'XML");
+     Object.keys(T).forEach(t=>{const on=MULTI?st.types.has(t):st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role",MULTI?"checkbox":"radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(MULTI){if(st.types.has(t))st.types.delete(t);else st.types.add(t);st.type=TYPES()[0]||"";st.res=null;paint();return}if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
      md.append(gl,gr)}
-    if(!st.type&&!st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
+    if(!TYPES().length&&!st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
     const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls,.csv";inp.hidden=true;
     inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
     if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
@@ -2521,26 +2538,28 @@ function openGen(m,k,id,M,r){
       l.append(cb,$("b",null,s.name),$("span",null,s.count?s.count+" ligne(s)":"aucune donnée"));sl.appendChild(l);
     });
     md.appendChild(sl);
-    if(!st.type){md.appendChild($("p","msg err","Choisis le type d'XML pour continuer."));return}
+    if(!TYPES().length){md.appendChild($("p","msg err","Choisis le type d'XML pour continuer."));return}
     const chosen=[...st.sel].sort((a,b)=>a-b).map(i=>st.sheets[i]);
     /* colonnes reconnues */
     if(chosen.length){
-      const m0=T[st.type],box=$("div","gdet");
-      chosen.forEach(s=>{
-        const idx=GENX.resolve(st.type,s,st.map),line=$("div","gl");line.appendChild($("b",null,s.name+" : "));
-        const parts=m0.cols.map(c=>c[0]).filter(t=>idx[t]>=0||m0.req.includes(t));
+      const m0=T[TYPES()[0]],box=$("div","gdet");
+      TYPES().forEach(ty=>chosen.forEach(s=>{
+        const mt=T[ty],hd=(st.defs[ty]||{});
+        const idx=GENX.resolve(ty,s,st.map),line=$("div","gl");line.appendChild($("b",null,(MULTI?(GEN_LABEL[ty]||ty)+" · ":"")+s.name+" : "));
+        const parts=mt.cols.map(c=>c[0]).filter(t=>idx[t]>=0||mt.req.includes(t));
         parts.forEach((t,j)=>{
-          const sp=$("span",idx[t]>=0?null:(GENX.isDef(st.type,t)?"gdef":"gbad"),idx[t]>=0?t+" ← "+s.header[idx[t]]:t+" : "+(GENX.isDef(st.type,t)?"-1 par défaut":"introuvable"));
+          const hasD=idx[t]<0&&hd[t]!==undefined&&String(hd[t]).trim()!=="";
+          const sp=$("span",idx[t]>=0?null:(hasD||GENX.isDef(ty,t)?"gdef":"gbad"),idx[t]>=0?t+" ← "+s.header[idx[t]]:t+" : "+(hasD?"valeur saisie "+hd[t]:GENX.isDef(ty,t)?"-1 par défaut":"introuvable"));
           line.appendChild(sp);if(j<parts.length-1)line.append(" · ");
         });
         box.appendChild(line);
-      });
+      }));
       md.appendChild(box);
       /* ajustement manuel */
       const dt=$("details","adj");dt.appendChild($("summary",null,"Ajuster les colonnes"));
       const heads=[...new Set(chosen.flatMap(s=>s.header.filter(Boolean)))];
       const gr=$("div","gmap");
-      m0.cols.map(c=>c[0]).forEach(t=>{
+      [...new Set(TYPES().flatMap(ty=>T[ty].cols.map(c=>c[0])))].forEach(t=>{
         const cur=st.map[t]||{t:"auto"};
         gr.appendChild($("span","gt",t));
         gr.appendChild(sel([["auto","Automatique"],["none","Ignorer"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
@@ -2548,7 +2567,26 @@ function openGen(m,k,id,M,r){
       });
       dt.appendChild(gr);if(Object.keys(st.map).some(t=>st.map[t].t!=="auto"))dt.open=true;md.appendChild(dt);
     }
-    if(T[st.type].params){
+    if(MULTI){
+      const blocks=[];
+      TYPES().forEach(ty=>{
+        const mt=T[ty],miss=mt.req.filter(x=>['int','num'].includes((mt.cols.find(c=>c[0]===x)||[])[1])&&chosen.some(s=>GENX.resolve(ty,s,st.map)[x]<0));
+        if(miss.length)blocks.push([ty,miss]);
+      });
+      if(blocks.length){
+        const bx=$("div","gdefs");bx.appendChild($("strong",null,"Valeurs à appliquer (colonnes absentes de l'Excel)"));
+        bx.appendChild($("p","ghint","Ces informations ne sont pas dans le fichier du client. La valeur saisie est appliquée à toutes les lignes ; vide = -1 (ou bloqué si le module n'accepte pas -1)."));
+        blocks.forEach(([ty,miss])=>{
+          const row=$("div","gdefrow");row.appendChild($("span","gdeft",GEN_LABEL[ty]||ty));
+          miss.forEach(x=>{const l=$("label","fld");const i=$("input");i.type="text";i.inputMode="decimal";i.size=6;i.placeholder=GENX.isDef(ty,x)?"-1":"requis";i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
+            i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;st.res=null};
+            l.append($("span",null,DEFLAB[x]||x),i);row.appendChild(l)});
+          bx.appendChild(row);
+        });
+        md.appendChild(bx);
+      }
+    }
+    if(TYPES().some(ty=>T[ty].params)){
       const pw=$("div","gparams");
       pw.appendChild(field("Type de DLC",sel([["","À choisir"],["-1","-1 · interface"],["0","0 · jours"],["1","1 · services"],["2","2 · heures"],["3","3 · minutes"]],st.dl,v=>{st.dl=v})));
       pw.appendChild(field("IsDDM par défaut",sel([["false","false"],["true","true"]],st.dd,v=>{st.dd=v})));
@@ -2556,8 +2594,9 @@ function openGen(m,k,id,M,r){
       al.append(ax,$("b",null,"Boulangerie Ange"),$("span",null,"IsDDM = true pour la catégorie « DDM SECONDAIRE »"));
       pw.appendChild(al);md.appendChild(pw);
     }
-    const needMom=!!T[st.type].moments&&!(st.mom&&st.mom.sel.size);
-    if(T[st.type].moments){
+    const useMom=TYPES().some(ty=>T[ty].moments);
+    const needMom=useMom&&!(st.mom&&st.mom.sel.size);
+    if(useMom){
       const mb=$("div","gmom");mb.appendChild($("strong",null,"Moments des contrôles"));
       const mi=$("input");mi.type="file";mi.accept=".xml";mi.hidden=true;
       mi.onchange=async()=>{const f=mi.files[0];if(!f)return;
@@ -2588,7 +2627,7 @@ function openGen(m,k,id,M,r){
       md.appendChild(mb);
     }
     const ac=$("div","actions");
-    const gb=$("button","btn","Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=run;ac.appendChild(gb);
+    const gb=$("button","btn",TYPES().length>1?"Générer les XML":"Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=run;ac.appendChild(gb);
     if(!chosen.length)ac.appendChild($("span","msg","Coche au moins un onglet."));else if(needMom)ac.appendChild($("span","msg","Choisis le moment des contrôles."));
     md.appendChild(ac);
     /* résultats */
@@ -2596,10 +2635,11 @@ function openGen(m,k,id,M,r){
       st.res.forEach(x=>{
         const c=$("div","gcard");
         const bad=!x.g.xml||(x.g.errs&&x.g.errs.length)||(x.g.missing&&x.g.missing.length)||x.g.warns.some(w=>/doublon/i.test(w));
-        const isOpen=x.sheet in st.open?st.open[x.sheet]:!!bad;
+        const kx=(x.type||"")+"|"+x.sheet,tl=(MULTI&&TYPES().length>1?(GEN_LABEL[x.type]||x.type)+" · ":"")+x.sheet;
+        const isOpen=kx in st.open?st.open[kx]:!!bad;
         const hh=$("button","gch gchb");hh.type="button";hh.setAttribute("aria-expanded",String(isOpen));hh.title=isOpen?"Réduire":"Développer";
-        const hb=$("b",null,(isOpen?"▾ ":"▸ ")+x.sheet);const bd=$("span","gbadge"+(bad?" bad":""),x.g.xml?x.g.count+" produit(s)"+(bad?" · à vérifier":""):"non généré");
-        hh.append(hb,bd);hh.onclick=()=>{st.open[x.sheet]=!isOpen;paint()};c.appendChild(hh);
+        const hb=$("b",null,(isOpen?"▾ ":"▸ ")+tl);const bd=$("span","gbadge"+(bad?" bad":""),x.g.xml?x.g.count+" produit(s)"+(bad?" · à vérifier":""):"non généré");
+        hh.append(hb,bd);hh.onclick=()=>{st.open[kx]=!isOpen;paint()};c.appendChild(hh);
         const cb=$("div","gcb");cb.hidden=!isOpen;c.appendChild(cb);
         if(x.g.missing&&x.g.missing.length){
           const al=$("div","dlcalert");al.setAttribute("role","alert");
@@ -2625,7 +2665,7 @@ function openGen(m,k,id,M,r){
         if(x.g.xml){const pre=$("pre","xres",x.g.xml.split(/\r?\n/).slice(0,10).join("\n")+"\n…");cb.appendChild(pre)}
         md.appendChild(c);
       });
-      const miss=st.res.filter(x=>x.g.missing&&x.g.missing.length);
+      const seenM=new Set(),miss=st.res.filter(x=>x.g.missing&&x.g.missing.length&&!seenM.has(x.sheet)&&seenM.add(x.sheet));
       if(miss.length){
         const cm0=majs[id],gname=cm0?(groupOf(cm0)||cm0.group||""):"",site=cm0&&cm0.site?cm0.site:"";
         const tot=miss.reduce((a,x)=>a+x.g.missing.length,0);
@@ -2652,7 +2692,7 @@ function openGen(m,k,id,M,r){
         if(ok.length===1){const cb=$("button","btn ghost","Copier le XML");cb.onclick=()=>copy(ok[0]);a2.appendChild(cb)}
         md.appendChild(a2);
         if(ok.length===1){const ta=$("textarea","xmlout");ta.value=ok[0].g.xml;ta.readOnly=true;ta.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px";md.appendChild(ta)}
-        md.appendChild($("p",null,"Le ZIP contient le fichier "+GENX.MODS[st.type].out+(ok.length>1?" dans un dossier par onglet":"")+". L'étape « Fichier d'import » se coche dès que l'XML est généré sans erreur."));
+        md.appendChild($("p",null,"Le ZIP contient "+(new Set(ok.map(z=>z.type)).size>1?"un dossier par type d'XML ("+[...new Set(ok.map(z=>z.g.file))].join(", ")+")":"le fichier "+GENX.MODS[ok[0].type||st.type].out+(ok.length>1?" dans un dossier par onglet":""))+". L'étape « Fichier d'import » se coche dès que l'XML est généré sans erreur."));
       }
     }
     if(st.msg){const e=$("p","msg",st.msg);e.setAttribute("role","status");md.appendChild(e)}
