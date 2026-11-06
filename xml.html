@@ -708,7 +708,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.1.0";
-const SUPPORT_BUILD="v0.10.0";
+const SUPPORT_BUILD="v0.10.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2605,7 +2605,7 @@ function openGen(m,k,id,M,r){
           x.g.missing.slice(0,15).forEach(q=>ul.appendChild($("li",null,"Ligne Excel "+q.row+" · "+(q.name||"(sans désignation)")+" · catégorie : "+(q.cat||"(aucune)"))));
           al.appendChild(ul);
           if(x.g.missing.length>15)al.appendChild($("div",null,"… et "+(x.g.missing.length-15)+" autre(s) ligne(s)"));
-          al.appendChild($("small",null,"Génération bloquée : demande les DLC manquantes au siège (mail ci-dessous), puis relance. Si un produit n'a vraiment pas de DLC, saisis -1 dans l'Excel."));
+          al.appendChild($("small",null,"Génération bloquée : il est nécessaire de demander au client l'information des DLC manquantes (mail ci-dessous) puis de relancer la génération du fichier XML."));al.appendChild($("small",null,"Si un produit n'a vraiment pas de DLC, saisis -1 dans l'Excel."));
           cb.appendChild(al);
         }
         {const es=x.g.errs.filter(e=>!(x.g.missing&&x.g.missing.length&&/^DLC manquante/.test(e)));es.slice(0,8).forEach(e=>cb.appendChild($("div","msg err",e)));if(es.length>8)cb.appendChild($("div","msg err","… et "+(es.length-8)+" autre(s) erreur(s)"))}
