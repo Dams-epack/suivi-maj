@@ -221,6 +221,25 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
   .row.one .step{flex-direction:row}
 }
 .modal.xml{max-width:640px;max-height:90vh;overflow:auto}
+.modal.xml.adq{max-width:520px}
+.adqhd{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.adqhd h2{margin:0 0 2px;font-size:1.15rem}
+.adqic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--cta) 18%,transparent);color:var(--cta);font-size:1.1rem}
+.adqsub{margin:0;color:var(--muted);font-size:.85rem;line-height:1.35}
+.adqx{margin-left:auto;flex:none;border:0;background:transparent;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer;padding:2px 8px;border-radius:8px}
+.adqx:hover{background:color-mix(in srgb,var(--fg) 10%,transparent);color:var(--fg)}
+.adqcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:color-mix(in srgb,var(--fg) 3%,transparent)}
+.adqcard h3{margin:0 0 10px;font-size:.95rem}
+.adqgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.adqf{display:block}
+.adql{display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+.adqin{position:relative}
+.adqin input{padding-right:46px!important}
+.adqin input::placeholder{color:var(--muted);opacity:.55;font-style:italic}
+.adqin input:focus{outline:2px solid var(--cta);outline-offset:0}
+.adqu{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--muted);pointer-events:none}
+.adqact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
 .dates{display:flex;flex-wrap:wrap;gap:12px 24px}
 .mailbody{font:inherit;font-weight:400;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%;resize:vertical;line-height:1.45}
 .bloc{display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface);border-top:4px solid var(--cta)}
@@ -710,7 +729,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.2.0";
-const SUPPORT_BUILD="v0.13.1";
+const SUPPORT_BUILD="v0.13.2";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2418,24 +2437,28 @@ function openGen(m,k,id,M,r){
   }
   function askDefs(blocks,go){
     const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.style.zIndex=10001;
-    const md=$("div","modal xml");md.style.maxWidth="460px";bg.appendChild(md);document.body.appendChild(bg);
+    const md=$("div","modal xml adq");bg.appendChild(md);document.body.appendChild(bg);
     const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true)};
     const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}};document.addEventListener("keydown",kd,true);
     bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
-    md.appendChild($("h2",null,"Informations manquantes"));
-    md.appendChild($("p","ghint","Ces informations ne sont pas dans l'Excel du client. La valeur saisie sera appliquée à toutes les lignes du type concerné. Laisse vide pour mettre -1."));
+    const hd=$("div","adqhd");const ic=$("span","adqic","✎");ic.setAttribute("aria-hidden","true");
+    const ht=$("div",null);ht.append($("h2",null,"Informations manquantes"),$("p","adqsub","Absentes de l'Excel du client. La valeur saisie s'applique à toutes les lignes du type concerné."));
+    const xb=$("button","adqx","×");xb.type="button";xb.setAttribute("aria-label","Fermer");xb.onclick=close;hd.append(ic,ht,xb);md.appendChild(hd);
+    const UNIT={TempMin:"°C",TempMax:"°C",TempLimit:"°C",MesureMin:"",MesureMax:"",Dlc:"jours",Ddm:"jours",DateLimit:"jours",Conservation:"jours"};
     const first=[];
     blocks.forEach(([ty,miss])=>{
-      const row=$("div","gdefs");row.appendChild($("strong",null,GEN_LABEL[ty]||ty));
-      miss.forEach(x=>{const l=$("label","fld");l.style.display="block";l.style.marginTop="6px";const i=$("input");i.type="text";i.inputMode="decimal";
-        i.placeholder=GENX.isDef(ty,x)?"-1":"requis";i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
+      const card=$("section","adqcard");card.appendChild($("h3",null,GEN_LABEL[ty]||ty));
+      const gr=$("div","adqgrid");
+      miss.forEach(x=>{const l=$("label","adqf");l.appendChild($("span","adql",DEFLAB[x]||x));
+        const w=$("div","adqin");const i=$("input");i.type="text";i.inputMode="decimal";
+        i.placeholder=GENX.isDef(ty,x)?"vide = -1":"requis";i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
         i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;err.textContent=""};
         i.onkeydown=e=>{if(e.key==="Enter")ok.click()};
-        l.append($("span",null,DEFLAB[x]||x),i);row.appendChild(l);first.push(i)});
-      md.appendChild(row);
+        w.appendChild(i);if(UNIT[x])w.appendChild($("span","adqu",UNIT[x]));l.appendChild(w);gr.appendChild(l);first.push(i)});
+      card.appendChild(gr);md.appendChild(card);
     });
     const err=$("p","msg err");md.appendChild(err);
-    const ac=$("div","gact");ac.style.cssText="display:flex;gap:8px;justify-content:flex-end;margin-top:12px";
+    const ac=$("div","adqact");
     const cn=$("button","btn ghost","Annuler");cn.type="button";cn.onclick=close;
     const ok=$("button","btn","Valider et générer");ok.type="button";
     ok.onclick=()=>{
