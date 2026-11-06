@@ -707,8 +707,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.1.0";
-const SUPPORT_BUILD="v0.10.2";
+const APP_VERSION="v2.1.1";
+const SUPPORT_BUILD="v0.10.3";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2490,7 +2490,7 @@ function openGen(m,k,id,M,r){
   function paint(){
     md.textContent="";
     const h=$("h2",null,"Excel → XML");h.id="gt";
-    const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
+    const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
     md.append(hd,$("p",null,"Choisis le type d'XML, dépose l'Excel du client puis génère."));
     const T=GENX.MODS;
     {const gl=$("div","gtl","Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role","radiogroup");gr.setAttribute("aria-label","Type d'XML");
@@ -3331,7 +3331,7 @@ function openX2E(){
   function paint0(){
     md.textContent="";
     const h=$("h2",null,"XML → Excel");h.id="x2t";
-    const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;const bt=$("span","x2beta","BÊTA");bt.title="Version bêta : utilisable, mais ton retour est attendu";h.appendChild(document.createTextNode(" "));h.appendChild(bt);hd.append(h,x);
+    const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;const bt=$("span","x2beta","BÊTA");bt.title="Version bêta : utilisable, mais ton retour est attendu";h.appendChild(document.createTextNode(" "));h.appendChild(bt);hd.append(h,x);
     md.append(hd,$("p",null,"Dépose le ZIP de la configuration du client (ou un seul XML) : je produis un Excel avec un onglet par module. Rien n'est envoyé, tout reste dans ton navigateur."));
     md.appendChild($("p","x2bn","Version bêta : un doute, une colonne en trop ou un nom à corriger ? Note-le et transmets-le à Dam's."));
     if(st.busy){md.appendChild($("p","msg","Lecture en cours…"));return}
