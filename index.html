@@ -3811,7 +3811,7 @@ function openGen(m,k,id,M,r){
     const ok=okRes(),enc=new TextEncoder(),used=new Set(),files=[];
     ok.forEach(x=>{let d=x.dir,n=2;while(used.has(d))d=x.dir+"_"+(n++);used.add(d);files.push({name:(ok.length>1?d+"/":"")+x.g.file,data:enc.encode(x.g.xml)})});
     const part=(ok.length>1?"REGIONS":ok[0].dir).replace(/[^A-Za-z0-9_-]+/g,"-");
-    const ob=GENX.MODS[st.type].out.replace(/\.xml$/i,"");return {name:zipGroup(id)?zipName(id,ob):part+"_"+ob+".zip",bytes:makeZipMany(files)};
+    const ob=GENX.MODS[st.type].out.replace(/\.xml$/i,"");return {name:zipGroup(id)?zipName(id,ob):(ok.length>1?part+"_":"")+ob+".zip",bytes:makeZipMany(files)};
   }
   async function save(){
     st.msg="";
@@ -5196,7 +5196,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.1.1",APP_DATE="05/11/2026";
+const APP_VERSION="v2.1.2",APP_DATE="05/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
