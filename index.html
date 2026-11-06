@@ -4039,7 +4039,7 @@ function openGen(m,k,id,M,r){
       md.appendChild(mb);
     }
     const ac=$("div","actions");
-    const gb=$("button","btn",TYPES().length>1?"Générer les XML":"Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=()=>{const bl=MULTI?missingDefs():[];if(bl.length)askDefs(bl,run);else run()};ac.appendChild(gb);
+    const gb=$("button","btn",TYPES().length>1?"Générer les XML":"Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=()=>{const bl=MULTI?missingDefs():[];if(bl.length)askDefs(bl,()=>{run();if(okRes().length)save()});else run()};ac.appendChild(gb);
     if(!chosen.length)ac.appendChild($("span","msg","Coche au moins un onglet."));else if(needMom)ac.appendChild($("span","msg","Choisis le moment des contrôles."));
     md.appendChild(ac);
     /* résultats */

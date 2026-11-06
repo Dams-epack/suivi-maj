@@ -119,7 +119,7 @@ function render(){
 render();
 '''
 import datetime,zoneinfo
-SB='0.13.4'
+SB='0.13.5'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
