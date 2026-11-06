@@ -3801,13 +3801,15 @@ function openGen(m,k,id,M,r){
     const ht=$("div",null);ht.append($("h2",null,"Informations manquantes"),$("p","adqsub","Absentes de l'Excel du client. La valeur saisie s'applique à toutes les lignes du type concerné."));
     const xb=$("button","adqx","×");xb.type="button";xb.setAttribute("aria-label","Fermer");xb.onclick=close;hd.append(ic,ht,xb);md.appendChild(hd);
     const UNIT={TempMin:"°C",TempMax:"°C",TempLimit:"°C",MesureMin:"",MesureMax:"",Dlc:"jours",Ddm:"jours",DateLimit:"jours",Conservation:"jours"};
+    const TDEF={TempMin:"-10",TempMax:"99"};
     const first=[];
     blocks.forEach(([ty,miss])=>{
       const card=$("section","adqcard");card.appendChild($("h3",null,GEN_LABEL[ty]||ty));
       const gr=$("div","adqgrid");
       miss.forEach(x=>{const l=$("label","adqf");l.appendChild($("span","adql",DEFLAB[x]||x));
         const w=$("div","adqin");const i=$("input");i.type="text";i.inputMode="decimal";
-        i.placeholder=GENX.isDef(ty,x)?"vide = -1":"requis";i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
+        i.placeholder=GENX.isDef(ty,x)?"vide = -1":"requis";const cur=(st.defs[ty]||{})[x];if(cur===undefined&&TDEF[x]!==undefined){st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=TDEF[x]}
+        i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
         i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;err.textContent=""};
         i.onkeydown=e=>{if(e.key==="Enter")ok.click()};
         w.appendChild(i);if(UNIT[x])w.appendChild($("span","adqu",UNIT[x]));l.appendChild(w);gr.appendChild(l);first.push(i)});
