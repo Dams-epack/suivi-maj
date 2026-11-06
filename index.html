@@ -309,6 +309,13 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
 .gsheet span{color:var(--muted);font-size:.85rem}
+.rcl{flex:none;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:.85rem;margin:4px 0 8px}
+.rclr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 12px;border-top:1px solid var(--line)}
+.rclr:first-child{border-top:0}
+.rcln{font-weight:600;flex:none}
+.rclb{text-align:right;color:var(--ok)}
+.rclb.warn{color:var(--warn)}.rclb.bad{color:var(--bad);font-weight:600}
+@media(max-width:520px){.rclr{flex-direction:column;gap:2px}.rclb{text-align:left}}
 .gdet{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--muted)}
 .gdet .gdef{color:var(--warn)}.gdet .gbad{color:var(--bad);font-weight:600}
 .modal.xml details.adj summary{cursor:pointer;color:var(--muted);font-size:.85rem}
@@ -3962,7 +3969,21 @@ function openGen(m,k,id,M,r){
         });
         box.appendChild(line);
       }));
-      md.appendChild(box);
+      if(MULTI){
+        const sum=$("div","rcl");const many=chosen.length>1;
+        TYPES().forEach(ty=>chosen.forEach(s=>{
+          const mt=T[ty],hd=(st.defs[ty]||{}),idx=GENX.resolve(ty,s,st.map);
+          const hasD=t=>idx[t]<0&&hd[t]!==undefined&&String(hd[t]).trim()!=="";
+          const miss=mt.req.filter(t=>idx[t]<0),bad=miss.filter(t=>!hasD(t)&&!GENX.isDef(ty,t)),dfl=miss.filter(t=>!hasD(t)&&GENX.isDef(ty,t)),ent=miss.filter(hasD);
+          const nf=mt.cols.filter(c=>idx[c[0]]>=0).length;
+          const r=$("div","rclr"),k=bad.length?"bad":dfl.length?"warn":"ok";
+          r.appendChild($("span","rcln",(GEN_LABEL[ty]||ty)+(many?" · "+s.name:"")));
+          r.appendChild($("span","rclb "+k,bad.length?"✕ Colonne introuvable : "+bad.map(t=>DEFLAB[t]||t).join(", "):dfl.length?"⚠ À compléter : "+dfl.map(t=>DEFLAB[t]||t).join(", ")+" (sinon -1)":"✓ "+nf+" colonne(s) reconnue(s)"));
+          sum.appendChild(r);
+        }));
+        md.appendChild(sum);
+        const dd=$("details","adj");dd.appendChild($("summary",null,"Détail des colonnes reconnues"));dd.appendChild(box);md.appendChild(dd);
+      }else md.appendChild(box);
       /* ajustement manuel */
       const dt=$("details","adj");dt.appendChild($("summary",null,"Ajuster les colonnes"));
       const heads=[...new Set(chosen.flatMap(s=>s.header.filter(Boolean)))];
