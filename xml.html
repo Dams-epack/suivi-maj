@@ -736,7 +736,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.2.0";
-const SUPPORT_BUILD="v0.13.5";
+const SUPPORT_BUILD="v0.13.6";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2540,8 +2540,8 @@ function openGen(m,k,id,M,r){
     const ok=okRes(),enc=new TextEncoder(),used=new Set(),files=[];
     const nt=new Set(ok.map(x=>x.type)).size;
     if(nt>1){
-      const per={};ok.forEach(x=>{per[x.type]=(per[x.type]||0)+1});
-      ok.forEach(x=>{const top=x.g.file.replace(/\.xml$/i,"");let d=(per[x.type]>1?x.dir+"/":""),full=top+"/"+d+x.g.file,n=2;while(used.has(full)){full=top+"/"+x.dir+"_"+(n++)+"/"+x.g.file}used.add(full);files.push({name:full,data:enc.encode(x.g.xml)})});
+      const nsh=new Set(ok.map(x=>x.sheet)).size,dirs={};
+      ok.forEach(x=>{let d=nsh>1?(dirs[x.sheet]||(dirs[x.sheet]=(()=>{let q=x.dir,n=2;while(Object.values(dirs).includes(q))q=x.dir+"_"+(n++);return q})())):"";files.push({name:(d?d+"/":"")+x.g.file,data:enc.encode(x.g.xml)})});
       const base=(st.file||"Excel").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").trim()||"Excel";
       return {name:base+" - XML.zip",bytes:makeZipMany(files)};
     }
@@ -2755,7 +2755,7 @@ function openGen(m,k,id,M,r){
         if(ok.length===1){const cb=$("button","btn ghost","Copier le XML");cb.onclick=()=>copy(ok[0]);a2.appendChild(cb)}
         md.appendChild(a2);
         if(ok.length===1){const ta=$("textarea","xmlout");ta.value=ok[0].g.xml;ta.readOnly=true;ta.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px";md.appendChild(ta)}
-        md.appendChild($("p",null,"Le ZIP contient "+(new Set(ok.map(z=>z.type)).size>1?"un dossier par type d'XML ("+[...new Set(ok.map(z=>z.g.file))].join(", ")+")":"le fichier "+GENX.MODS[ok[0].type||st.type].out+(ok.length>1?" dans un dossier par onglet":""))+". L'étape « Fichier d'import » se coche dès que l'XML est généré sans erreur."));
+        md.appendChild($("p",null,"Le ZIP contient "+(new Set(ok.map(z=>z.type)).size>1?(new Set(ok.map(z=>z.sheet)).size>1?"un dossier par onglet, avec les XML ":"les XML ")+"("+[...new Set(ok.map(z=>z.g.file))].join(", ")+")":"le fichier "+GENX.MODS[ok[0].type||st.type].out+(ok.length>1?" dans un dossier par onglet":""))+". L'étape « Fichier d'import » se coche dès que l'XML est généré sans erreur."));
       }
     }
     if(st.msg){const e=$("p","msg",st.msg);e.setAttribute("role","status");md.appendChild(e)}
