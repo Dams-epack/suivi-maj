@@ -43,7 +43,13 @@ code+=open(__import__('os').path.join(__import__('os').path.dirname(__import__('
 # adaptations propres à l'outil Support (aucun contexte de MAJ)
 a='md.append(hd,$("p","gsubp",M.name+" · "+regLabel));'
 assert code.count(a)==1
-code=code.replace(a,'md.append(hd,$("p",null,"Choisis le type d\'XML, dépose l\'Excel du client puis génère."));')
+code=code.replace(a,'const subP=$("p","gsubp gfile");md.append(hd,subP);')
+a='const fl=$("p",null);fl.append("Fichier : ",$("b",null,st.file)," ");'
+assert code.count(a)==1
+code=code.replace(a,'const fl=subP;fl.append("Fichier : ",$("b",null,st.file)," ");')
+a='fl.append(ch,inp);md.appendChild(fl);'
+assert code.count(a)==1
+code=code.replace(a,'fl.append(ch,inp);')
 a='if(wd.length===1)st.sel.add(wd[0][1])'
 assert code.count(a)==1,code.count(a)
 code=code.replace(a,'wd.forEach(([,i])=>st.sel.add(i))')
@@ -94,7 +100,7 @@ function render(){
 render();
 '''
 import datetime,zoneinfo
-SB='0.10.3'
+SB='0.11.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -119,7 +125,7 @@ extra_css='''<style>
 @keyframes tpop{from{transform:scale(.4)}to{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.tools .tool,.tool .tarr,.tool .tspk,.gtile.on .gtk{animation:none!important}.tool::after{display:none}.tool,.btn,.gtile,.chip,.tool .ticon{transition:none!important}}
 /* XML → Excel */
-.x2beta{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55);vertical-align:middle}
+.gsubp.gfile:empty{display:none}.gsubp.gfile{display:flex;align-items:center;flex-wrap:wrap;gap:6px;overflow-wrap:anywhere}\n.x2beta{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55);vertical-align:middle}
 .x2bn{font-size:12.5px;color:var(--muted,#9aa39e);border-left:3px solid #ffb020;padding:4px 10px;margin:8px 0}
 .wip{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55)}
 .x2list{flex:none;min-height:min(150px,30vh);display:flex;flex-direction:column;gap:2px;max-height:34vh;overflow:auto;border:1px solid var(--border,#ccc);border-radius:10px;padding:6px}

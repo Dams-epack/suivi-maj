@@ -690,6 +690,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 @keyframes tpop{from{transform:scale(.4)}to{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.tools .tool,.tool .tarr,.tool .tspk,.gtile.on .gtk{animation:none!important}.tool::after{display:none}.tool,.btn,.gtile,.chip,.tool .ticon{transition:none!important}}
 /* XML → Excel */
+.gsubp.gfile:empty{display:none}.gsubp.gfile{display:flex;align-items:center;flex-wrap:wrap;gap:6px;overflow-wrap:anywhere}
 .x2beta{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55);vertical-align:middle}
 .x2bn{font-size:12.5px;color:var(--muted,#9aa39e);border-left:3px solid #ffb020;padding:4px 10px;margin:8px 0}
 .wip{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55)}
@@ -708,7 +709,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.1.1";
-const SUPPORT_BUILD="v0.10.3";
+const SUPPORT_BUILD="v0.11.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2491,7 +2492,7 @@ function openGen(m,k,id,M,r){
     md.textContent="";
     const h=$("h2",null,"Excel → XML");h.id="gt";
     const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
-    md.append(hd,$("p",null,"Choisis le type d'XML, dépose l'Excel du client puis génère."));
+    const subP=$("p","gsubp gfile");md.append(hd,subP);
     const T=GENX.MODS;
     {const gl=$("div","gtl","Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role","radiogroup");gr.setAttribute("aria-label","Type d'XML");
      Object.keys(T).forEach(t=>{const on=st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
@@ -2507,8 +2508,8 @@ function openGen(m,k,id,M,r){
       d.ondrop=e=>{e.preventDefault();d.classList.remove("over");const f=e.dataTransfer.files[0];if(f)onFile(f)};
       const w=$("div");w.append(d,inp);md.appendChild(w);return;
     }
-    const fl=$("p",null);fl.append("Fichier : ",$("b",null,st.file)," ");
-    const ch=$("button","chip","Changer de fichier");ch.type="button";ch.onclick=()=>inp.click();fl.append(ch,inp);md.appendChild(fl);
+    const fl=subP;fl.append("Fichier : ",$("b",null,st.file)," ");
+    const ch=$("button","chip","Changer de fichier");ch.type="button";ch.onclick=()=>inp.click();fl.append(ch,inp);
     /* onglets */
     md.appendChild($("p",null,"Onglets à traiter (un XML par onglet) :"));
     const sl=$("div","gsheets");
