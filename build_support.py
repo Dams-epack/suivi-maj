@@ -50,6 +50,12 @@ code=code.replace(a,'wd.forEach(([,i])=>st.sel.add(i))')
 a='al.appendChild($("small",null,"Génération bloquée : demande les DLC manquantes au siège (mail ci-dessous), puis relance. Si un produit n\'a vraiment pas de DLC, saisis -1 dans l\'Excel."));'
 assert code.count(a)==1,code.count(a)
 code=code.replace(a,'al.appendChild($("small",null,"Génération bloquée : il est nécessaire de demander au client l\'information des DLC manquantes (mail ci-dessous) puis de relancer la génération du fichier XML."));al.appendChild($("small",null,"Si un produit n\'a vraiment pas de DLC, saisis -1 dans l\'Excel."));')
+a='$("strong",null,"Mail au siège : DLC manquantes")'
+assert code.count(a)==1
+code=code.replace(a,'$("strong",null,"Mail au client : DLC manquantes")')
+a='ta.setAttribute("aria-label","Mail au siège")'
+assert code.count(a)==1
+code=code.replace(a,'ta.setAttribute("aria-label","Mail au client")')
 prelude=r'''
 const SUPPORT=true;
 let majs={},cur=null;
@@ -88,7 +94,7 @@ function render(){
 render();
 '''
 import datetime,zoneinfo
-SB='0.10.1'
+SB='0.10.2'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>

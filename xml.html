@@ -708,7 +708,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.1.0";
-const SUPPORT_BUILD="v0.10.1";
+const SUPPORT_BUILD="v0.10.2";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2630,8 +2630,8 @@ function openGen(m,k,id,M,r){
         const subj="Mise à jour"+(gname?" "+gname:"")+(site?" - "+site:"")+" : DLC manquantes";
         const txt0="Bonjour,\n\nPour préparer la mise à jour"+(gname?" "+gname:"")+(site?" ("+site+")":"")+", nous avons relevé "+tot+" produit"+(tot>1?"s":"")+" sans DLC (durée de conservation) dans le fichier Excel transmis :\n\n"+bl+"\n\nMerci de nous transmettre la DLC de "+(tot>1?"ces produits":"ce produit")+" (ou de nous confirmer qu'il n'y en a pas). Nous ne pouvons pas générer les fichiers d'import sans cette information.\n\nCordialement,",txt=tr(txt0);
         const box=$("div","dlcmail");
-        box.appendChild($("strong",null,"Mail au siège : DLC manquantes"));
-        const ta=$("textarea");ta.rows=10;ta.value=txt;ta.setAttribute("aria-label","Mail au siège");
+        box.appendChild($("strong",null,"Mail au client : DLC manquantes"));
+        const ta=$("textarea");ta.rows=10;ta.value=txt;ta.setAttribute("aria-label","Mail au client");
         const ms=$("span","msg");ms.setAttribute("role","status");
         const cp=$("button","btn","Copier le mail");cp.type="button";
         cp.onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){}
