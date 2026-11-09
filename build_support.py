@@ -137,7 +137,7 @@ async function fbName(){const n=(typeof myName==="function"?myName():"")||"";if(
   buildBar();
   fbDb.collection("feedback").orderBy("ts","desc").limit(300).onSnapshot(s=>{fbList=s.docs.map(d=>Object.assign({id:d.id},d.data()));buildBar();if(fbDlg)fbPaint()},()=>{});
 }catch(e){}})();
-function fbClose(){if(!fbDlg)return;fbDlg.remove();fbDlg=null;document.removeEventListener("keydown",fbKey,true)}
+function fbClose(){if(!fbDlg)return;const bgn=fbDlg.parentNode;(bgn&&bgn.classList&&bgn.classList.contains("modal-bg")?bgn:fbDlg).remove();fbDlg=null;document.removeEventListener("keydown",fbKey,true)}
 function fbKey(e){if(e.key==="Escape"){e.stopPropagation();fbClose()}}
 function fbOpenDlg(){
   if(fbDlg)return;
@@ -203,7 +203,7 @@ function fbListPane(md){
 render();
 '''
 import datetime,zoneinfo
-SB='1.2.0'
+SB='1.2.1'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
