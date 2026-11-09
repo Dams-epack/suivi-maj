@@ -1496,9 +1496,9 @@ Ajoute un concept : une ligne de suivi par module et par pays, comme à la créa
 Échéances MAJ nationale / internationale ⇒ National / international update deadlines
 MAJ nationale / internationale ⇒ National / international update
 Dossiers SharePoint ⇒ SharePoint folders
-Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE. ⇒ Used when you save the update dates (together with Outlook): creates the YYYY-MM-DD folder (deployment start date) with "0. SOURCES" and "REPLACE" in SUPPORT CLIENT / SGC / group / TECHNIQUE.
+Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE. ⇒ Used when you save the update dates (together with Outlook): creates the YYYY-MM-DD folder (deployment start date) with "0. SOURCES" and "REPLACE" in SUPPORT CLIENT / SGC / group / TECHNIQUE.
 Créer les dossiers SharePoint ⇒ Create the SharePoint folders
-Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement ⇒ Creates the YYYY-MM-DD folder (deployment start date) with 0. SOURCES and REPLACE in the group's SharePoint
+crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec 0. SOURCES et REPLACE dans le SharePoint du groupement ⇒ Creates the YYYY-MM-DD + country codes folder (deployment start date, e.g. 2026-11-16 MAROC) with 0. SOURCES and REPLACE in the group's SharePoint
 Création des dossiers impossible : la date de début de déploiement n'est pas encore connue. ⇒ Folder creation impossible: the deployment start date is not known yet.
 Création des dossiers impossible : le groupement n'est pas renseigné. ⇒ Folder creation impossible: the group is not set.
 Vérifie l'URL du flux dans les paramètres. ⇒ Check the flow URL in the settings.
@@ -2690,15 +2690,21 @@ const effDeploy=m=>m.type==="correctif"?(()=>{const t=new Date(m.created||Date.n
 /* Nom du répertoire SharePoint quand il diffère du groupement de la MAJ (comparaison sans accents, espaces ni ponctuation) */
 const DIR_ALIAS=[[/papilles/,"ATELIER PAPILLES"],[/sophie.?le.?b/,"BOULANGERIE SOPHIE LEBREUILLY"]];
 const dirName=g=>{const k=String(g||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z]/g,"");const a=DIR_ALIAS.find(([r])=>r.test(k));return a?a[1]:String(g||"").trim()};
+/* Codes pays dans le nom du dossier (ex. « 2026-11-16 MAROC », « 2026-11-02 FR BE-FR BE-NL »). FR par défaut si aucune langue n'est indiquée. */
+function dirCodes(m){
+  const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).flatMap(r=>String(norm(r.label)).split("/").map(x=>paysCode(x)))))].filter(Boolean);
+  if(!rs.length)return ["FR"];
+  const pr=["FR","BE-FR","BE-NL"];return pr.filter(x=>rs.includes(x)).concat(rs.filter(x=>!pr.includes(x)));
+}
 const dirBusy={};
 async function syncDirs(id,force){
   const m=majs[id],u=dirFlow();if(!m)return "";
   if(!u)return effDeploy(m)?"Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint).":"";
-  const d0=effDeploy(m),d=d0?d0+(m.type==="correctif"?" CORRECTIF":""):"";if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
-  if(!force&&m.dirSent===d)return "";if(dirBusy[id])return "";
+  const d0=effDeploy(m),cod=dirCodes(m),d=d0?d0+(cod.length?" "+cod.join(" "):"")+(m.type==="correctif"?" Correctif":""):"";if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
+  if(!force&&(m.dirSent===d||(d0&&(m.dirSent===d0||m.dirSent===d0+" CORRECTIF"))))return "";if(dirBusy[id])return "";
   const g=dirName(groupOf(m)||m.group||"");if(!g)return force?"Création des dossiers impossible : le groupement n'est pas renseigné.":"";
   dirBusy[id]=true;
-  const q={groupe:g,date:d0,dossier:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};
+  const q={groupe:g,date:d0,codes:cod.join(" "),dossier:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};
   const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
   let ok=false,err="";
   try{try{await fetch(url,{method:"GET",mode:"no-cors"});ok=true}
@@ -2853,7 +2859,7 @@ function viewMaj(app,id){
     const sc=$("button","chip","Ajouter un site / concept");sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};acts.push(sc);
   }
   if(!m.archived){const tc=$("button","chip",m.type==="correctif"?"Repasser en déploiement":"Passer en correctif");if(m.type!=="correctif")tc.dataset.fix="1";tc.type="button";tc.title="Changer le type de MAJ (déploiement ou correctif)";tc.onclick=()=>{const mm=majs[id]||m;if(mm.type==="correctif")delete mm.type;else mm.type="correctif";stampTitle(mm);persist(id);render()};acts.push(tc)}
-  if(!m.archived&&dirFlow()){const dc=$("button","chip","Créer les dossiers SharePoint");dc.type="button";dc.title="Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement";dc.onclick=()=>{dc.disabled=true;syncDirs(id,true).then(r=>{toast(r);render()})};acts.push(dc)}
+  if(!m.archived&&dirFlow()){const dc=$("button","chip","Créer les dossiers SharePoint");dc.type="button";dc.title="crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec 0. SOURCES et REPLACE dans le SharePoint du groupement";dc.onclick=()=>{dc.disabled=true;syncDirs(id,true).then(r=>{toast(r);render()})};acts.push(dc)}
   if(!m.archived){const am=$("button","chip","Ajouter un module");am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);acts.push(am)}
   actMenu(hrow,acts);
   if(m.type!=="correctif")
@@ -4507,7 +4513,7 @@ function openSettings(){
     field("teams","Validation siège","Utilisé quand tu coches « Validation siège ». Envoie dans Teams le nom du groupe, le QM mentionné et le lien des ressources.",teamsFlow,v=>setFlow("suivi-maj-flow",v)),
     field("rocket","Début de déploiement","Utilisé quand tu coches « Début de déploiement ». Envoie le titre de la MAJ, les ressources et les rapports, sans mentionner le QM. Si ce champ est vide, c'est l'URL de « Validation siège » qui sert.",()=>getFlow(LSDEB),v=>setFlow(LSDEB,v)),
     field("cloud","Partage SharePoint","Pour l'adresse GitHub : partage les MAJ et les groupements entre postes via un fichier JSON SharePoint. Inutile sur claude.ai, qui a sa propre base.",()=>getFlow(LSSP),v=>{const ok=setFlow(LSSP,v);setTimeout(()=>{if(spOn()){if(!spStarted)spInit();else spLoad()}},60);return ok}),
-    field("folder","Dossiers SharePoint","Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE.",dirFlow,v=>setFlow(LSDIR,v)),
+    field("folder","Dossiers SharePoint","Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE.",dirFlow,v=>setFlow(LSDIR,v)),
     field("cal","Calendrier Outlook","Utilisé par le bouton « Enregistrer et envoyer dans Outlook ». Crée les événements « MAJ siège » et « Déploiement MAJ » dans le calendrier.",calFlow,v=>setFlow(LSCAL,v)));
   md.appendChild(list);
   const ac=$("div","actions");ac.style.justifyContent="flex-end";const ok=$("button","btn ghost","Fermer");ok.type="button";ok.onclick=close;ac.appendChild(ok);md.appendChild(ac);
@@ -5309,7 +5315,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.3.1",APP_DATE="05/11/2026";
+const APP_VERSION="v2.3.2",APP_DATE="05/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}

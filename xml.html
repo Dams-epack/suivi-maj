@@ -735,8 +735,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.3.1";
-const SUPPORT_BUILD="v1.0.2";
+const APP_VERSION="v2.3.2";
+const SUPPORT_BUILD="v1.0.3";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1514,9 +1514,9 @@ Ajoute un concept : une ligne de suivi par module et par pays, comme à la créa
 Échéances MAJ nationale / internationale ⇒ National / international update deadlines
 MAJ nationale / internationale ⇒ National / international update
 Dossiers SharePoint ⇒ SharePoint folders
-Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ (date de début de déploiement) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE. ⇒ Used when you save the update dates (together with Outlook): creates the YYYY-MM-DD folder (deployment start date) with "0. SOURCES" and "REPLACE" in SUPPORT CLIENT / SGC / group / TECHNIQUE.
+Utilisé quand tu enregistres les dates de la MAJ (en même temps que Outlook) : crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec « 0. SOURCES » et « REPLACE » dans SUPPORT CLIENT / SGC / groupement / TECHNIQUE. ⇒ Used when you save the update dates (together with Outlook): creates the YYYY-MM-DD folder (deployment start date) with "0. SOURCES" and "REPLACE" in SUPPORT CLIENT / SGC / group / TECHNIQUE.
 Créer les dossiers SharePoint ⇒ Create the SharePoint folders
-Crée le dossier AAAA-MM-JJ (date de début de déploiement) avec 0. SOURCES et REPLACE dans le SharePoint du groupement ⇒ Creates the YYYY-MM-DD folder (deployment start date) with 0. SOURCES and REPLACE in the group's SharePoint
+crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec 0. SOURCES et REPLACE dans le SharePoint du groupement ⇒ Creates the YYYY-MM-DD + country codes folder (deployment start date, e.g. 2026-11-16 MAROC) with 0. SOURCES and REPLACE in the group's SharePoint
 Création des dossiers impossible : la date de début de déploiement n'est pas encore connue. ⇒ Folder creation impossible: the deployment start date is not known yet.
 Création des dossiers impossible : le groupement n'est pas renseigné. ⇒ Folder creation impossible: the group is not set.
 Vérifie l'URL du flux dans les paramètres. ⇒ Check the flow URL in the settings.
