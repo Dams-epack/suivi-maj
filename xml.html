@@ -309,6 +309,8 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
 .gsheet span{color:var(--muted);font-size:.85rem}
+.gmapc{display:flex;flex-direction:column;gap:6px}
+.gmapc .gfix{width:100%}
 .rcl{flex:none;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:.85rem;margin:4px 0 8px}
 .rclr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 12px;border-top:1px solid var(--line)}
 .rclr:first-child{border-top:0}
@@ -735,8 +737,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.3.2";
-const SUPPORT_BUILD="v1.0.3";
+const APP_VERSION="v2.4.0";
+const SUPPORT_BUILD="v1.1.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2396,6 +2398,8 @@ function openGen(m,k,id,M,r){
   const MULTI=typeof SUPPORT!=="undefined"&&SUPPORT;
   const st={mom:null,type:guessType(M.name),sheets:[],file:"",sel:new Set(),map:{},dl:"0",dd:"false",ange:isAnge,res:null,msg:"",err:"",ticked:false,open:{},types:new Set(),defs:{}};
   if(st.type)st.types.add(st.type);
+  const fixOf=()=>{const o={};Object.entries(st.map).forEach(([k,v])=>{if(v&&v.t==="fix"&&String(v.v||"").trim()!=="")o[k]=String(v.v).trim()});return o};
+  const defsOf=ty=>Object.assign({},st.defs[ty]||{},fixOf());
   const TYPES=()=>MULTI?Object.keys(GENX.MODS).filter(t=>st.types.has(t)):(st.type?[st.type]:[]);
   const DEFLAB={TempMin:"Temp. mini",TempMax:"Temp. maxi",TempLimit:"Temp. limite",MesureMin:"Mesure mini",MesureMax:"Mesure maxi",Dlc:"DLC",Ddm:"DDM",Du:"Unité",DateLimit:"DLC",Conservation:"Conservation (jours)"};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","gt");
@@ -2437,7 +2441,7 @@ function openGen(m,k,id,M,r){
   function missingDefs(){
     const out=[],sh=[...st.sel].map(i=>st.sheets[i]);
     TYPES().forEach(ty=>{const mt=GENX.MODS[ty];
-      const miss=mt.req.filter(x=>['int','num'].includes((mt.cols.find(c=>c[0]===x)||[])[1])&&sh.some(z=>GENX.resolve(ty,z,st.map)[x]<0));
+      const fx=fixOf(),miss=mt.req.filter(x=>!(x in fx)&&['int','num'].includes((mt.cols.find(c=>c[0]===x)||[])[1])&&sh.some(z=>GENX.resolve(ty,z,st.map)[x]<0));
       if(miss.length)out.push([ty,miss]);
     });
     return out;
@@ -2482,7 +2486,7 @@ function openGen(m,k,id,M,r){
     st.res=[];
     TYPES().forEach(t=>{const nf=GENX.nowFn(t);
       [...st.sel].sort((a,b)=>a-b).forEach(i=>{
-        const s=st.sheets[i],n=GENX.normalized(t,s,st.map,st.defs[t]||{});
+        const s=st.sheets[i],n=GENX.normalized(t,s,st.map,defsOf(t));
         const g=n.errs.length?{xml:null,errs:n.errs,warns:[],count:0,cleaned:0,file:GENX.MODS[t].out}:GENX.generate(t,n.aoa,p,nf,s.hdrRow-1);
         if(g.xml)g.warns=n.notes.concat(g.warns);
         g.missing=n.missing||[];
@@ -2612,7 +2616,7 @@ function openGen(m,k,id,M,r){
     if(chosen.length){
       const m0=T[TYPES()[0]],box=$("div","gdet");
       TYPES().forEach(ty=>chosen.forEach(s=>{
-        const mt=T[ty],hd=(st.defs[ty]||{});
+        const mt=T[ty],hd=defsOf(ty);
         const idx=GENX.resolve(ty,s,st.map),line=$("div","gl");line.appendChild($("b",null,(MULTI?(GEN_LABEL[ty]||ty)+" · ":"")+s.name+" : "));
         const parts=mt.cols.map(c=>c[0]).filter(t=>idx[t]>=0||mt.req.includes(t));
         parts.forEach((t,j)=>{
@@ -2625,7 +2629,7 @@ function openGen(m,k,id,M,r){
       if(MULTI){
         const sum=$("div","rcl");const many=chosen.length>1;
         TYPES().forEach(ty=>chosen.forEach(s=>{
-          const mt=T[ty],hd=(st.defs[ty]||{}),idx=GENX.resolve(ty,s,st.map);
+          const mt=T[ty],hd=defsOf(ty),idx=GENX.resolve(ty,s,st.map);
           const hasD=t=>idx[t]<0&&hd[t]!==undefined&&String(hd[t]).trim()!=="";
           const miss=mt.req.filter(t=>idx[t]<0),bad=miss.filter(t=>!hasD(t)&&!GENX.isDef(ty,t)),dfl=miss.filter(t=>!hasD(t)&&GENX.isDef(ty,t)),ent=miss.filter(hasD);
           const nf=mt.cols.filter(c=>idx[c[0]]>=0).length;
@@ -2644,8 +2648,13 @@ function openGen(m,k,id,M,r){
       [...new Set(TYPES().flatMap(ty=>T[ty].cols.map(c=>c[0])))].forEach(t=>{
         const cur=st.map[t]||{t:"auto"};
         gr.appendChild($("span","gt",t));
-        gr.appendChild(sel([["auto","Automatique"],["none","Ignorer"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
-          st.map[t]=v==="auto"?{t:"auto"}:v==="none"?{t:"none"}:{t:"col",v:v.slice(2)};st.res=null;paint();const d2=md.querySelector("details.adj");if(d2)d2.open=true}));
+        const cell=$("div","gmapc");
+        cell.appendChild(sel([["auto","Automatique"],["none","Ignorer"],["fix","Valeur fixe pour tous les produits…"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
+          st.map[t]=v==="auto"?{t:"auto"}:v==="none"?{t:"none"}:v==="fix"?{t:"fix",v:""}:{t:"col",v:v.slice(2)};st.res=null;paint();const d2=md.querySelector("details.adj");if(d2){d2.open=true;if(v==="fix"){const ii=[...d2.querySelectorAll("input.gfix")].find(z=>z.dataset.tag===t);if(ii)ii.focus()}}}));
+        if(cur.t==="fix"){const fi=$("input","gfix");fi.type="text";fi.dataset.tag=t;fi.placeholder="Valeur à mettre pour tous les produits";fi.value=cur.v||"";fi.setAttribute("aria-label",t+" : valeur fixe");
+          fi.oninput=()=>{st.map[t]={t:"fix",v:fi.value};st.res=null};
+          cell.appendChild(fi)}
+        gr.appendChild(cell);
       });
       dt.appendChild(gr);if(Object.keys(st.map).some(t=>st.map[t].t!=="auto"))dt.open=true;md.appendChild(dt);
     }
