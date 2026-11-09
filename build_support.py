@@ -85,6 +85,10 @@ function buildBar(){
   const gb=$("button","gearbtn");gb.type="button";gb.title="Réglages : thème et langue";gb.setAttribute("aria-label","Réglages : thème et langue");gb.setAttribute("aria-haspopup","dialog");
   gb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   gb.onclick=()=>settingsMenu(gb);
+  if(fbDb){const fb=$("button","fbbtn");fb.type="button";fb.title="Un retour sur l'outil ?";fb.setAttribute("aria-label","Retours sur l'outil");fb.setAttribute("aria-haspopup","dialog");
+    fb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+    if(fbCanEdit&&fbNew()){const bd=$("span","fbbadge",String(fbNew()));bd.setAttribute("aria-hidden","true");fb.appendChild(bd);fb.setAttribute("aria-label","Retours sur l'outil ("+fbNew()+" nouveaux)")}
+    fb.onclick=fbOpenDlg;rg.appendChild(fb)}
   rg.append(av,gb);br.appendChild(rg);
 }
 function settingsMenu(anchor){
@@ -110,16 +114,96 @@ function render(){
   const IC1='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="14" rx="2"/><path d="M3 9h10M8 9v9"/><g class="tarr"><path d="M15 11h6M18.5 8.5 21 11l-2.5 2.5"/></g></svg>';
   const IC2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="m9 14 2 2 4-4"/><path class="tspk" d="M19 2v3M17.5 3.5h3"/></svg>';
   const IC3='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6M12 11v7"/></svg>';
-  one("Excel → XML","Dépose l'Excel du client, choisis le type d'XML (Warming, Stickers, Contrôles divers…), récupère le XML dans un ZIP.","Un onglet = un XML",()=>openGen(ctx,null,null,XM,XR),IC1);
-  one("Compléter un XML","Dépose un export XML du configurateur : j'ajoute les balises manquantes et je normalise le fichier.","Produits, checklists, plans de nettoyage",()=>openXml(ctx,null,null),IC2);
-  one("XML → Excel","Dépose le ZIP de la configuration du client (ou un seul XML) : j'en fais un Excel, un onglet par module.","Un onglet = un module",()=>openX2E(),IC3);
+  one("Excel → XML","Dépose l'Excel du client, choisis le type d'XML (Warming, Stickers, Contrôles divers…), récupère le XML dans un ZIP.","Un onglet = un XML",()=>{fbTool="Excel → XML";openGen(ctx,null,null,XM,XR)},IC1);
+  one("Compléter un XML","Dépose un export XML du configurateur : j'ajoute les balises manquantes et je normalise le fichier.","Produits, checklists, plans de nettoyage",()=>{fbTool="Compléter un XML";openXml(ctx,null,null)},IC2);
+  one("XML → Excel","Dépose le ZIP de la configuration du client (ou un seul XML) : j'en fais un Excel, un onglet par module.","Un onglet = un module",()=>{fbTool="XML → Excel";openX2E()},IC3);
   app.appendChild(tl);
   trSchedule();
+}
+
+/* ===== Retours de l'équipe (base partagée de la page) ===== */
+const FB_TOOLS=["Excel → XML","XML → Excel","Compléter un XML","Autre"];
+const FB_KINDS=[["bug","Bug"],["idea","Idée"],["label","Libellé / nom"],["other","Autre"]];
+const FB_ST=[["new","Nouveau"],["seen","Vu"],["done","Traité"]];
+let fbDb=null,fbUser=null,fbMe=null,fbList=[],fbDlg=null,fbTab="send",fbTool="Excel → XML",fbKind="bug",fbDraft="",fbCanWrite=null,fbCanEdit=false,fbFilter="open",fbInfo="";
+const fbDate=t=>{try{return new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}catch(e){return ""}};
+const fbNew=()=>fbList.filter(x=>(x.status||"new")==="new").length;
+async function fbName(){const n=(typeof myName==="function"?myName():"")||"";if(n)return n;try{const m=fbUser&&await fbUser.me();return (m&&m.name)||""}catch(e){return ""}}
+(async()=>{try{
+  const c=window.claude;if(!c||!c.use)return;
+  const u=await c.use("user");fbUser=u||null;
+  if(u){try{fbMe=await u.id()}catch(e){}try{fbCanEdit=!!(await u.canEdit())}catch(e){}try{fbCanWrite=u.can?await u.can("data.write"):null}catch(e){}}
+  fbDb=await c.use("db");if(!fbDb)return;
+  buildBar();
+  fbDb.collection("feedback").orderBy("ts","desc").limit(300).onSnapshot(s=>{fbList=s.docs.map(d=>Object.assign({id:d.id},d.data()));buildBar();if(fbDlg)fbPaint()},()=>{});
+}catch(e){}})();
+function fbClose(){if(!fbDlg)return;fbDlg.remove();fbDlg=null;document.removeEventListener("keydown",fbKey,true)}
+function fbKey(e){if(e.key==="Escape"){e.stopPropagation();fbClose()}}
+function fbOpenDlg(){
+  if(fbDlg)return;
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-label","Retours sur l'outil");
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)fbClose()});
+  const md=$("div","modal xml fbm");bg.appendChild(md);document.body.appendChild(bg);fbDlg=md;
+  document.addEventListener("keydown",fbKey,true);fbTab=fbCanEdit?"list":"send";fbPaint();
+}
+function fbPaint(){
+  const md=fbDlg;if(!md)return;const keep=md.scrollTop;md.textContent="";
+  const hd=$("div","xhead sticky");const h=$("h2",null,"Retours sur l'outil");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=fbClose;hd.append(h,x);md.appendChild(hd);
+  const tabs=$("div","fbtabs");tabs.setAttribute("role","tablist");
+  [["send","Envoyer un retour"],["list","Retours de l'équipe ("+fbList.length+")"]].forEach(([k,t])=>{const b=$("button","fbtab"+(fbTab===k?" on":""),t);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",fbTab===k?"true":"false");b.onclick=()=>{fbTab=k;fbPaint()};tabs.appendChild(b)});
+  md.appendChild(tabs);
+  if(fbTab==="send")fbSendPane(md);else fbListPane(md);
+  md.scrollTop=keep;
+}
+function fbSendPane(md){
+  md.appendChild($("p","gsubp","Un bug, une idée, un nom à corriger ? Dis-le ici : Dam's le voit directement."));
+  const f1=$("label","fld");f1.appendChild($("span",null,"Où ?"));const sl=$("select");FB_TOOLS.forEach(t=>{const o=$("option",null,t);o.value=t;if(t===fbTool)o.selected=true;sl.appendChild(o)});sl.onchange=()=>{fbTool=sl.value};f1.appendChild(sl);md.appendChild(f1);
+  const f2=$("div","fld");f2.appendChild($("span",null,"Type"));const ch=$("div","fbkinds");ch.setAttribute("role","radiogroup");
+  FB_KINDS.forEach(([k,t])=>{const b=$("button","fbkind"+(fbKind===k?" on":""),t);b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",fbKind===k?"true":"false");b.onclick=()=>{fbKind=k;ch.querySelectorAll(".fbkind").forEach(z=>{const on=z===b;z.classList.toggle("on",on);z.setAttribute("aria-checked",on?"true":"false")})};ch.appendChild(b)});
+  f2.appendChild(ch);md.appendChild(f2);
+  const f3=$("label","fld");f3.appendChild($("span",null,"Ton message"));const ta=$("textarea");ta.rows=5;ta.maxLength=1500;ta.value=fbDraft;ta.placeholder="Ce qui ne va pas, ce que tu voudrais, le nom à corriger… Ne mets pas de données sensibles du client.";
+  const cnt=$("small","fbcnt",ta.value.length+" / 1500");ta.oninput=()=>{fbDraft=ta.value;cnt.textContent=ta.value.length+" / 1500";sb.disabled=!ta.value.trim()||fbCanWrite===false};
+  f3.appendChild(ta);f3.appendChild(cnt);md.appendChild(f3);
+  md.appendChild($("small","fbnote","La version de l'outil ("+SUPPORT_BUILD+"), ton nom et l'heure sont joints automatiquement."));
+  const msg=$("p","msg"+(fbInfo?"":" ")," ");msg.textContent=fbInfo;
+  if(fbCanWrite===false){msg.className="msg err";msg.textContent="Tu peux lire les retours mais pas en envoyer : demande à Dam's de te passer en Contributeur."}
+  md.appendChild(msg);
+  const ac=$("div","adqact");const sb=$("button","btn","Envoyer");sb.type="button";sb.disabled=!fbDraft.trim()||fbCanWrite===false;
+  sb.onclick=async()=>{const t=fbDraft.trim();if(!t||!fbDb)return;sb.disabled=true;msg.className="msg";msg.textContent="Envoi…";
+    try{await fbDb.collection("feedback").add({ts:Date.now(),authorId:fbMe||"",authorName:await fbName(),tool:fbTool,kind:fbKind,text:t,version:SUPPORT_BUILD,status:"new"});
+      fbDraft="";fbInfo="Merci, ton retour est envoyé.";fbPaint();toast("Merci, retour envoyé")}
+    catch(e){sb.disabled=false;msg.className="msg err";msg.textContent=(e&&e.code==="invalid_argument")?"Envoi refusé : tu n'as pas les droits d'écriture. Demande à Dam's de te passer en Contributeur.":"Envoi impossible pour le moment, réessaie dans un instant."}};
+  ac.appendChild(sb);md.appendChild(ac);setTimeout(()=>ta.focus(),30);
+}
+function fbListPane(md){
+  const bar=$("div","fbfilters");
+  [["open","À traiter"],["all","Tous"],["done","Traités"]].forEach(([k,t])=>{const b=$("button","fbf"+(fbFilter===k?" on":""),t);b.type="button";b.onclick=()=>{fbFilter=k;fbPaint()};bar.appendChild(b)});
+  md.appendChild(bar);
+  const items=fbList.filter(x=>fbFilter==="all"||(fbFilter==="done"?x.status==="done":x.status!=="done"));
+  if(!items.length){md.appendChild($("p","gsubp",fbList.length?"Aucun retour dans cette vue.":"Aucun retour pour l'instant."));return}
+  const kl=Object.fromEntries(FB_KINDS),sl=Object.fromEntries(FB_ST);
+  items.forEach(it=>{
+    const c=$("article","fbitem st-"+(it.status||"new"));
+    const top=$("div","fbtop");top.append($("b",null,it.authorName||"Anonyme"),$("span","fbmeta",fbDate(it.ts)+" · "+(it.version||"")));c.appendChild(top);
+    const tg=$("div","fbtags");tg.append($("span","fbtag",it.tool||"—"),$("span","fbtag k-"+(it.kind||"other"),kl[it.kind]||"Autre"),$("span","fbtag s-"+(it.status||"new"),sl[it.status||"new"]||"Nouveau"));c.appendChild(tg);
+    c.appendChild($("p","fbtext",it.text||""));
+    if(it.reply){const r=$("p","fbreply");r.append($("b",null,"Réponse : "),it.reply);c.appendChild(r)}
+    if(fbCanEdit){
+      const ac=$("div","fbact");
+      const s=$("select");FB_ST.forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===(it.status||"new"))o.selected=true;s.appendChild(o)});s.setAttribute("aria-label","Statut");
+      s.onchange=()=>fbDb.doc("feedback/"+it.id).update({status:s.value}).catch(()=>toast("Modification impossible"));
+      const rp=$("input");rp.type="text";rp.placeholder="Répondre (visible par l'équipe)";rp.value=it.reply||"";rp.maxLength=400;rp.setAttribute("aria-label","Réponse");
+      rp.onchange=()=>{fbDb.doc("feedback/"+it.id).update({reply:rp.value.trim(),replyTs:Date.now()}).catch(()=>toast("Modification impossible"))};
+      const dl=$("button","btn ghost","Supprimer");dl.type="button";dl.onclick=()=>{if(dl.dataset.s!=="1"){dl.dataset.s="1";dl.textContent="Confirmer ?";setTimeout(()=>{dl.dataset.s="";dl.textContent="Supprimer"},3000);return}fbDb.doc("feedback/"+it.id).delete().catch(()=>toast("Suppression impossible"))};
+      ac.append(s,rp,dl);c.appendChild(ac);
+    }
+    md.appendChild(c);
+  });
 }
 render();
 '''
 import datetime,zoneinfo
-SB='1.1.0'
+SB='1.2.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -144,6 +228,35 @@ extra_css='''<style>
 @keyframes tpop{from{transform:scale(.4)}to{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.tools .tool,.tool .tarr,.tool .tspk,.gtile.on .gtk{animation:none!important}.tool::after{display:none}.tool,.btn,.gtile,.chip,.tool .ticon{transition:none!important}}
 /* XML → Excel */
+.fbbtn{font:inherit;position:relative;width:40px;height:40px;display:inline-grid;place-items:center;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer}
+.fbbtn svg{width:20px;height:20px}
+.fbbtn:hover{background:rgba(155,249,68,.16)}
+.fbbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent,#9bf944);color:#10201f;font-size:.7rem;font-weight:700;display:grid;place-items:center}
+.modal.fbm{max-width:640px}
+.fbtabs{display:flex;gap:6px;margin:6px 0 14px;border-bottom:1px solid var(--line,#8884)}
+.fbtab{font:inherit;background:transparent;border:0;border-bottom:2px solid transparent;color:inherit;padding:8px 12px;cursor:pointer;opacity:.7}
+.fbtab.on{border-bottom-color:var(--accent,#9bf944);opacity:1;font-weight:600}
+.fbm .fld{display:block;margin:0 0 12px}
+.fbm .fld>span{display:block;font-size:.8rem;opacity:.75;margin-bottom:4px;font-weight:600}
+.fbm textarea{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line,#8886);background:transparent;color:inherit;resize:vertical}
+.fbkinds{display:flex;flex-wrap:wrap;gap:8px}
+.fbkind,.fbf{font:inherit;padding:6px 12px;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer}
+.fbkind.on,.fbf.on{background:rgba(155,249,68,.22);border-color:var(--accent,#9bf944);font-weight:600}
+.fbcnt,.fbnote{display:block;opacity:.65;font-size:.78rem;margin-top:4px}
+.fbfilters{display:flex;gap:8px;margin-bottom:12px}
+.fbitem{border:1px solid var(--line,#8886);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
+.fbitem.st-new{border-left:4px solid var(--accent,#9bf944)}
+.fbitem.st-done{opacity:.7}
+.fbtop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.fbmeta{opacity:.65;font-size:.8rem}
+.fbtags{display:flex;gap:6px;flex-wrap:wrap}
+.fbtag{font-size:.75rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line,#8886)}
+.fbtag.k-bug{border-color:#e5484d;color:#e5484d}.fbtag.s-new{background:rgba(155,249,68,.22)}.fbtag.s-done{opacity:.7}
+.fbtext{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.fbreply{margin:0;padding:8px 10px;border-radius:8px;background:rgba(155,249,68,.12);font-size:.9rem}
+.fbact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fbact input{flex:1 1 200px;min-width:0;font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line,#8886);background:transparent;color:inherit}
+.fbact select{font:inherit;padding:6px 8px;border-radius:8px}
 .gearbtn{font:inherit;width:40px;height:40px;display:inline-grid;place-items:center;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer;margin-left:8px;transition:transform .35s,background .2s}.gearbtn svg{width:20px;height:20px}.gearbtn:hover{background:rgba(155,249,68,.18);transform:rotate(60deg)}.gearbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}\n.spToast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#12201e;color:#fff;border:1px solid #9fe03a;border-radius:10px;padding:10px 16px;z-index:200;max-width:min(92vw,520px);box-shadow:0 8px 28px rgba(0,0,0,.35);font-size:14px;transition:opacity .35s}.spToast.out{opacity:0}.gsubp.gfile:empty{display:none}.gsubp.gfile{display:flex;align-items:center;flex-wrap:wrap;gap:6px;overflow-wrap:anywhere}\n.x2beta{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55);vertical-align:middle}
 .x2bn{font-size:12.5px;color:var(--muted,#9aa39e);border-left:3px solid #ffb020;padding:4px 10px;margin:8px 0}
 .wip{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55)}
