@@ -189,7 +189,7 @@ function helpPaint(){
 render();
 '''
 import datetime,zoneinfo
-SB='2.0.0'
+SB='1.0.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
