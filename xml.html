@@ -817,8 +817,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.4.1";
-const SUPPORT_BUILD="v1.5.2";
+const APP_VERSION="v2.4.2";
+const SUPPORT_BUILD="v1.5.3";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1301,7 +1301,7 @@ MAJ siège le ⇒ HQ update on
 Configurateur XML ⇒ XML configurator
 Fichier XML ⇒ XML file
 Fichier Excel du client ⇒ Client Excel file
-Dépose le .xlsx ici ou clique pour le choisir ⇒ Drop the .xlsx here or click to choose it
+Dépose le .xlsx ou .csv ici, ou clique pour le choisir ⇒ Drop the .xlsx or .csv here, or click to choose it
 Changer de fichier ⇒ Change file
 Type d'XML ⇒ XML type
 Choisir… ⇒ Choose…
@@ -2515,7 +2515,7 @@ function openGen(m,k,id,M,r){
       if(hit.length)hit.forEach(([,i])=>st.sel.add(i));
       else{const wd=st.sheets.map((s,i)=>[s,i]).filter(([s])=>s.count>0);wd.forEach(([,i])=>st.sel.add(i))}
       if(!st.sheets.length)st.err="Aucun onglet lisible dans ce fichier.";
-    }catch(e){st.err="Fichier illisible : vérifie que c'est bien un classeur Excel (.xlsx).";st.file="";st.sheets=[]}
+    }catch(e){st.err="Fichier illisible : vérifie que c'est bien un classeur Excel (.xlsx) ou un CSV.";st.file="";st.sheets=[]}
     paint();
   }
   function missingDefs(){
@@ -2673,7 +2673,7 @@ function openGen(m,k,id,M,r){
     inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
     if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
     if(!st.file){
-      const d=$("button","drop big");d.type="button";d.append($("span","dico","↓"),$("strong",null,"Fichier Excel du client"),$("span",null,"Dépose le .xlsx ici ou clique pour le choisir"));
+      const d=$("button","drop big");d.type="button";d.append($("span","dico","↓"),$("strong",null,"Fichier Excel du client"),$("span",null,"Dépose le .xlsx ou .csv ici, ou clique pour le choisir"));
       d.onclick=()=>inp.click();
       d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
       d.ondrop=e=>{e.preventDefault();d.classList.remove("over");const f=e.dataTransfer.files[0];if(f)onFile(f)};
