@@ -769,6 +769,10 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 .fbm textarea::placeholder{font-weight:400;opacity:.55}
 .fbm textarea:focus{border-color:var(--accent,#9bf944)}
 .fbsend{display:inline-flex;align-items:center;gap:8px;padding:10px 20px}.fbsend svg{width:17px;height:17px}.fbsend:disabled{opacity:.45;cursor:default}
+.fbwarn{display:flex;flex-direction:column;gap:10px;padding:12px 14px;margin:0 0 16px;border-radius:12px;background:rgba(245,165,36,.16);border:1px solid #f5a524}
+.fbwt b{display:block;margin-bottom:2px}.fbwt span{display:block;font-size:.86rem;opacity:.9}
+.fbwr{display:flex;gap:8px;flex-wrap:wrap}.fbwr input{flex:1 1 200px;min-width:0;font:inherit;padding:8px 11px;border-radius:9px;border:1px solid var(--line,#8886);background:transparent;color:inherit}
+.fbwr input:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(245,165,36,.35)}.fbwr .btn:disabled{opacity:.45}
 .fbitem.st-done{opacity:1}
 .fbitem.st-done .fbtext{opacity:.8}
 .fbtext{font-size:.95rem;line-height:1.45}
@@ -814,7 +818,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.4.0";
-const SUPPORT_BUILD="v1.5.0";
+const SUPPORT_BUILD="v1.5.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3653,6 +3657,16 @@ function fbPaint(){
 function fbSendPane(md){
   const it0=$("div","fbintro");const ic=$("span","fbic");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14h4"/></svg>';
   const itx=$("div");itx.append($("b",null,"Une remarque sur l'outil ?"),$("span",null,"Un bug, une idée, un nom à corriger : dis-le ici, Dam's le voit directement."));it0.append(ic,itx);md.appendChild(it0);
+  const hasName=()=>!!(typeof myName==="function"&&myName());
+  if(!hasName()){
+    const nw=$("div","fbwarn");nw.setAttribute("role","alert");
+    const nt=$("div","fbwt");nt.append($("b",null,"Saisis d'abord ton nom"),$("span",null,"Sans nom, ton retour partirait en « Anonyme » et on ne pourrait pas te répondre."));
+    const nr=$("div","fbwr");const ni=$("input");ni.type="text";ni.placeholder="Prénom Nom";ni.autocomplete="name";ni.maxLength=60;ni.setAttribute("aria-label","Ton nom");
+    const nb=$("button","btn","Enregistrer mon nom");nb.type="button";nb.disabled=true;
+    const nsave=()=>{const v=ni.value.trim();if(!v)return;setMyName(v);try{buildBar()}catch(e){}fbPaint()};
+    ni.oninput=()=>{nb.disabled=!ni.value.trim()};ni.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();nsave()}};nb.onclick=nsave;
+    nr.append(ni,nb);nw.append(nt,nr);md.appendChild(nw);
+  }
   const f1=$("div","fld");f1.appendChild($("span",null,"Sur quel outil ?"));const tc=$("div","fbkinds");tc.setAttribute("role","radiogroup");
   FB_TOOLS.forEach(t=>{const b=$("button","fbkind"+(t===fbTool?" on":""),t);b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",t===fbTool?"true":"false");b.onclick=()=>{fbTool=t;tc.querySelectorAll(".fbkind").forEach(z=>{const on=z===b;z.classList.toggle("on",on);z.setAttribute("aria-checked",on?"true":"false")})};tc.appendChild(b)});
   f1.appendChild(tc);md.appendChild(f1);
@@ -3660,18 +3674,18 @@ function fbSendPane(md){
   FB_KINDS.forEach(([k,t])=>{const b=$("button","fbkind kd-"+k+(fbKind===k?" on":""));b.innerHTML='<i class="fbdot"></i><span></span>';b.lastChild.textContent=t;b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",fbKind===k?"true":"false");b.onclick=()=>{fbKind=k;ch.querySelectorAll(".fbkind").forEach(z=>{const on=z===b;z.classList.toggle("on",on);z.setAttribute("aria-checked",on?"true":"false")})};ch.appendChild(b)});
   f2.appendChild(ch);md.appendChild(f2);
   const f3=$("label","fld");f3.appendChild($("span",null,"Ton message"));const ta=$("textarea");ta.rows=4;ta.maxLength=1500;ta.value=fbDraft;ta.placeholder="Ce qui ne va pas, ce que tu voudrais, le nom à corriger… Ne mets pas de données sensibles du client.";
-  const cnt=$("small","fbcnt",ta.value.length+" / 1500");ta.oninput=()=>{fbDraft=ta.value;cnt.textContent=ta.value.length+" / 1500";sb.disabled=!ta.value.trim()||fbCanWrite===false};
+  const cnt=$("small","fbcnt",ta.value.length+" / 1500");ta.oninput=()=>{fbDraft=ta.value;cnt.textContent=ta.value.length+" / 1500";sb.disabled=!ta.value.trim()||fbCanWrite===false||!hasName()};
   f3.appendChild(ta);f3.appendChild(cnt);md.appendChild(f3);
   md.appendChild($("small","fbnote","Joints automatiquement : ton nom, l'heure et la version de l'outil ("+SUPPORT_BUILD+")."));
   const msg=$("p","msg"+(fbInfo?"":" ")," ");msg.textContent=fbInfo;
   if(fbCanWrite===false){msg.className="msg err";msg.textContent="Tu peux lire les retours mais pas en envoyer : demande à Dam's de te passer en Contributeur."}
   md.appendChild(msg);
-  const ac=$("div","adqact");const sb=$("button","btn fbsend");sb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><span>Envoyer mon retour</span>';sb.type="button";sb.disabled=!fbDraft.trim()||fbCanWrite===false;
-  sb.onclick=async()=>{const t=fbDraft.trim();if(!t||!fbDb)return;sb.disabled=true;msg.className="msg";msg.textContent="Envoi…";
+  const ac=$("div","adqact");const sb=$("button","btn fbsend");sb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><span>Envoyer mon retour</span>';sb.type="button";sb.disabled=!fbDraft.trim()||fbCanWrite===false||!hasName();
+  sb.onclick=async()=>{const t=fbDraft.trim();if(!t||!fbDb||!hasName())return;sb.disabled=true;msg.className="msg";msg.textContent="Envoi…";
     try{await fbDb.collection("feedback").add({ts:Date.now(),authorId:fbMe||"",authorName:await fbName(),tool:fbTool,kind:fbKind,text:t,version:SUPPORT_BUILD,status:"new"});
       fbDraft="";fbInfo="Merci, ton retour est envoyé.";fbPaint();toast("Merci, retour envoyé")}
     catch(e){sb.disabled=false;msg.className="msg err";msg.textContent=(e&&e.code==="invalid_argument")?"Envoi refusé : tu n'as pas les droits d'écriture. Demande à Dam's de te passer en Contributeur.":"Envoi impossible pour le moment, réessaie dans un instant."}};
-  ac.appendChild(sb);md.appendChild(ac);setTimeout(()=>ta.focus(),30);
+  ac.appendChild(sb);md.appendChild(ac);if(hasName())setTimeout(()=>ta.focus(),30);
 }
 function fbListPane(md){
   const bar=$("div","fbfilters");
