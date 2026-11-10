@@ -41,6 +41,10 @@ for n in ['XMLC','GENX','GENUI','XMLUI']: code+=block(n)+'\n'
 code+=prof+'\n'
 code+=open(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)),'x2e.js'),encoding='utf-8').read()+'\n'
 # adaptations propres à l'outil Support (aucun contexte de MAJ)
+# thème et langue : uniquement dans le menu Réglages (roue), le menu du profil ne garde que le nom
+a='pm.append(l,st,trw,lw);'
+assert code.count(a)==1
+code=code.replace(a,'pm.append(l,st);')
 a='md.append(hd,$("p","gsubp",M.name+" · "+regLabel));'
 assert code.count(a)==1
 code=code.replace(a,'const subP=$("p","gsubp gfile");md.append(hd,subP);')
@@ -80,7 +84,7 @@ function buildBar(){
   const br=document.getElementById("brandright");if(!br)return;br.textContent="";
   const rg=$("div","actions");const av=$("button","avchip");av.type="button";
   {const nm=myName();const ini=nm?nm.split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join(""):"?";
-   av.append($("span","avc",ini),$("span","avn",nm||"Ton nom"));av.title=nm?"Profil : "+nm+" (modifier dans Paramètres)":"Indique ton nom";av.setAttribute("aria-label",av.title);
+   av.append($("span","avc",ini),$("span","avn",nm||"Ton nom"));av.title=nm?"Profil : "+nm+" (clique pour modifier ton nom)":"Indique ton nom";av.setAttribute("aria-label",av.title);
    av.setAttribute("aria-haspopup","dialog");av.onclick=()=>profileMenu(av)}
   const gb=$("button","gearbtn");gb.type="button";gb.title="Réglages : thème et langue";gb.setAttribute("aria-label","Réglages : thème et langue");gb.setAttribute("aria-haspopup","dialog");
   gb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
@@ -314,7 +318,7 @@ function fbListPane(md){
 render();
 '''
 import datetime,zoneinfo
-SB='1.9.0'
+SB='1.9.1'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
