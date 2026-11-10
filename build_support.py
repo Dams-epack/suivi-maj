@@ -92,10 +92,7 @@ function buildBar(){
   {const hb=$("button","helpbtn"+(helpSeen()?"":" new"));hb.type="button";hb.title=LANG==="en"?"How to use these tools":"Mode d'emploi";hb.setAttribute("aria-label",hb.title);hb.setAttribute("aria-haspopup","dialog");
     hb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4H10a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H3.5A1.5 1.5 0 0 1 2 16.5z"/><path d="M22 5.5A1.5 1.5 0 0 0 20.5 4H14a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>';
     hb.onclick=helpOpen;rg.appendChild(hb)}
-  {const fb=$("button","fbbtn");fb.type="button";fb.title="Un retour sur l'outil ?";fb.setAttribute("aria-label","Retours sur l'outil");fb.setAttribute("aria-haspopup","dialog");
-    fb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-    if(fbCanEdit&&fbNew()){const bd=$("span","fbbadge",String(fbNew()));bd.setAttribute("aria-hidden","true");fb.appendChild(bd);fb.setAttribute("aria-label","Retours sur l'outil ("+fbNew()+" nouveaux)")}
-    fb.onclick=fbOpenDlg;rg.appendChild(fb)}
+
   rg.append(av,gb);br.appendChild(rg);
 }
 function settingsMenu(anchor){
@@ -180,145 +177,19 @@ function helpPaint(){
   const md=helpDlg;if(!md)return;const D=helpData(),en=LANG==="en";md.textContent="";
   const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label",en?"Close":"Fermer");x.onclick=helpClose;hd.append($("h2",null,en?"How to use":"Mode d'emploi"),x);md.appendChild(hd);
   md.appendChild($("p","gsubp",en?"Three tools, one idea: drop a file, check, download.":"Trois outils, une idée : tu déposes un fichier, tu vérifies, tu télécharges."));
-  const tabs=$("div","fbtabs");tabs.setAttribute("role","tablist");
-  D.forEach((d,i)=>{const b=$("button","fbtab"+(helpTab===i?" on":""),d.t);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",helpTab===i?"true":"false");b.onclick=()=>{helpTab=i;helpPaint()};tabs.appendChild(b)});
+  const tabs=$("div","htabs");tabs.setAttribute("role","tablist");
+  D.forEach((d,i)=>{const b=$("button","htab"+(helpTab===i?" on":""),d.t);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",helpTab===i?"true":"false");b.onclick=()=>{helpTab=i;helpPaint()};tabs.appendChild(b)});
   md.appendChild(tabs);
   const d=D[helpTab];
   const pane=$("div","hpane");pane.appendChild($("p","hlead",d.lead));
   const ol=$("ol","hsteps");d.steps.forEach(([h,t],i)=>{const li=$("li");li.style.setProperty("--i",i);const n=$("span","hn",String(i+1));const bd=$("div");bd.append($("b",null,h),$("span",null,t));li.append(n,bd);ol.appendChild(li)});
   pane.appendChild(ol);pane.appendChild($("p","htip",d.tip));md.appendChild(pane);
-  md.appendChild($("p","hfoot",en?"A bug, an idea, a name to fix? Use the speech-bubble button at the top right.":"Un bug, une idée, un nom à corriger ? Utilise le bouton bulle en haut à droite."));
-}
-
-/* ===== Retours de l'équipe (base partagée de la page) ===== */
-const FB_TOOLS=["Excel → XML","XML → Excel","Compléter un XML","Autre"];
-const FB_KINDS=[["bug","Bug"],["idea","Idée"],["label","Libellé / nom"],["other","Autre"]];
-const FB_ST=[["new","Nouveau"],["seen","Vu"],["done","Traité"]];
-const FB_ICO={new:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5" fill="currentColor"/></svg>',seen:'<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8s2.3-4.5 6.5-4.5S14.5 8 14.5 8 12.2 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>',done:'<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.3 3.3L13 4.8"/></svg>'};
-const FB_HINT={new:"Pas encore lu",seen:"Lu, pris en compte",done:"Réglé ou clôturé"};
-let fbDb=null,fbUser=null,fbMe=null,fbList=[],fbDlg=null,fbTab="send",fbTool="Excel → XML",fbKind="bug",fbDraft="",fbCanWrite=null,fbCanEdit=false,fbFilter="open",fbInfo="";
-const fbDate=t=>{try{return new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}catch(e){return ""}};
-const fbNew=()=>fbList.filter(x=>(x.status||"new")==="new").length;
-async function fbName(){const n=(typeof myName==="function"?myName():"")||"";if(n)return n;try{const m=fbUser&&await fbUser.me();return (m&&m.name)||""}catch(e){return ""}}
-(async()=>{try{
-  const c=window.claude;if(!c||!c.use)return;
-  const u=await c.use("user");fbUser=u||null;
-  if(u){try{fbMe=await u.id()}catch(e){}try{fbCanEdit=!!(await u.canEdit())}catch(e){}try{fbCanWrite=u.can?await u.can("data.write"):null}catch(e){}}
-  fbDb=await c.use("db");if(!fbDb)return;
-  buildBar();
-  fbDb.collection("feedback").orderBy("ts","desc").limit(300).onSnapshot(s=>{fbList=s.docs.map(d=>Object.assign({id:d.id},d.data()));buildBar();if(fbDlg)fbPaint()},()=>{});
-}catch(e){}})();
-function fbClose(){if(!fbDlg)return;const bgn=fbDlg.parentNode;(bgn&&bgn.classList&&bgn.classList.contains("modal-bg")?bgn:fbDlg).remove();fbDlg=null;document.removeEventListener("keydown",fbKey,true)}
-function fbKey(e){if(e.key==="Escape"){e.stopPropagation();fbClose()}}
-function fbOpenDlg(){
-  if(fbDlg)return;
-  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-label","Retours sur l'outil");
-  bg.addEventListener("mousedown",e=>{if(e.target===bg)fbClose()});
-  const md=$("div","modal xml fbm");bg.appendChild(md);document.body.appendChild(bg);fbDlg=md;
-  document.addEventListener("keydown",fbKey,true);fbTab=fbDb&&fbCanEdit?"list":"send";fbPaint();
-}
-function fbPaint(){
-  const md=fbDlg;if(!md)return;const keep=md.scrollTop;md.textContent="";
-  const hd=$("div","xhead sticky");const h=$("h2",null,"Retours sur l'outil");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=fbClose;hd.append(h,x);md.appendChild(hd);
-  const tabs=$("div","fbtabs");tabs.setAttribute("role","tablist");
-  [["send","Envoyer un retour"],["list","Retours de l'équipe ("+fbList.length+")"]].forEach(([k,t])=>{const b=$("button","fbtab"+(fbTab===k?" on":""),t);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",fbTab===k?"true":"false");b.onclick=()=>{fbTab=k;fbPaint()};tabs.appendChild(b)});
-  if(!fbDb)fbTab="send";
-  if(fbDb)md.appendChild(tabs);
-  if(fbTab==="send")fbSendPane(md);else fbListPane(md);
-  md.scrollTop=keep;
-}
-function fbSendPane(md){
-  const it0=$("div","fbintro");const ic=$("span","fbic");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14h4"/></svg>';
-  const itx=$("div");itx.append($("b",null,"Une remarque sur l'outil ?"),$("span",null,fbDb?"Un bug, une idée, un nom à corriger : dis-le ici, Dam's le voit directement.":"Un bug, une idée, un nom à corriger : remplis ce formulaire, le retour est copié et tu le colles dans un message Teams à Dam's."));it0.append(ic,itx);md.appendChild(it0);
-  const hasName=()=>!!(typeof myName==="function"&&myName());
-  if(!hasName()){
-    const nw=$("div","fbwarn");nw.setAttribute("role","alert");
-    const nt=$("div","fbwt");nt.append($("b",null,"Saisis d'abord ton nom"),$("span",null,"Sans nom, ton retour partirait en « Anonyme » et on ne pourrait pas te répondre."));
-    const nr=$("div","fbwr");const ni=$("input");ni.type="text";ni.placeholder="Prénom Nom";ni.autocomplete="name";ni.maxLength=60;ni.setAttribute("aria-label","Ton nom");
-    const nb=$("button","btn","Enregistrer mon nom");nb.type="button";nb.disabled=true;
-    const nsave=()=>{const v=ni.value.trim();if(!v)return;setMyName(v);try{buildBar()}catch(e){}fbPaint()};
-    ni.oninput=()=>{nb.disabled=!ni.value.trim()};ni.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();nsave()}};nb.onclick=nsave;
-    nr.append(ni,nb);nw.append(nt,nr);md.appendChild(nw);
   }
-  const f1=$("div","fld");f1.appendChild($("span",null,"Sur quel outil ?"));const tc=$("div","fbkinds");tc.setAttribute("role","radiogroup");
-  FB_TOOLS.forEach(t=>{const b=$("button","fbkind"+(t===fbTool?" on":""),t);b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",t===fbTool?"true":"false");b.onclick=()=>{fbTool=t;tc.querySelectorAll(".fbkind").forEach(z=>{const on=z===b;z.classList.toggle("on",on);z.setAttribute("aria-checked",on?"true":"false")})};tc.appendChild(b)});
-  f1.appendChild(tc);md.appendChild(f1);
-  const f2=$("div","fld");f2.appendChild($("span",null,"C'est plutôt…"));const ch=$("div","fbkinds");ch.setAttribute("role","radiogroup");
-  FB_KINDS.forEach(([k,t])=>{const b=$("button","fbkind kd-"+k+(fbKind===k?" on":""));b.innerHTML='<i class="fbdot"></i><span></span>';b.lastChild.textContent=t;b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",fbKind===k?"true":"false");b.onclick=()=>{fbKind=k;ch.querySelectorAll(".fbkind").forEach(z=>{const on=z===b;z.classList.toggle("on",on);z.setAttribute("aria-checked",on?"true":"false")})};ch.appendChild(b)});
-  f2.appendChild(ch);md.appendChild(f2);
-  const f3=$("label","fld");f3.appendChild($("span",null,"Ton message"));const ta=$("textarea");ta.rows=4;ta.maxLength=1500;ta.value=fbDraft;ta.placeholder="Ce qui ne va pas, ce que tu voudrais, le nom à corriger… Ne mets pas de données sensibles du client.";
-  const cnt=$("small","fbcnt",ta.value.length+" / 1500");ta.oninput=()=>{fbDraft=ta.value;cnt.textContent=ta.value.length+" / 1500";sb.disabled=!ta.value.trim()||fbCanWrite===false||!hasName()};
-  f3.appendChild(ta);f3.appendChild(cnt);md.appendChild(f3);
-  md.appendChild($("small","fbnote",fbDb?"Joints automatiquement : ton nom, l'heure et la version de l'outil ("+SUPPORT_BUILD+").":"Ajoutés au texte copié : ton nom, l'outil, le type et la version ("+SUPPORT_BUILD+")."));
-  const msg=$("p","msg"+(fbInfo?"":" ")," ");msg.textContent=fbInfo;
-  if(fbCanWrite===false){msg.className="msg err";msg.textContent="Tu peux lire les retours mais pas en envoyer : demande à Dam's de te passer en Contributeur."}
-  md.appendChild(msg);
-  const ac=$("div","adqact");const sb=$("button","btn fbsend");sb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><span></span>';sb.lastChild.textContent=fbDb?"Envoyer mon retour":"Copier mon retour";sb.type="button";sb.disabled=!fbDraft.trim()||fbCanWrite===false||!hasName();
-  sb.onclick=async()=>{const t=fbDraft.trim();if(!t||!hasName())return;
-    if(!fbDb){const kl=Object.fromEntries(FB_KINDS);const txt="Retour sur les Outils XML ePack ("+SUPPORT_BUILD+")\nDe : "+myName()+"\nOutil : "+fbTool+"\nType : "+(kl[fbKind]||fbKind)+"\n\n"+t;
-      let ok=false;try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
-      if(!ok){try{const ta2=$("textarea");ta2.value=txt;ta2.style.cssText="position:fixed;opacity:0;left:-9999px";document.body.appendChild(ta2);ta2.select();ok=document.execCommand("copy");ta2.remove()}catch(e){}}
-      if(ok){fbDraft="";fbInfo="Retour copié : colle-le maintenant dans un message Teams à Dam's.";fbPaint();toast("Retour copié, colle-le dans Teams")}
-      else{msg.className="msg err";msg.textContent="Copie automatique impossible : sélectionne ton message, copie-le et colle-le dans Teams."}
-      return}
-sb.disabled=true;msg.className="msg";msg.textContent="Envoi…";
-    try{await fbDb.collection("feedback").add({ts:Date.now(),authorId:fbMe||"",authorName:await fbName(),tool:fbTool,kind:fbKind,text:t,version:SUPPORT_BUILD,status:"new"});
-      fbDraft="";fbInfo="Merci, ton retour est envoyé.";fbPaint();toast("Merci, retour envoyé")}
-    catch(e){sb.disabled=false;msg.className="msg err";msg.textContent=(e&&e.code==="invalid_argument")?"Envoi refusé : tu n'as pas les droits d'écriture. Demande à Dam's de te passer en Contributeur.":"Envoi impossible pour le moment, réessaie dans un instant."}};
-  ac.appendChild(sb);md.appendChild(ac);if(hasName())setTimeout(()=>ta.focus(),30);
-}
-function fbListPane(md){
-  const bar=$("div","fbfilters");
-  [["open","À traiter"],["all","Tous"],["done","Traités"]].forEach(([k,t])=>{const b=$("button","fbf"+(fbFilter===k?" on":""),t);b.type="button";b.onclick=()=>{fbFilter=k;fbPaint()};bar.appendChild(b)});
-  md.appendChild(bar);
-  const items=fbList.filter(x=>fbFilter==="all"||(fbFilter==="done"?x.status==="done":x.status!=="done"));
-  if(!items.length){md.appendChild($("p","gsubp",fbList.length?"Aucun retour dans cette vue.":"Aucun retour pour l'instant."));return}
-  const kl=Object.fromEntries(FB_KINDS),sl=Object.fromEntries(FB_ST);
-  items.forEach(it=>{
-    const c=$("article","fbitem st-"+(it.status||"new"));
-    const top=$("div","fbtop");top.append($("b",null,it.authorName||"Anonyme"),$("span","fbmeta",fbDate(it.ts)+" · "+(it.version||"")));c.appendChild(top);
-    const tg=$("div","fbtags");tg.append($("span","fbtag",it.tool||"—"),$("span","fbtag k-"+(it.kind||"other"),kl[it.kind]||"Autre"),it.reply?$("span","fbtag s-rep","Répondu"):"",fbCanEdit?"":$("span","fbtag s-"+(it.status||"new"),sl[it.status||"new"]||"Nouveau"));c.appendChild(tg);
-    const th=$("div","fbthread");
-    const bq=$("div","fbbub q");bq.appendChild($("p","fbtext",it.text||""));th.appendChild(bq);
-    const up=(d)=>fbDb.doc("feedback/"+it.id).update(d).catch(()=>toast("Modification impossible"));
-    let editing=false;
-    const paintRep=()=>{
-      th.querySelectorAll(".fbbub.a,.fbcomp").forEach(n=>n.remove());
-      if(it.reply&&!editing){
-        const ba=$("div","fbbub a");
-        const hd=$("div","fbbh");hd.append($("b",null,(it.replyBy||"Dam's")+" a répondu"),$("span","fbmeta",it.replyTs?fbDate(it.replyTs):""));ba.appendChild(hd);
-        ba.appendChild($("p","fbtext",it.reply));
-        if(fbCanEdit){const ed=$("button","fblink","Modifier la réponse");ed.type="button";ed.onclick=()=>{editing=true;paintRep()};ba.appendChild(ed)}
-        th.appendChild(ba);
-      }else if(fbCanEdit){
-        const cp=$("div","fbcomp");
-        const ta=$("textarea");ta.rows=2;ta.maxLength=600;ta.value=it.reply||"";ta.placeholder="Répondre à "+(it.authorName||"ce collègue")+"… (visible par toute l'équipe)";ta.setAttribute("aria-label","Ta réponse");
-        const bar=$("div","fbcbar");const cn=$("small","fbcnt",ta.value.length+" / 600");
-        const sv=$("button","btn fbsave",it.reply?"Mettre à jour la réponse":"Envoyer la réponse");sv.type="button";sv.disabled=!ta.value.trim()||ta.value.trim()===(it.reply||"");
-        ta.oninput=()=>{cn.textContent=ta.value.length+" / 600";sv.disabled=!ta.value.trim()||ta.value.trim()===(it.reply||"")};
-        sv.onclick=async()=>{if(sv.disabled)return;sv.disabled=true;sv.textContent="Envoi…";const nm=await fbName();up(Object.assign({reply:ta.value.trim(),replyTs:Date.now(),replyBy:nm||"Dam's"},(it.status||"new")==="new"?{status:"seen"}:{}));toast("Réponse envoyée")};
-        bar.appendChild(cn);
-        if(it.reply){const ca=$("button","fblink","Annuler");ca.type="button";ca.onclick=()=>{editing=false;paintRep()};bar.appendChild(ca)}
-        bar.appendChild(sv);cp.append(ta,bar);th.appendChild(cp);
-      }
-    };
-    paintRep();c.appendChild(th);
-    if(fbCanEdit){
-      const ad=$("div","fbadm");
-      const r1=$("div","fbrow");r1.appendChild($("span","fblab","Statut"));
-      const sg=$("div","fbseg");sg.setAttribute("role","radiogroup");
-      FB_ST.forEach(([v,t])=>{const on=v===(it.status||"new");const b=$("button","fbsb s-"+v+(on?" on":""));b.innerHTML=FB_ICO[v]+"<span></span>";b.lastChild.textContent=t;b.title=FB_HINT[v];b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",on?"true":"false");b.onclick=()=>{if(!on)up({status:v})};sg.appendChild(b)});
-      r1.appendChild(sg);ad.appendChild(r1);
-      const dl=$("button","fbdel","Supprimer ce retour");dl.type="button";dl.onclick=()=>{if(dl.dataset.s!=="1"){dl.dataset.s="1";dl.textContent="Cliquer à nouveau pour confirmer";setTimeout(()=>{dl.dataset.s="";dl.textContent="Supprimer ce retour"},3000);return}fbDb.doc("feedback/"+it.id).delete().catch(()=>toast("Suppression impossible"))};
-      ad.appendChild(dl);c.appendChild(ad);
-    }
-    md.appendChild(c);
-  });
-}
+
 render();
 '''
 import datetime,zoneinfo
-SB='1.9.1'
+SB='2.0.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -343,61 +214,9 @@ extra_css='''<style>
 @keyframes tpop{from{transform:scale(.4)}to{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.tools .tool,.tool .tarr,.tool .tspk,.gtile.on .gtk{animation:none!important}.tool::after{display:none}.tool,.btn,.gtile,.chip,.tool .ticon{transition:none!important}}
 /* XML → Excel */
-.fbbtn{font:inherit;position:relative;width:40px;height:40px;display:inline-grid;place-items:center;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer}
-.fbbtn svg{width:20px;height:20px}
-.fbbtn:hover{background:rgba(155,249,68,.16)}
-.fbbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent,#9bf944);color:#10201f;font-size:.7rem;font-weight:700;display:grid;place-items:center}
-.modal.fbm{max-width:640px}
-.fbtabs{display:flex;gap:6px;margin:6px 0 14px;border-bottom:1px solid var(--line,#8884)}
-.fbtab{font:inherit;background:transparent;border:0;border-bottom:2px solid transparent;color:inherit;padding:8px 12px;cursor:pointer;opacity:.7}
-.fbtab.on{border-bottom-color:var(--accent,#9bf944);opacity:1;font-weight:600}
-.fbm .fld{display:block;margin:0 0 12px}
-.fbm .fld>span{display:block;font-size:.8rem;opacity:.75;margin-bottom:4px;font-weight:600}
-.fbm textarea{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line,#8886);background:transparent;color:inherit;resize:vertical}
-.fbkinds{display:flex;flex-wrap:wrap;gap:8px}
-.fbkind,.fbf{font:inherit;padding:6px 12px;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer}
-.fbkind.on,.fbf.on{background:rgba(155,249,68,.22);border-color:var(--accent,#9bf944);font-weight:600}
-.fbcnt,.fbnote{display:block;opacity:.65;font-size:.78rem;margin-top:4px}
-.fbfilters{display:flex;gap:8px;margin-bottom:12px}
-.fbitem{border:1px solid var(--line,#8886);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
-.fbitem.st-new{border-left:4px solid var(--accent,#9bf944)}
-.fbitem.st-done{opacity:.7}
-.fbtop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.fbmeta{opacity:.65;font-size:.8rem}
-.fbtags{display:flex;gap:6px;flex-wrap:wrap}
-.fbtag{font-size:.75rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line,#8886)}
-.fbtag.k-bug{border-color:#e5484d;color:#e5484d}.fbtag.s-new{background:rgba(155,249,68,.22)}.fbtag.s-done{opacity:.7}
-.fbtext{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
-.fbreply{margin:0;padding:8px 10px;border-radius:8px;background:rgba(155,249,68,.12);font-size:.9rem}
-.fbthread{display:flex;flex-direction:column;gap:8px;margin-top:2px}
-.fbbub{border-radius:12px;padding:10px 12px;max-width:92%}
-.fbbub.q{align-self:flex-start;background:rgba(128,128,128,.14);border-top-left-radius:4px}
-.fbbub.a{align-self:flex-end;background:rgba(155,249,68,.18);border:1px solid rgba(155,249,68,.5);border-top-right-radius:4px}
-.fbbh{display:flex;justify-content:space-between;gap:12px;font-size:.8rem;margin-bottom:4px}
-.fbtag.s-rep{border-color:var(--accent,#9bf944);background:rgba(155,249,68,.18)}
-.fbcomp{align-self:stretch;display:flex;flex-direction:column;gap:6px}
-.fbcomp textarea{height:68px;min-height:68px;width:100%;box-sizing:border-box;font:inherit;padding:9px 11px;border-radius:10px;border:1px solid var(--line,#8886);background:transparent;color:inherit;resize:vertical}
-.fbcbar{display:flex;align-items:center;gap:10px;justify-content:flex-end}.fbcbar .fbcnt{margin:0 auto 0 0}
-.fblink{font:inherit;font-size:.8rem;background:transparent;border:0;color:inherit;opacity:.75;text-decoration:underline;cursor:pointer;padding:2px 4px;align-self:flex-start}
-.fbbub .fblink{margin-top:4px}
-.fbintro{display:flex;gap:12px;align-items:center;padding:12px 14px;margin:0 0 16px;border-radius:14px;background:linear-gradient(135deg,rgba(155,249,68,.18),rgba(155,249,68,.05));border:1px solid rgba(155,249,68,.35)}
-.fbintro b{display:block;font-size:1rem;margin-bottom:2px}.fbintro span:not(.fbic){display:block;font-size:.88rem;opacity:.85;line-height:1.35}
-.fbic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent,#9bf944);color:#10201f}.fbic svg{width:22px;height:22px}
-.fbm .fld>span{text-transform:uppercase;letter-spacing:.05em;font-size:.72rem}
-.fbkind{display:inline-flex;align-items:center;gap:7px;font-size:.9rem;padding:7px 14px;transition:background .15s,border-color .15s}
-.fbkind:hover{background:rgba(128,128,128,.14)}
-.fbkind:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:2px}.fbm textarea:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(155,249,68,.28)}
-.fbdot{width:9px;height:9px;border-radius:50%;background:#8a8f94;flex:none}
-.kd-bug .fbdot{background:#e5484d}.kd-idea .fbdot{background:#f5a524}.kd-label .fbdot{background:#5b9cff}
-.kd-bug.on{background:rgba(229,72,77,.18);border-color:#e5484d}.kd-idea.on{background:rgba(245,165,36,.2);border-color:#f5a524}.kd-label.on{background:rgba(91,156,255,.2);border-color:#5b9cff}.kd-other.on{background:rgba(138,143,148,.2);border-color:#8a8f94}
-.fbm textarea{font-weight:400;line-height:1.45;min-height:96px;transition:border-color .15s}
-.fbm textarea::placeholder{font-weight:400;opacity:.55}
-.fbm textarea:focus{border-color:var(--accent,#9bf944)}
-.fbsend{display:inline-flex;align-items:center;gap:8px;padding:10px 20px}.fbsend svg{width:17px;height:17px}.fbsend:disabled{opacity:.45;cursor:default}
-.fbwarn{display:flex;flex-direction:column;gap:10px;padding:12px 14px;margin:0 0 16px;border-radius:12px;background:rgba(245,165,36,.16);border:1px solid #f5a524}
-.fbwt b{display:block;margin-bottom:2px}.fbwt span{display:block;font-size:.86rem;opacity:.9}
-.fbwr{display:flex;gap:8px;flex-wrap:wrap}.fbwr input{flex:1 1 200px;min-width:0;font:inherit;padding:8px 11px;border-radius:9px;border:1px solid var(--line,#8886);background:transparent;color:inherit}
-.fbwr input:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(245,165,36,.35)}.fbwr .btn:disabled{opacity:.45}
+.htabs{display:flex;gap:6px;margin:6px 0 14px;border-bottom:1px solid var(--line,#8884)}
+.htab{font:inherit;background:transparent;border:0;border-bottom:2px solid transparent;color:inherit;padding:8px 12px;cursor:pointer;opacity:.7}
+.htab.on{border-bottom-color:var(--accent,#9bf944);opacity:1;font-weight:600}
 .helpbtn{font:inherit;position:relative;width:40px;height:40px;display:inline-grid;place-items:center;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer;transition:transform .25s,background .2s,box-shadow .25s}
 .helpbtn svg{width:20px;height:20px;transition:transform .35s}
 .helpbtn:hover{background:rgba(155,249,68,.18);transform:translateY(-2px);box-shadow:0 6px 16px rgba(155,249,68,.25)}.helpbtn:hover svg{transform:scale(1.12) rotate(-6deg)}
@@ -416,31 +235,6 @@ extra_css='''<style>
 .hsteps li>div{display:flex;flex-direction:column;gap:2px}.hsteps li b{font-size:.95rem}.hsteps li span:not(.hn){font-size:.88rem;opacity:.85;line-height:1.4}
 .htip{margin:14px 0 0;padding:9px 12px;border-radius:10px;border-left:4px solid var(--accent,#9bf944);background:rgba(155,249,68,.1);font-size:.86rem}
 .hfoot{margin:14px 2px 0;font-size:.8rem;opacity:.65}
-.fbitem.st-done{opacity:1}
-.fbitem.st-done .fbtext{opacity:.8}
-.fbtext{font-size:.95rem;line-height:1.45}
-.fbadm{margin-top:6px;padding-top:10px;border-top:1px dashed var(--line,#8886);display:flex;flex-direction:column;gap:10px}
-.fbrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.fblab{flex:0 0 64px;font-size:.78rem;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
-.fbseg{display:inline-flex;gap:6px;flex-wrap:wrap}
-.fbsb{font:inherit;font-size:.86rem;display:inline-flex;align-items:center;gap:6px;padding:6px 13px 6px 10px;border-radius:999px;border:1.5px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer;opacity:.75;transition:background .15s,border-color .15s,opacity .15s}
-.fbsb svg{width:15px;height:15px;flex:none}
-.fbsb:hover{opacity:1;background:rgba(128,128,128,.14)}
-.fbsb:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:2px}
-.fbsb.on{opacity:1;font-weight:700}
-.fbsb.on.s-new{background:rgba(155,249,68,.30);border-color:#7fd12a}
-.fbsb.on.s-seen{background:rgba(80,150,255,.28);border-color:#5b9cff}
-.fbsb.on.s-done{background:rgba(155,249,68,.30);border-color:#7fd12a}
-.fbsb.on.s-done svg{stroke-width:2.6}
-.fbitem.st-seen{border-left:4px solid #5b9cff}
-.fbitem.st-done{border-left:4px solid rgba(128,128,128,.55)}
-.fbrep{flex:1 1 240px;display:flex;gap:8px;min-width:0}
-.fbrep input{flex:1;min-width:0;font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line,#8886);background:transparent;color:inherit}
-.fbsave{padding:6px 14px;white-space:nowrap}.fbsave:disabled{opacity:.4;cursor:default}
-.fbdel{align-self:flex-end;font:inherit;font-size:.8rem;background:transparent;border:0;color:#e5484d;cursor:pointer;padding:2px 4px;text-decoration:underline}
-.fbact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.fbact input{flex:1 1 200px;min-width:0;font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line,#8886);background:transparent;color:inherit}
-.fbact select{font:inherit;padding:6px 8px;border-radius:8px}
 .gearbtn{font:inherit;width:40px;height:40px;display:inline-grid;place-items:center;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer;margin-left:8px;transition:transform .35s,background .2s}.gearbtn svg{width:20px;height:20px}.gearbtn:hover{background:rgba(155,249,68,.18);transform:rotate(60deg)}.gearbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}\n.spToast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#12201e;color:#fff;border:1px solid #9fe03a;border-radius:10px;padding:10px 16px;z-index:200;max-width:min(92vw,520px);box-shadow:0 8px 28px rgba(0,0,0,.35);font-size:14px;transition:opacity .35s}.spToast.out{opacity:0}.gsubp.gfile:empty{display:none}.gsubp.gfile{display:flex;align-items:center;flex-wrap:wrap;gap:6px;overflow-wrap:anywhere}\n.x2beta{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55);vertical-align:middle}
 .x2bn{font-size:12.5px;color:var(--muted,#9aa39e);border-left:3px solid #ffb020;padding:4px 10px;margin:8px 0}
 .wip{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:rgba(255,176,32,.18);color:#ffb020;border:1px solid rgba(255,176,32,.55)}
