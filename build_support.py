@@ -85,6 +85,9 @@ function buildBar(){
   const gb=$("button","gearbtn");gb.type="button";gb.title="Réglages : thème et langue";gb.setAttribute("aria-label","Réglages : thème et langue");gb.setAttribute("aria-haspopup","dialog");
   gb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   gb.onclick=()=>settingsMenu(gb);
+  {const hb=$("button","helpbtn"+(helpSeen()?"":" new"));hb.type="button";hb.title=LANG==="en"?"How to use these tools":"Mode d'emploi";hb.setAttribute("aria-label",hb.title);hb.setAttribute("aria-haspopup","dialog");
+    hb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4H10a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H3.5A1.5 1.5 0 0 1 2 16.5z"/><path d="M22 5.5A1.5 1.5 0 0 0 20.5 4H14a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>';
+    hb.onclick=helpOpen;rg.appendChild(hb)}
   {const fb=$("button","fbbtn");fb.type="button";fb.title="Un retour sur l'outil ?";fb.setAttribute("aria-label","Retours sur l'outil");fb.setAttribute("aria-haspopup","dialog");
     fb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
     if(fbCanEdit&&fbNew()){const bd=$("span","fbbadge",String(fbNew()));bd.setAttribute("aria-hidden","true");fb.appendChild(bd);fb.setAttribute("aria-label","Retours sur l'outil ("+fbNew()+" nouveaux)")}
@@ -119,6 +122,68 @@ function render(){
   one("XML → Excel","Dépose le ZIP de la configuration du client (ou un seul XML) : j'en fais un Excel, un onglet par module.","Un onglet = un module",()=>{fbTool="XML → Excel";openX2E()},IC3);
   app.appendChild(tl);
   trSchedule();
+}
+
+/* ===== Mode d'emploi ===== */
+let helpDlg=null,helpTab=0;
+function helpSeen(){try{return localStorage.getItem("xml-help-seen")==="1"}catch(e){return true}}
+function helpData(){
+  const en=LANG==="en";
+  return en?[
+   {t:"Excel → XML",lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
+    ["Drop the file","Drop the client's .xlsx or .csv (or click the box). One sheet = one XML."],
+    ["Pick the XML type(s)","Tick one or several types: warming, stickers, miscellaneous controls… The tool recognises the columns by their names."],
+    ["Check the columns","Open « Adjust columns » if something was not recognised. You can also set one fixed value for all products."],
+    ["Fill in what is missing","If values are missing (e.g. min/max temperature), a window asks for them. Defaults: -10 °C and 99 °C."],
+    ["Generate","Click « Validate and generate »: a ZIP with all the XML files at its root is downloaded."]],tip:"Nothing is sent anywhere: everything stays in your browser."},
+   {t:"Complete an XML",lead:"Fix an XML export from the configurator.",steps:[
+    ["Drop the XML","Products, checklists or cleaning plans exported from the configurator."],
+    ["Let it work","Missing tags are added and the file is normalised (tag order, namespaces, encoding)."],
+    ["Download","Save the completed XML and import it."]],tip:"If the type is not in the registry, the tool stops instead of guessing."},
+   {t:"XML → Excel",lead:"Read a client's configuration as a spreadsheet.",steps:[
+    ["Drop the ZIP","The client's configuration ZIP, or a single XML file."],
+    ["Tick the modules","One tab per module. Use « Preview » to see the first rows; empty modules are hidden."],
+    ["Download","« Download Excel » gives one workbook. With one module ticked you can get a CSV; with several, one CSV per module in a ZIP."]],tip:"Deleted items are not exported and user passwords never are."}
+  ]:[
+   {t:"Excel → XML",lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
+    ["Dépose le fichier","Dépose le .xlsx ou .csv du client (ou clique sur la zone). Un onglet = un XML."],
+    ["Choisis le ou les types d'XML","Coche un ou plusieurs types : mise en température, étiquettes, contrôles divers… Les colonnes sont reconnues d'après leur nom."],
+    ["Vérifie les colonnes","Ouvre « Ajuster les colonnes » si quelque chose n'est pas reconnu. Tu peux aussi saisir une valeur fixe pour tous les produits."],
+    ["Complète ce qui manque","S'il manque des valeurs (ex. températures mini et maxi), une fenêtre te les demande. Valeurs par défaut : -10 °C et 99 °C."],
+    ["Génère","Clique sur « Valider et générer » : un ZIP avec tous les XML à la racine se télécharge."]],tip:"Rien n'est envoyé : tout reste dans ton navigateur."},
+   {t:"Compléter un XML",lead:"Remet d'aplomb un export XML du configurateur.",steps:[
+    ["Dépose le XML","Produits, checklists ou plans de nettoyage exportés du configurateur."],
+    ["Laisse faire","Les balises manquantes sont ajoutées et le fichier est normalisé (ordre des balises, espaces de noms, encodage)."],
+    ["Télécharge","Enregistre le XML complété et importe-le."]],tip:"Si le type n'est pas dans le registre, l'outil s'arrête plutôt que de deviner."},
+   {t:"XML → Excel",lead:"Lis la configuration d'un client sous forme de tableur.",steps:[
+    ["Dépose le ZIP","Le ZIP de la configuration du client, ou un seul fichier XML."],
+    ["Coche les modules","Un onglet par module. « Aperçu » montre les premières lignes ; les modules vides sont masqués."],
+    ["Télécharge","« Télécharger l'Excel » donne un classeur. Avec un seul module coché, tu peux sortir un CSV ; avec plusieurs, un CSV par module dans un ZIP."]],tip:"Les éléments supprimés ne sont pas repris et les mots de passe ne sont jamais exportés."}
+  ];
+}
+function helpClose(){if(!helpDlg)return;const b=helpDlg.parentNode;(b&&b.classList&&b.classList.contains("modal-bg")?b:helpDlg).remove();helpDlg=null;document.removeEventListener("keydown",helpKey,true)}
+function helpKey(e){if(e.key==="Escape"){e.stopPropagation();helpClose()}}
+function helpOpen(){
+  if(helpDlg)return;
+  try{localStorage.setItem("xml-help-seen","1")}catch(e){}
+  document.querySelectorAll(".helpbtn.new").forEach(b=>b.classList.remove("new"));
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-label",LANG==="en"?"How to use":"Mode d'emploi");
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)helpClose()});
+  const md=$("div","modal xml helpm");bg.appendChild(md);document.body.appendChild(bg);helpDlg=md;
+  document.addEventListener("keydown",helpKey,true);helpTab=0;helpPaint();
+}
+function helpPaint(){
+  const md=helpDlg;if(!md)return;const D=helpData(),en=LANG==="en";md.textContent="";
+  const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label",en?"Close":"Fermer");x.onclick=helpClose;hd.append($("h2",null,en?"How to use":"Mode d'emploi"),x);md.appendChild(hd);
+  md.appendChild($("p","gsubp",en?"Three tools, one idea: drop a file, check, download.":"Trois outils, une idée : tu déposes un fichier, tu vérifies, tu télécharges."));
+  const tabs=$("div","fbtabs");tabs.setAttribute("role","tablist");
+  D.forEach((d,i)=>{const b=$("button","fbtab"+(helpTab===i?" on":""),d.t);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",helpTab===i?"true":"false");b.onclick=()=>{helpTab=i;helpPaint()};tabs.appendChild(b)});
+  md.appendChild(tabs);
+  const d=D[helpTab];
+  const pane=$("div","hpane");pane.appendChild($("p","hlead",d.lead));
+  const ol=$("ol","hsteps");d.steps.forEach(([h,t],i)=>{const li=$("li");li.style.setProperty("--i",i);const n=$("span","hn",String(i+1));const bd=$("div");bd.append($("b",null,h),$("span",null,t));li.append(n,bd);ol.appendChild(li)});
+  pane.appendChild(ol);pane.appendChild($("p","htip",d.tip));md.appendChild(pane);
+  md.appendChild($("p","hfoot",en?"A bug, an idea, a name to fix? Use the speech-bubble button at the top right.":"Un bug, une idée, un nom à corriger ? Utilise le bouton bulle en haut à droite."));
 }
 
 /* ===== Retours de l'équipe (base partagée de la page) ===== */
@@ -249,7 +314,7 @@ function fbListPane(md){
 render();
 '''
 import datetime,zoneinfo
-SB='1.8.0'
+SB='1.9.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -329,6 +394,24 @@ extra_css='''<style>
 .fbwt b{display:block;margin-bottom:2px}.fbwt span{display:block;font-size:.86rem;opacity:.9}
 .fbwr{display:flex;gap:8px;flex-wrap:wrap}.fbwr input{flex:1 1 200px;min-width:0;font:inherit;padding:8px 11px;border-radius:9px;border:1px solid var(--line,#8886);background:transparent;color:inherit}
 .fbwr input:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(245,165,36,.35)}.fbwr .btn:disabled{opacity:.45}
+.helpbtn{font:inherit;position:relative;width:40px;height:40px;display:inline-grid;place-items:center;border-radius:999px;border:1px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer;transition:transform .25s,background .2s,box-shadow .25s}
+.helpbtn svg{width:20px;height:20px;transition:transform .35s}
+.helpbtn:hover{background:rgba(155,249,68,.18);transform:translateY(-2px);box-shadow:0 6px 16px rgba(155,249,68,.25)}.helpbtn:hover svg{transform:scale(1.12) rotate(-6deg)}
+.helpbtn:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:2px}
+.helpbtn.new{border-color:var(--accent,#9bf944)}
+.helpbtn.new::after{content:"";position:absolute;inset:-2px;border-radius:999px;border:2px solid var(--accent,#9bf944);opacity:0;animation:helpPulse 2.4s ease-out infinite;pointer-events:none}
+@keyframes helpPulse{0%{transform:scale(.9);opacity:.8}70%,100%{transform:scale(1.45);opacity:0}}
+@media (prefers-reduced-motion:reduce){.helpbtn.new::after{animation:none;opacity:.6;transform:none}.helpbtn,.helpbtn svg{transition:none}}
+.helpm .gsubp{margin:0 0 6px}
+.hlead{margin:0 0 14px;font-size:1rem;font-weight:600}
+.hsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.hsteps li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgba(128,128,128,.1);animation:hstep .35s ease-out both;animation-delay:calc(var(--i)*60ms)}
+@keyframes hstep{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.hsteps li{animation:none}}
+.hn{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.82rem;font-weight:700;background:var(--accent,#9bf944);color:#10201f}
+.hsteps li>div{display:flex;flex-direction:column;gap:2px}.hsteps li b{font-size:.95rem}.hsteps li span:not(.hn){font-size:.88rem;opacity:.85;line-height:1.4}
+.htip{margin:14px 0 0;padding:9px 12px;border-radius:10px;border-left:4px solid var(--accent,#9bf944);background:rgba(155,249,68,.1);font-size:.86rem}
+.hfoot{margin:14px 2px 0;font-size:.8rem;opacity:.65}
 .fbitem.st-done{opacity:1}
 .fbitem.st-done .fbtext{opacity:.8}
 .fbtext{font-size:.95rem;line-height:1.45}
