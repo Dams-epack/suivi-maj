@@ -241,7 +241,7 @@ function fbListPane(md){
 render();
 '''
 import datetime,zoneinfo
-SB='1.6.1'
+SB='1.7.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>

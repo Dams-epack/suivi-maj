@@ -833,7 +833,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.4.2";
-const SUPPORT_BUILD="v1.6.1";
+const SUPPORT_BUILD="v1.7.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3518,22 +3518,28 @@ function openX2E(){
     return "\uFEFF"+[m.head].concat(m.rows).map(r=>r.map(cell).join(";")).join("\r\n")+"\r\n";
   }
   async function dl(fmt){
-    const csv=fmt==="csv";
+    const zip=fmt==="csvzip",csv=fmt==="csv"||zip;
     st.msg="";const c=chosen();
     if(!c.length){st.msg="Coche au moins un module.";paint();return}
-    if(csv&&c.length!==1){st.msg="Le CSV ne contient qu'un seul module : coche-en un seul.";paint();return}
+    if(fmt==="csv"&&c.length!==1){st.msg="Le CSV ne contient qu'un seul module : coche-en un seul.";paint();return}
     let data;
-    try{data=csv?new TextEncoder().encode(csvOf(c[0])):await X2E.build(c)}catch(e){st.msg="Création du fichier "+(csv?"CSV":"Excel")+" impossible : "+((e&&e.message)||"erreur");paint();return}
-    const filename=csv?fname().replace(/\.xlsx$/i,".csv"):fname();
+    try{
+      if(zip){
+        if(typeof makeZipMany!=="function")throw new Error("ZIP indisponible");
+        const enc=new TextEncoder(),used=new Set();
+        data=makeZipMany(c.map(m=>{let n=String(m.sheet||m.name).replace(/[\\\/:*?"<>|]/g," ").replace(/\s+/g," ").trim()||"Module",k=n,i=2;while(used.has(k.toLowerCase()))k=n+" ("+i++ +")";used.add(k.toLowerCase());return {name:k+".csv",data:enc.encode(csvOf(m))}}));
+      }else data=csv?new TextEncoder().encode(csvOf(c[0])):await X2E.build(c);
+    }catch(e){st.msg="Création du fichier "+(csv?"CSV":"Excel")+" impossible : "+((e&&e.message)||"erreur");paint();return}
+    const filename=zip?fname().replace(/\.xlsx$/i," - CSV.zip"):csv?fname().replace(/\.xlsx$/i,".csv"):fname();
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"nodl"};
       await d.save({filename,data});
-      st.msg="Fichier téléchargé : "+filename+(csv?" ("+c[0].rows.length+" ligne"+(c[0].rows.length>1?"s":"")+")":" ("+c.length+" onglet"+(c.length>1?"s":"")+")")+"."+(!csv&&X2E.fallback()?" Attention : les listes déroulantes n’ont pas pu être ajoutées (bibliothèque non chargée).":"");
+      st.msg="Fichier téléchargé : "+filename+(zip?" ("+c.length+" CSV)":csv?" ("+c[0].rows.length+" ligne"+(c[0].rows.length>1?"s":"")+")":" ("+c.length+" onglet"+(c.length>1?"s":"")+")")+"."+(!csv&&X2E.fallback()?" Attention : les listes déroulantes n’ont pas pu être ajoutées (bibliothèque non chargée).":"");
     }catch(e){
       if(e&&e.code==="declined")st.msg="Téléchargement annulé.";
       else{
-        try{const u=URL.createObjectURL(new Blob([data],{type:csv?"text/csv;charset=utf-8":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.msg="Téléchargement lancé : "+filename+"."}
+        try{const u=URL.createObjectURL(new Blob([data],{type:zip?"application/zip":csv?"text/csv;charset=utf-8":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.msg="Téléchargement lancé : "+filename+"."}
         catch(x){st.msg="Téléchargement impossible."}
       }
     }
@@ -3595,6 +3601,7 @@ function openX2E(){
     /* actions */
     const ac=$("div","x2act");
     if(c.length===1){const cv=$("button","btn ghost","Télécharger en CSV");cv.type="button";cv.title="Séparateur « ; », UTF-8 : s'ouvre directement dans Excel";cv.onclick=()=>dl("csv");ac.appendChild(cv)}
+    else if(c.length>1){const cz=$("button","btn ghost","Un CSV par module (ZIP)");cz.type="button";cz.title="Un fichier CSV par module coché, regroupés dans un ZIP (séparateur « ; », UTF-8)";cz.onclick=()=>dl("csvzip");ac.appendChild(cz)}
     const d=$("button","btn ok","Télécharger l'Excel"+(c.length?" · "+c.length+" onglet"+(c.length>1?"s":""):""));d.type="button";d.disabled=!c.length;d.onclick=()=>dl("xlsx");
     ac.appendChild(d);md.appendChild(ac);
   }
