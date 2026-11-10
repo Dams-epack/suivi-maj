@@ -434,48 +434,55 @@ function openX2E(){
     md.textContent="";
     const h=$("h2",null,"XML → Excel");h.id="x2t";
     const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;hd.append(h,x);
-    md.append(hd,$("p",null,"Dépose le ZIP de la configuration du client (ou un seul XML) : je produis un Excel avec un onglet par module. Rien n'est envoyé, tout reste dans ton navigateur."));
+    md.appendChild(hd);
     if(st.busy){md.appendChild($("p","msg","Lecture en cours…"));return}
     if(!st.mods){
+      md.appendChild($("p",null,"Dépose le ZIP de la configuration du client (ou un seul XML) : je produis un Excel avec un onglet par module. Rien n'est envoyé, tout reste dans ton navigateur."));
       if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
       md.appendChild(pick());
       const ac=$("div","actions");const no=$("button","btn ghost","Fermer");no.onclick=close;ac.appendChild(no);md.appendChild(ac);
       return;
     }
     const nonEmpty=st.mods.filter(m=>m.count>0).length;
-    md.appendChild($("p",null,st.mods.length+" module(s) trouvé(s), dont "+nonEmpty+" avec des données."+(st.moments?" Les moments sont affichés par leur nom.":"")));
+    /* fichier chargé */
+    const fc=$("div","x2file");
+    const fi=$("span","x2fi");fi.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m9.5 13 3 3 3-3"/></svg>';
+    const ft=$("div","x2ft");ft.append($("b",null,st.name||"Fichier"),$("small",null,st.mods.length+" module"+(st.mods.length>1?"s":"")+" trouvé"+(st.mods.length>1?"s":"")+" · "+nonEmpty+" avec des données"+(st.moments?" · moments affichés par leur nom":"")));
+    const ch=$("button","x2lk","Changer de fichier");ch.type="button";ch.onclick=()=>{st.mods=null;st.msg="";paint()};
+    fc.append(fi,ft,ch);md.appendChild(fc);
+    /* barre d'outils */
+    const c=chosen();
+    const tb0=$("div","x2tb");
+    tb0.appendChild($("span","x2cnt",c.length+" sélectionné"+(c.length>1?"s":"")+" sur "+nonEmpty));
+    const tg=$("div","x2tg");
+    const a1=$("button","x2lk","Tout cocher");a1.type="button";a1.onclick=()=>{st.sel=new Set(st.mods.filter(m=>m.count>0).map(m=>m.name));paint()};
+    const a2=$("button","x2lk","Tout décocher");a2.type="button";a2.onclick=()=>{st.sel=new Set();paint()};
+    tg.append(a1,a2);
+    if(nonEmpty<st.mods.length){const te=$("button","x2lk",st.showEmpty?"Masquer les vides":"Voir les "+(st.mods.length-nonEmpty)+" vides");te.type="button";te.onclick=()=>{st.showEmpty=!st.showEmpty;paint()};tg.appendChild(te)}
+    tb0.appendChild(tg);md.appendChild(tb0);
+    /* liste */
     const lst=$("div","x2list");
     st.mods.filter(m=>m.count>0||st.showEmpty).forEach(m=>{
-      const l=$("label","x2row"+(m.count?"":" empty"));
+      const l=$("label","x2row"+(m.count?"":" empty")+(st.sel.has(m.name)?" on":""));
       const cb=$("input");cb.type="checkbox";cb.checked=st.sel.has(m.name);cb.onchange=()=>{cb.checked?st.sel.add(m.name):st.sel.delete(m.name);paint()};
       const pv=$("button","chip x2pv"+(st.prev===m.name?" on":""),"Aperçu");pv.type="button";pv.disabled=!m.count;pv.onclick=e=>{e.preventDefault();e.stopPropagation();st.prev=st.prev===m.name?"":m.name;paint()};
-      l.append(cb,$("span","x2n",m.sheet),$("small",null,m.count?m.count+" ligne"+(m.count>1?"s":""):"vide"),pv);
+      l.append(cb,$("span","x2n",m.sheet),$("small","x2c",m.count?m.count+" ligne"+(m.count>1?"s":""):"vide"),pv);
       lst.appendChild(l);
     });
     md.appendChild(lst);
-    if(nonEmpty<st.mods.length){const te=$("button","chip",st.showEmpty?"Masquer les modules vides":"Afficher les "+(st.mods.length-nonEmpty)+" modules vides");te.type="button";te.style.marginTop="8px";te.style.alignSelf="flex-start";te.onclick=()=>{st.showEmpty=!st.showEmpty;paint()};md.appendChild(te)}
     {const pm=st.mods.find(m=>m.name===st.prev);if(pm){
-      const bx=$("div","x2prev");bx.appendChild($("p","x2pt","Aperçu : "+pm.sheet+" ("+pm.rows.length+" ligne"+(pm.rows.length>1?"s":"")+")"));
+      const bx=$("div","x2prev");bx.appendChild($("p","x2pt","Aperçu : "+pm.sheet+" ("+pm.rows.length+" ligne"+(pm.rows.length>1?"s":"")+", 5 premières)"));
       const sc=$("div","x2sc"),tb=$("table");const th=$("tr");pm.head.forEach(h=>th.appendChild($("th",null,String(h))));tb.appendChild(th);
       pm.rows.slice(0,5).forEach(r=>{const tr=$("tr");r.forEach(v=>tr.appendChild($("td",null,String(v==null?"":v).slice(0,70))));tb.appendChild(tr)});
       sc.appendChild(tb);bx.appendChild(sc);md.appendChild(bx)}}
-    const q=$("div","actions");
-    const a1=$("button","chip","Tout cocher");a1.type="button";a1.onclick=()=>{st.sel=new Set(st.mods.filter(m=>m.count>0).map(m=>m.name));paint()};
-    const a2=$("button","chip","Tout décocher");a2.type="button";a2.onclick=()=>{st.sel=new Set();paint()};
-    q.append(a1,a2);
-    md.appendChild(q);
-    md.appendChild($("p","ghint","Les éléments supprimés ne sont pas repris. Les mots de passe des utilisateurs ne sont jamais exportés."));
+    md.appendChild($("p","x2note","Les éléments supprimés ne sont pas repris et les mots de passe ne sont jamais exportés."));
     if(st.bad.length)md.appendChild($("p","warnmsg","Fichier(s) illisible(s), ignoré(s) : "+st.bad.join(", ")));
-    if(st.msg)md.appendChild($("p","msg",st.msg));
-    const ac=$("div","actions");
-    const c=chosen();
-    const d=$("button","btn ok","Télécharger l'Excel ("+c.length+" onglet"+(c.length>1?"s":"")+")");d.disabled=!c.length;d.onclick=()=>dl("xlsx");
-    const ch=$("button","btn ghost","Changer de fichier");ch.onclick=()=>{st.mods=null;st.msg="";paint()};
-    const no=$("button","btn ghost","Fermer");no.onclick=close;
-    if(c.length===1){const cv=$("button","btn ok","Télécharger en CSV");cv.type="button";cv.title="Séparateur « ; », UTF-8 : s'ouvre directement dans Excel";cv.onclick=()=>dl("csv");ac.append(d,cv,ch,no)}
-    else ac.append(d,ch,no);
-    md.appendChild(ac);
-    if(c.length===1)md.appendChild($("p","ghint","Un seul module coché : tu peux aussi l'exporter en CSV (séparateur « ; », ouvrable directement dans Excel)."));
+    if(st.msg){const mm=$("p","msg x2msg",st.msg);mm.setAttribute("role","status");md.appendChild(mm)}
+    /* actions */
+    const ac=$("div","x2act");
+    if(c.length===1){const cv=$("button","btn ghost","Télécharger en CSV");cv.type="button";cv.title="Séparateur « ; », UTF-8 : s'ouvre directement dans Excel";cv.onclick=()=>dl("csv");ac.appendChild(cv)}
+    const d=$("button","btn ok","Télécharger l'Excel"+(c.length?" · "+c.length+" onglet"+(c.length>1?"s":""):""));d.type="button";d.disabled=!c.length;d.onclick=()=>dl("xlsx");
+    ac.appendChild(d);md.appendChild(ac);
   }
   paint();
 }

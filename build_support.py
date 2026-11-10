@@ -241,7 +241,7 @@ function fbListPane(md){
 render();
 '''
 import datetime,zoneinfo
-SB='1.6.0'
+SB='1.6.1'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -358,6 +358,21 @@ extra_css='''<style>
 .x2sc{overflow:auto;max-width:100%}.x2prev table{border-collapse:collapse;font-size:.8rem;min-width:100%}.x2prev th,.x2prev td{border:1px solid var(--border,#ccc);padding:3px 8px;text-align:left;white-space:nowrap}.x2prev th{background:rgba(155,249,68,.16)}
 .x2sum{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;margin-left:10px}
 .x2n{flex:1}
+.x2file{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(155,249,68,.16),rgba(155,249,68,.04));border:1px solid rgba(155,249,68,.35);margin:2px 0 14px}
+.x2fi{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent,#9bf944);color:#10201f}.x2fi svg{width:22px;height:22px}
+.x2ft{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.x2ft b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.x2ft small{opacity:.75;font-size:.82rem}
+.x2lk{font:inherit;font-size:.84rem;background:transparent;border:0;color:inherit;opacity:.8;text-decoration:underline;cursor:pointer;padding:2px 4px;white-space:nowrap}.x2lk:hover{opacity:1}.x2lk:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:2px;border-radius:4px}
+.x2tb{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px}
+.x2cnt{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.7}.x2tg{display:flex;gap:10px;flex-wrap:wrap}
+.x2list{min-height:0!important;max-height:38vh;padding:4px;gap:3px}
+.x2row{padding:9px 10px;border:1px solid transparent}.x2row.on{background:rgba(155,249,68,.12);border-color:rgba(155,249,68,.35)}
+.x2row input{width:17px;height:17px;accent-color:#7fd12a;flex:none}
+.x2c{font-size:.78rem;padding:2px 9px;border-radius:999px;background:rgba(128,128,128,.16);opacity:1!important}
+.x2note{margin:10px 2px 0;font-size:.78rem;opacity:.65}
+.x2msg{margin:12px 0 0}
+.x2act{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line,#8884)}
+.x2act .btn{padding:10px 20px}.x2act .btn:disabled{opacity:.45;cursor:default}
+
 </style>
 '''
 out=head+'\n'+extra_css+brand+'\n<div class="wrap" id="app"></div>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>\n<script>\nconst APP_VERSION="%s";\nconst SUPPORT_BUILD="%s";\n'%(ver,build_label)+prelude+code+main+'\n</script>\n'
