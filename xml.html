@@ -833,7 +833,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.4.2";
-const SUPPORT_BUILD="v1.7.1";
+const SUPPORT_BUILD="v1.8.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3629,7 +3629,7 @@ function buildBar(){
   const gb=$("button","gearbtn");gb.type="button";gb.title="Réglages : thème et langue";gb.setAttribute("aria-label","Réglages : thème et langue");gb.setAttribute("aria-haspopup","dialog");
   gb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   gb.onclick=()=>settingsMenu(gb);
-  if(fbDb){const fb=$("button","fbbtn");fb.type="button";fb.title="Un retour sur l'outil ?";fb.setAttribute("aria-label","Retours sur l'outil");fb.setAttribute("aria-haspopup","dialog");
+  {const fb=$("button","fbbtn");fb.type="button";fb.title="Un retour sur l'outil ?";fb.setAttribute("aria-label","Retours sur l'outil");fb.setAttribute("aria-haspopup","dialog");
     fb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
     if(fbCanEdit&&fbNew()){const bd=$("span","fbbadge",String(fbNew()));bd.setAttribute("aria-hidden","true");fb.appendChild(bd);fb.setAttribute("aria-label","Retours sur l'outil ("+fbNew()+" nouveaux)")}
     fb.onclick=fbOpenDlg;rg.appendChild(fb)}
@@ -3690,20 +3690,21 @@ function fbOpenDlg(){
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-label","Retours sur l'outil");
   bg.addEventListener("mousedown",e=>{if(e.target===bg)fbClose()});
   const md=$("div","modal xml fbm");bg.appendChild(md);document.body.appendChild(bg);fbDlg=md;
-  document.addEventListener("keydown",fbKey,true);fbTab=fbCanEdit?"list":"send";fbPaint();
+  document.addEventListener("keydown",fbKey,true);fbTab=fbDb&&fbCanEdit?"list":"send";fbPaint();
 }
 function fbPaint(){
   const md=fbDlg;if(!md)return;const keep=md.scrollTop;md.textContent="";
   const hd=$("div","xhead sticky");const h=$("h2",null,"Retours sur l'outil");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=fbClose;hd.append(h,x);md.appendChild(hd);
   const tabs=$("div","fbtabs");tabs.setAttribute("role","tablist");
   [["send","Envoyer un retour"],["list","Retours de l'équipe ("+fbList.length+")"]].forEach(([k,t])=>{const b=$("button","fbtab"+(fbTab===k?" on":""),t);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",fbTab===k?"true":"false");b.onclick=()=>{fbTab=k;fbPaint()};tabs.appendChild(b)});
-  md.appendChild(tabs);
+  if(!fbDb)fbTab="send";
+  if(fbDb)md.appendChild(tabs);
   if(fbTab==="send")fbSendPane(md);else fbListPane(md);
   md.scrollTop=keep;
 }
 function fbSendPane(md){
   const it0=$("div","fbintro");const ic=$("span","fbic");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14h4"/></svg>';
-  const itx=$("div");itx.append($("b",null,"Une remarque sur l'outil ?"),$("span",null,"Un bug, une idée, un nom à corriger : dis-le ici, Dam's le voit directement."));it0.append(ic,itx);md.appendChild(it0);
+  const itx=$("div");itx.append($("b",null,"Une remarque sur l'outil ?"),$("span",null,fbDb?"Un bug, une idée, un nom à corriger : dis-le ici, Dam's le voit directement.":"Un bug, une idée, un nom à corriger : remplis ce formulaire, le retour est copié et tu le colles dans un message Teams à Dam's."));it0.append(ic,itx);md.appendChild(it0);
   const hasName=()=>!!(typeof myName==="function"&&myName());
   if(!hasName()){
     const nw=$("div","fbwarn");nw.setAttribute("role","alert");
@@ -3723,12 +3724,19 @@ function fbSendPane(md){
   const f3=$("label","fld");f3.appendChild($("span",null,"Ton message"));const ta=$("textarea");ta.rows=4;ta.maxLength=1500;ta.value=fbDraft;ta.placeholder="Ce qui ne va pas, ce que tu voudrais, le nom à corriger… Ne mets pas de données sensibles du client.";
   const cnt=$("small","fbcnt",ta.value.length+" / 1500");ta.oninput=()=>{fbDraft=ta.value;cnt.textContent=ta.value.length+" / 1500";sb.disabled=!ta.value.trim()||fbCanWrite===false||!hasName()};
   f3.appendChild(ta);f3.appendChild(cnt);md.appendChild(f3);
-  md.appendChild($("small","fbnote","Joints automatiquement : ton nom, l'heure et la version de l'outil ("+SUPPORT_BUILD+")."));
+  md.appendChild($("small","fbnote",fbDb?"Joints automatiquement : ton nom, l'heure et la version de l'outil ("+SUPPORT_BUILD+").":"Ajoutés au texte copié : ton nom, l'outil, le type et la version ("+SUPPORT_BUILD+")."));
   const msg=$("p","msg"+(fbInfo?"":" ")," ");msg.textContent=fbInfo;
   if(fbCanWrite===false){msg.className="msg err";msg.textContent="Tu peux lire les retours mais pas en envoyer : demande à Dam's de te passer en Contributeur."}
   md.appendChild(msg);
-  const ac=$("div","adqact");const sb=$("button","btn fbsend");sb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><span>Envoyer mon retour</span>';sb.type="button";sb.disabled=!fbDraft.trim()||fbCanWrite===false||!hasName();
-  sb.onclick=async()=>{const t=fbDraft.trim();if(!t||!fbDb||!hasName())return;sb.disabled=true;msg.className="msg";msg.textContent="Envoi…";
+  const ac=$("div","adqact");const sb=$("button","btn fbsend");sb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><span></span>';sb.lastChild.textContent=fbDb?"Envoyer mon retour":"Copier mon retour";sb.type="button";sb.disabled=!fbDraft.trim()||fbCanWrite===false||!hasName();
+  sb.onclick=async()=>{const t=fbDraft.trim();if(!t||!hasName())return;
+    if(!fbDb){const kl=Object.fromEntries(FB_KINDS);const txt="Retour sur les Outils XML ePack ("+SUPPORT_BUILD+")\nDe : "+myName()+"\nOutil : "+fbTool+"\nType : "+(kl[fbKind]||fbKind)+"\n\n"+t;
+      let ok=false;try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
+      if(!ok){try{const ta2=$("textarea");ta2.value=txt;ta2.style.cssText="position:fixed;opacity:0;left:-9999px";document.body.appendChild(ta2);ta2.select();ok=document.execCommand("copy");ta2.remove()}catch(e){}}
+      if(ok){fbDraft="";fbInfo="Retour copié : colle-le maintenant dans un message Teams à Dam's.";fbPaint();toast("Retour copié, colle-le dans Teams")}
+      else{msg.className="msg err";msg.textContent="Copie automatique impossible : sélectionne ton message, copie-le et colle-le dans Teams."}
+      return}
+sb.disabled=true;msg.className="msg";msg.textContent="Envoi…";
     try{await fbDb.collection("feedback").add({ts:Date.now(),authorId:fbMe||"",authorName:await fbName(),tool:fbTool,kind:fbKind,text:t,version:SUPPORT_BUILD,status:"new"});
       fbDraft="";fbInfo="Merci, ton retour est envoyé.";fbPaint();toast("Merci, retour envoyé")}
     catch(e){sb.disabled=false;msg.className="msg err";msg.textContent=(e&&e.code==="invalid_argument")?"Envoi refusé : tu n'as pas les droits d'écriture. Demande à Dam's de te passer en Contributeur.":"Envoi impossible pour le moment, réessaie dans un instant."}};
