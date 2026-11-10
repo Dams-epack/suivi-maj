@@ -393,11 +393,20 @@ function openX2E(){
     else c=c.replace(/_/g," ");
     return c.replace(/[\\\/:*?"<>|]/g," ").replace(/\s+/g," ").replace(/^[\s-]+|[\s-]+$/g,"");
   }
-  function fname(){
+  /* « Copie de E-Pack Fichier Etiquette DLC 26 02 2025 - XML.zip » -> « E-Pack Fichier Etiquette DLC 26 02 2025 » */
+  function cleanBase(n){
+    return String(n||"").replace(/\.(zip|xml)$/i,"").replace(/^\s*copie de\s+/i,"").replace(/\s*\(\d+\)\s*$/,"").replace(/\s*[-–_]\s*xml\s*$/i,"").replace(/[\\\/:*?"<>|]/g," ").replace(/\s+/g," ").replace(/^[\s-]+|[\s-]+$/g,"");
+  }
+  /* export standard du configurateur (« 20210406242 - CLIENT - VILLE.zip ») : on garde la convention « CLIENT - Configuration de la solution » */
+  const isStd=()=>st.zip&&/^\s*\d{5,}/.test(st.name||"")&&!!clientOf(st.name);
+  function baseName(){return isStd()?clientOf(st.name)+" - Configuration de la solution":(cleanBase(st.name)||"Configuration")}
+  const safe=t=>String(t||"").replace(/[\\\/:*?"<>|]/g," ").replace(/\s+/g," ").trim();
+  function fname(fmt){
     const c=chosen();
-    if(st.zip){const cl=clientOf(st.name);if(cl)return cl+" - Configuration de la solution.xlsx"}
-    const b=c.length===1?c[0].sheet:st.name.replace(/[\\\/:*?"<>|]/g," ").trim()||"Configuration";
-    return b+".xlsx";
+    if(fmt==="csvzip")return baseName()+" - CSV.zip";
+    if(fmt==="csv"){const m=c[0];return (st.zip?baseName()+" - "+safe(m&&m.sheet):safe(m&&m.sheet)||baseName())+".csv"}
+    if(isStd())return baseName()+".xlsx";
+    return (!st.zip&&c.length===1?safe(c[0].sheet):baseName())+".xlsx";
   }
   function csvOf(m){
     const cell=v=>{if(v==null)return "";if(typeof v==="number")v=Number.isInteger(v)?String(v):String(v).replace(".",",");else if(typeof v==="boolean")v=v?"Oui":"Non";else v=String(v);return /[";\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
@@ -416,7 +425,7 @@ function openX2E(){
         data=makeZipMany(c.map(m=>{let n=String(m.sheet||m.name).replace(/[\\\/:*?"<>|]/g," ").replace(/\s+/g," ").trim()||"Module",k=n,i=2;while(used.has(k.toLowerCase()))k=n+" ("+i++ +")";used.add(k.toLowerCase());return {name:k+".csv",data:enc.encode(csvOf(m))}}));
       }else data=csv?new TextEncoder().encode(csvOf(c[0])):await X2E.build(c);
     }catch(e){st.msg="Création du fichier "+(csv?"CSV":"Excel")+" impossible : "+((e&&e.message)||"erreur");paint();return}
-    const filename=zip?fname().replace(/\.xlsx$/i," - CSV.zip"):csv?fname().replace(/\.xlsx$/i,".csv"):fname();
+    const filename=fname(zip?"csvzip":csv?"csv":"xlsx");
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"nodl"};
