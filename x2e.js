@@ -399,21 +399,27 @@ function openX2E(){
     const b=c.length===1?c[0].sheet:st.name.replace(/[\\\/:*?"<>|]/g," ").trim()||"Configuration";
     return b+".xlsx";
   }
-  async function dl(){
+  function csvOf(m){
+    const cell=v=>{if(v==null)return "";if(typeof v==="number")v=Number.isInteger(v)?String(v):String(v).replace(".",",");else if(typeof v==="boolean")v=v?"Oui":"Non";else v=String(v);return /[";\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+    return "\uFEFF"+[m.head].concat(m.rows).map(r=>r.map(cell).join(";")).join("\r\n")+"\r\n";
+  }
+  async function dl(fmt){
+    const csv=fmt==="csv";
     st.msg="";const c=chosen();
     if(!c.length){st.msg="Coche au moins un module.";paint();return}
+    if(csv&&c.length!==1){st.msg="Le CSV ne contient qu'un seul module : coche-en un seul.";paint();return}
     let data;
-    try{data=await X2E.build(c)}catch(e){st.msg="Création du fichier Excel impossible : "+((e&&e.message)||"erreur");paint();return}
-    const filename=fname();
+    try{data=csv?new TextEncoder().encode(csvOf(c[0])):await X2E.build(c)}catch(e){st.msg="Création du fichier "+(csv?"CSV":"Excel")+" impossible : "+((e&&e.message)||"erreur");paint();return}
+    const filename=csv?fname().replace(/\.xlsx$/i,".csv"):fname();
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"nodl"};
       await d.save({filename,data});
-      st.msg="Fichier téléchargé : "+filename+" ("+c.length+" onglet"+(c.length>1?"s":"")+")."+(X2E.fallback()?" Attention : les listes déroulantes n’ont pas pu être ajoutées (bibliothèque non chargée).":"");
+      st.msg="Fichier téléchargé : "+filename+(csv?" ("+c[0].rows.length+" ligne"+(c[0].rows.length>1?"s":"")+")":" ("+c.length+" onglet"+(c.length>1?"s":"")+")")+"."+(!csv&&X2E.fallback()?" Attention : les listes déroulantes n’ont pas pu être ajoutées (bibliothèque non chargée).":"");
     }catch(e){
       if(e&&e.code==="declined")st.msg="Téléchargement annulé.";
       else{
-        try{const u=URL.createObjectURL(new Blob([data],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.msg="Téléchargement lancé : "+filename+"."}
+        try{const u=URL.createObjectURL(new Blob([data],{type:csv?"text/csv;charset=utf-8":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.msg="Téléchargement lancé : "+filename+"."}
         catch(x){st.msg="Téléchargement impossible."}
       }
     }
@@ -463,10 +469,13 @@ function openX2E(){
     if(st.msg)md.appendChild($("p","msg",st.msg));
     const ac=$("div","actions");
     const c=chosen();
-    const d=$("button","btn ok","Télécharger l'Excel ("+c.length+" onglet"+(c.length>1?"s":"")+")");d.disabled=!c.length;d.onclick=dl;
+    const d=$("button","btn ok","Télécharger l'Excel ("+c.length+" onglet"+(c.length>1?"s":"")+")");d.disabled=!c.length;d.onclick=()=>dl("xlsx");
     const ch=$("button","btn ghost","Changer de fichier");ch.onclick=()=>{st.mods=null;st.msg="";paint()};
     const no=$("button","btn ghost","Fermer");no.onclick=close;
-    ac.append(d,ch,no);md.appendChild(ac);
+    if(c.length===1){const cv=$("button","btn ok","Télécharger en CSV");cv.type="button";cv.title="Séparateur « ; », UTF-8 : s'ouvre directement dans Excel";cv.onclick=()=>dl("csv");ac.append(d,cv,ch,no)}
+    else ac.append(d,ch,no);
+    md.appendChild(ac);
+    if(c.length===1)md.appendChild($("p","ghint","Un seul module coché : tu peux aussi l'exporter en CSV (séparateur « ; », ouvrable directement dans Excel)."));
   }
   paint();
 }
