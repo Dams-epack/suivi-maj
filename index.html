@@ -3953,7 +3953,7 @@ function openGen(m,k,id,M,r){
     {const gl=$("div","gtl",MULTI?"Type(s) d'XML (un ou plusieurs)":"Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role",MULTI?"group":"radiogroup");gr.setAttribute("aria-label","Type d'XML");
      Object.keys(T).forEach(t=>{const on=MULTI?st.types.has(t):st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role",MULTI?"checkbox":"radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(MULTI){if(st.types.has(t))st.types.delete(t);else st.types.add(t);st.type=TYPES()[0]||"";st.res=null;paint();return}if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
      md.append(gl,gr)}
-    if(!TYPES().length&&!st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
+    if(!TYPES().length&&st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
     const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls,.csv";inp.hidden=true;
     inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
     if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
@@ -5324,7 +5324,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.4.0",APP_DATE="05/11/2026";
+const APP_VERSION="v2.4.1",APP_DATE="10/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}

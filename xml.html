@@ -817,8 +817,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.4.0";
-const SUPPORT_BUILD="v1.5.1";
+const APP_VERSION="v2.4.1";
+const SUPPORT_BUILD="v1.5.2";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2668,7 +2668,7 @@ function openGen(m,k,id,M,r){
     {const gl=$("div","gtl",MULTI?"Type(s) d'XML (un ou plusieurs)":"Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role",MULTI?"group":"radiogroup");gr.setAttribute("aria-label","Type d'XML");
      Object.keys(T).forEach(t=>{const on=MULTI?st.types.has(t):st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role",MULTI?"checkbox":"radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(MULTI){if(st.types.has(t))st.types.delete(t);else st.types.add(t);st.type=TYPES()[0]||"";st.res=null;paint();return}if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
      md.append(gl,gr)}
-    if(!TYPES().length&&!st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
+    if(!TYPES().length&&st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
     const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls,.csv";inp.hidden=true;
     inp.onchange=()=>{if(inp.files[0])onFile(inp.files[0])};
     if(st.err){const e=$("p","msg err",st.err);e.setAttribute("role","alert");md.appendChild(e)}
