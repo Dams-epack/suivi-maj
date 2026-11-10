@@ -1568,9 +1568,9 @@ try{new MutationObserver(()=>{if(!trBusy)trSchedule()}).observe(document.documen
 function setLang(l){
   LANG=l==="en"?"en":"fr";try{localStorage.setItem(LSLANG,LANG)}catch(e){}
   TR_CACHE.clear();document.documentElement.lang=LANG;
-  if(document.title!==T0)document.title=T0;const pm=document.getElementById("pmenu"),hadMenu=!!pm;if(pm)pm.remove();
+  if(document.title!==T0)document.title=T0;const pm=document.getElementById("pmenu"),hadMenu=!!pm,kind=pm&&pm.dataset?pm.dataset.kind:"";if(pm)pm.remove();
   render();trSchedule();
-  if(hadMenu)setTimeout(()=>{const av=document.querySelector(".avchip");if(av)profileMenu(av)},0);
+  if(hadMenu)setTimeout(()=>{if(kind==="settings"){const g=document.querySelector(".gearbtn");if(g&&typeof settingsMenu==="function"){settingsMenu(g);return}}const av=document.querySelector(".avchip");if(av)profileMenu(av)},0);
 }
 if(LANG==="en")document.documentElement.lang="en";
 /*I18N-END*/
@@ -5324,7 +5324,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.4.2",APP_DATE="10/11/2026";
+const APP_VERSION="v2.4.3",APP_DATE="10/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}

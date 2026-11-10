@@ -773,8 +773,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.4.2";
-const SUPPORT_BUILD="v1.0.0";
+const APP_VERSION="v2.4.3";
+const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1635,9 +1635,9 @@ try{new MutationObserver(()=>{if(!trBusy)trSchedule()}).observe(document.documen
 function setLang(l){
   LANG=l==="en"?"en":"fr";try{localStorage.setItem(LSLANG,LANG)}catch(e){}
   TR_CACHE.clear();document.documentElement.lang=LANG;
-  if(document.title!==T0)document.title=T0;const pm=document.getElementById("pmenu"),hadMenu=!!pm;if(pm)pm.remove();
+  if(document.title!==T0)document.title=T0;const pm=document.getElementById("pmenu"),hadMenu=!!pm,kind=pm&&pm.dataset?pm.dataset.kind:"";if(pm)pm.remove();
   render();trSchedule();
-  if(hadMenu)setTimeout(()=>{const av=document.querySelector(".avchip");if(av)profileMenu(av)},0);
+  if(hadMenu)setTimeout(()=>{if(kind==="settings"){const g=document.querySelector(".gearbtn");if(g&&typeof settingsMenu==="function"){settingsMenu(g);return}}const av=document.querySelector(".avchip");if(av)profileMenu(av)},0);
 }
 if(LANG==="en")document.documentElement.lang="en";
 /*I18N-END*/
@@ -3578,7 +3578,7 @@ function buildBar(){
 }
 function settingsMenu(anchor){
   const old=document.getElementById("pmenu");if(old){pmClose(old);return}
-  const pm=$("div","pmenu");pm.id="pmenu";pm.setAttribute("role","dialog");pm.setAttribute("aria-label","Réglages");
+  const pm=$("div","pmenu");pm.id="pmenu";pm.setAttribute("role","dialog");pm.setAttribute("aria-label","Réglages");pm.dataset.kind="settings";
   const trw=$("div","pmrow");trw.style.borderTop="0";trw.style.paddingTop="0";trw.append($("span",null,"Thème"),themeBtn());
   const lw=$("div","pmrow");lw.style.borderTop="0";lw.style.paddingTop="0";lw.append($("span",null,"Langue"),langBtn());
   pm.append(trw,lw);

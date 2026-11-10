@@ -97,7 +97,7 @@ function buildBar(){
 }
 function settingsMenu(anchor){
   const old=document.getElementById("pmenu");if(old){pmClose(old);return}
-  const pm=$("div","pmenu");pm.id="pmenu";pm.setAttribute("role","dialog");pm.setAttribute("aria-label","Réglages");
+  const pm=$("div","pmenu");pm.id="pmenu";pm.setAttribute("role","dialog");pm.setAttribute("aria-label","Réglages");pm.dataset.kind="settings";
   const trw=$("div","pmrow");trw.style.borderTop="0";trw.style.paddingTop="0";trw.append($("span",null,"Thème"),themeBtn());
   const lw=$("div","pmrow");lw.style.borderTop="0";lw.style.paddingTop="0";lw.append($("span",null,"Langue"),langBtn());
   pm.append(trw,lw);
@@ -189,7 +189,7 @@ function helpPaint(){
 render();
 '''
 import datetime,zoneinfo
-SB='1.0.0'
+SB='1.0.1'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
