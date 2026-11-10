@@ -185,23 +185,38 @@ function fbListPane(md){
   items.forEach(it=>{
     const c=$("article","fbitem st-"+(it.status||"new"));
     const top=$("div","fbtop");top.append($("b",null,it.authorName||"Anonyme"),$("span","fbmeta",fbDate(it.ts)+" · "+(it.version||"")));c.appendChild(top);
-    const tg=$("div","fbtags");tg.append($("span","fbtag",it.tool||"—"),$("span","fbtag k-"+(it.kind||"other"),kl[it.kind]||"Autre"),fbCanEdit?"":$("span","fbtag s-"+(it.status||"new"),sl[it.status||"new"]||"Nouveau"));c.appendChild(tg);
-    c.appendChild($("p","fbtext",it.text||""));
-    if(!fbCanEdit&&it.reply){const r=$("p","fbreply");r.append($("b",null,"Réponse : "),it.reply);c.appendChild(r)}
+    const tg=$("div","fbtags");tg.append($("span","fbtag",it.tool||"—"),$("span","fbtag k-"+(it.kind||"other"),kl[it.kind]||"Autre"),it.reply?$("span","fbtag s-rep","Répondu"):"",fbCanEdit?"":$("span","fbtag s-"+(it.status||"new"),sl[it.status||"new"]||"Nouveau"));c.appendChild(tg);
+    const th=$("div","fbthread");
+    const bq=$("div","fbbub q");bq.appendChild($("p","fbtext",it.text||""));th.appendChild(bq);
+    const up=(d)=>fbDb.doc("feedback/"+it.id).update(d).catch(()=>toast("Modification impossible"));
+    let editing=false;
+    const paintRep=()=>{
+      th.querySelectorAll(".fbbub.a,.fbcomp").forEach(n=>n.remove());
+      if(it.reply&&!editing){
+        const ba=$("div","fbbub a");
+        const hd=$("div","fbbh");hd.append($("b",null,(it.replyBy||"Dam's")+" a répondu"),$("span","fbmeta",it.replyTs?fbDate(it.replyTs):""));ba.appendChild(hd);
+        ba.appendChild($("p","fbtext",it.reply));
+        if(fbCanEdit){const ed=$("button","fblink","Modifier la réponse");ed.type="button";ed.onclick=()=>{editing=true;paintRep()};ba.appendChild(ed)}
+        th.appendChild(ba);
+      }else if(fbCanEdit){
+        const cp=$("div","fbcomp");
+        const ta=$("textarea");ta.rows=2;ta.maxLength=600;ta.value=it.reply||"";ta.placeholder="Répondre à "+(it.authorName||"ce collègue")+"… (visible par toute l'équipe)";ta.setAttribute("aria-label","Ta réponse");
+        const bar=$("div","fbcbar");const cn=$("small","fbcnt",ta.value.length+" / 600");
+        const sv=$("button","btn fbsave",it.reply?"Mettre à jour la réponse":"Envoyer la réponse");sv.type="button";sv.disabled=!ta.value.trim()||ta.value.trim()===(it.reply||"");
+        ta.oninput=()=>{cn.textContent=ta.value.length+" / 600";sv.disabled=!ta.value.trim()||ta.value.trim()===(it.reply||"")};
+        sv.onclick=async()=>{if(sv.disabled)return;sv.disabled=true;sv.textContent="Envoi…";const nm=await fbName();up(Object.assign({reply:ta.value.trim(),replyTs:Date.now(),replyBy:nm||"Dam's"},(it.status||"new")==="new"?{status:"seen"}:{}));toast("Réponse envoyée")};
+        bar.appendChild(cn);
+        if(it.reply){const ca=$("button","fblink","Annuler");ca.type="button";ca.onclick=()=>{editing=false;paintRep()};bar.appendChild(ca)}
+        bar.appendChild(sv);cp.append(ta,bar);th.appendChild(cp);
+      }
+    };
+    paintRep();c.appendChild(th);
     if(fbCanEdit){
-      const up=(d)=>fbDb.doc("feedback/"+it.id).update(d).catch(()=>toast("Modification impossible"));
       const ad=$("div","fbadm");
       const r1=$("div","fbrow");r1.appendChild($("span","fblab","Statut"));
       const sg=$("div","fbseg");sg.setAttribute("role","radiogroup");
       FB_ST.forEach(([v,t])=>{const on=v===(it.status||"new");const b=$("button","fbsb"+(on?" on s-"+v:""),t);b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",on?"true":"false");b.onclick=()=>{if(!on)up({status:v})};sg.appendChild(b)});
       r1.appendChild(sg);ad.appendChild(r1);
-      const r2=$("div","fbrow");r2.appendChild($("span","fblab","Réponse"));
-      const rw=$("div","fbrep");const rp=$("input");rp.type="text";rp.placeholder="Écris une réponse pour l'équipe…";rp.value=it.reply||"";rp.maxLength=400;rp.setAttribute("aria-label","Réponse à l'équipe");
-      const sv=$("button","btn fbsave",it.reply?"Mettre à jour":"Envoyer");sv.type="button";sv.disabled=true;
-      rp.oninput=()=>{sv.disabled=rp.value.trim()===(it.reply||"")};
-      const doSave=()=>{if(sv.disabled)return;sv.disabled=true;up({reply:rp.value.trim(),replyTs:Date.now()})};
-      sv.onclick=doSave;rp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();doSave()}};
-      rw.append(rp,sv);r2.appendChild(rw);ad.appendChild(r2);
       const dl=$("button","fbdel","Supprimer ce retour");dl.type="button";dl.onclick=()=>{if(dl.dataset.s!=="1"){dl.dataset.s="1";dl.textContent="Cliquer à nouveau pour confirmer";setTimeout(()=>{dl.dataset.s="";dl.textContent="Supprimer ce retour"},3000);return}fbDb.doc("feedback/"+it.id).delete().catch(()=>toast("Suppression impossible"))};
       ad.appendChild(dl);c.appendChild(ad);
     }
@@ -211,7 +226,7 @@ function fbListPane(md){
 render();
 '''
 import datetime,zoneinfo
-SB='1.3.0'
+SB='1.4.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -262,6 +277,17 @@ extra_css='''<style>
 .fbtag.k-bug{border-color:#e5484d;color:#e5484d}.fbtag.s-new{background:rgba(155,249,68,.22)}.fbtag.s-done{opacity:.7}
 .fbtext{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .fbreply{margin:0;padding:8px 10px;border-radius:8px;background:rgba(155,249,68,.12);font-size:.9rem}
+.fbthread{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.fbbub{border-radius:12px;padding:10px 12px;max-width:92%}
+.fbbub.q{align-self:flex-start;background:rgba(128,128,128,.14);border-top-left-radius:4px}
+.fbbub.a{align-self:flex-end;background:rgba(155,249,68,.18);border:1px solid rgba(155,249,68,.5);border-top-right-radius:4px}
+.fbbh{display:flex;justify-content:space-between;gap:12px;font-size:.8rem;margin-bottom:4px}
+.fbtag.s-rep{border-color:var(--accent,#9bf944);background:rgba(155,249,68,.18)}
+.fbcomp{align-self:stretch;display:flex;flex-direction:column;gap:6px}
+.fbcomp textarea{height:68px;min-height:68px;width:100%;box-sizing:border-box;font:inherit;padding:9px 11px;border-radius:10px;border:1px solid var(--line,#8886);background:transparent;color:inherit;resize:vertical}
+.fbcbar{display:flex;align-items:center;gap:10px;justify-content:flex-end}.fbcbar .fbcnt{margin:0 auto 0 0}
+.fblink{font:inherit;font-size:.8rem;background:transparent;border:0;color:inherit;opacity:.75;text-decoration:underline;cursor:pointer;padding:2px 4px;align-self:flex-start}
+.fbbub .fblink{margin-top:4px}
 .fbitem.st-done{opacity:1}
 .fbitem.st-done .fbtext{opacity:.8}
 .fbtext{font-size:.95rem;line-height:1.45}
