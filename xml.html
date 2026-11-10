@@ -761,12 +761,18 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 .fbadm{margin-top:6px;padding-top:10px;border-top:1px dashed var(--line,#8886);display:flex;flex-direction:column;gap:10px}
 .fbrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .fblab{flex:0 0 64px;font-size:.78rem;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
-.fbseg{display:inline-flex;border:1px solid var(--line,#8886);border-radius:999px;overflow:hidden}
-.fbsb{font:inherit;font-size:.85rem;padding:6px 14px;border:0;background:transparent;color:inherit;cursor:pointer;opacity:.8}
-.fbsb+.fbsb{border-left:1px solid var(--line,#8886)}
-.fbsb:hover{background:rgba(155,249,68,.12)}
-.fbsb.on{opacity:1;font-weight:700;background:rgba(155,249,68,.28)}
-.fbsb.on.s-seen{background:rgba(90,160,255,.28)}
+.fbseg{display:inline-flex;gap:6px;flex-wrap:wrap}
+.fbsb{font:inherit;font-size:.86rem;display:inline-flex;align-items:center;gap:6px;padding:6px 13px 6px 10px;border-radius:999px;border:1.5px solid var(--line,#8886);background:transparent;color:inherit;cursor:pointer;opacity:.75;transition:background .15s,border-color .15s,opacity .15s}
+.fbsb svg{width:15px;height:15px;flex:none}
+.fbsb:hover{opacity:1;background:rgba(128,128,128,.14)}
+.fbsb:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:2px}
+.fbsb.on{opacity:1;font-weight:700}
+.fbsb.on.s-new{background:rgba(155,249,68,.30);border-color:#7fd12a}
+.fbsb.on.s-seen{background:rgba(80,150,255,.28);border-color:#5b9cff}
+.fbsb.on.s-done{background:rgba(155,249,68,.30);border-color:#7fd12a}
+.fbsb.on.s-done svg{stroke-width:2.6}
+.fbitem.st-seen{border-left:4px solid #5b9cff}
+.fbitem.st-done{border-left:4px solid rgba(128,128,128,.55)}
 .fbrep{flex:1 1 240px;display:flex;gap:8px;min-width:0}
 .fbrep input{flex:1;min-width:0;font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line,#8886);background:transparent;color:inherit}
 .fbsave{padding:6px 14px;white-space:nowrap}.fbsave:disabled{opacity:.4;cursor:default}
@@ -794,7 +800,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.4.0";
-const SUPPORT_BUILD="v1.4.0";
+const SUPPORT_BUILD="v1.4.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3598,6 +3604,8 @@ function render(){
 const FB_TOOLS=["Excel → XML","XML → Excel","Compléter un XML","Autre"];
 const FB_KINDS=[["bug","Bug"],["idea","Idée"],["label","Libellé / nom"],["other","Autre"]];
 const FB_ST=[["new","Nouveau"],["seen","Vu"],["done","Traité"]];
+const FB_ICO={new:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5" fill="currentColor"/></svg>',seen:'<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8s2.3-4.5 6.5-4.5S14.5 8 14.5 8 12.2 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>',done:'<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.3 3.3L13 4.8"/></svg>'};
+const FB_HINT={new:"Pas encore lu",seen:"Lu, pris en compte",done:"Réglé ou clôturé"};
 let fbDb=null,fbUser=null,fbMe=null,fbList=[],fbDlg=null,fbTab="send",fbTool="Excel → XML",fbKind="bug",fbDraft="",fbCanWrite=null,fbCanEdit=false,fbFilter="open",fbInfo="";
 const fbDate=t=>{try{return new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}catch(e){return ""}};
 const fbNew=()=>fbList.filter(x=>(x.status||"new")==="new").length;
@@ -3688,7 +3696,7 @@ function fbListPane(md){
       const ad=$("div","fbadm");
       const r1=$("div","fbrow");r1.appendChild($("span","fblab","Statut"));
       const sg=$("div","fbseg");sg.setAttribute("role","radiogroup");
-      FB_ST.forEach(([v,t])=>{const on=v===(it.status||"new");const b=$("button","fbsb"+(on?" on s-"+v:""),t);b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",on?"true":"false");b.onclick=()=>{if(!on)up({status:v})};sg.appendChild(b)});
+      FB_ST.forEach(([v,t])=>{const on=v===(it.status||"new");const b=$("button","fbsb s-"+v+(on?" on":""));b.innerHTML=FB_ICO[v]+"<span></span>";b.lastChild.textContent=t;b.title=FB_HINT[v];b.type="button";b.setAttribute("role","radio");b.setAttribute("aria-checked",on?"true":"false");b.onclick=()=>{if(!on)up({status:v})};sg.appendChild(b)});
       r1.appendChild(sg);ad.appendChild(r1);
       const dl=$("button","fbdel","Supprimer ce retour");dl.type="button";dl.onclick=()=>{if(dl.dataset.s!=="1"){dl.dataset.s="1";dl.textContent="Cliquer à nouveau pour confirmer";setTimeout(()=>{dl.dataset.s="";dl.textContent="Supprimer ce retour"},3000);return}fbDb.doc("feedback/"+it.id).delete().catch(()=>toast("Suppression impossible"))};
       ad.appendChild(dl);c.appendChild(ad);
