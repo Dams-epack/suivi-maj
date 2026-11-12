@@ -439,6 +439,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .fbadge[hidden]{display:none}
 .fgrid[hidden]{display:none}
 .kpi.acc,.card.acc,.panel.acc,.sitem.acc{border-top:4px solid var(--cta)}
+.panel.acc.late{border-top-color:var(--bad)}
 .kpi.link{cursor:pointer}.kpi.link:hover{border-color:var(--accent)}.kpi.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.kpi.link em{font-style:normal;color:var(--accent);font-size:.8rem;margin-top:4px}
 .sitem .bar{margin:4px 0;height:10px}
 .usum{display:flex;flex-wrap:wrap;gap:8px}
@@ -4444,7 +4445,7 @@ function reminders(){
 }
 function viewReminders(app){
   const R=reminders();if(!R.length)return;
-  const sec=$("section","panel acc rem");const hd=$("div","hubtop");hd.append($("h2",null,"Rappels"),$("span","badge late",String(R.length)));sec.appendChild(hd);
+  const sec=$("section","panel acc rem"+(R.some(r=>r.sev>1)?" late":""));const hd=$("div","hubtop");hd.append($("h2",null,"Rappels"),$("span","badge late",String(R.length)));sec.appendChild(hd);
   const ul=$("div","nextlist");
   R.slice(0,6).forEach(r=>{const b=$("button","nrow");b.type="button";const mid=$("span","nmid");mid.append($("strong",null,r.m.title),$("small",null,r.txt));const bd=$("span","badge "+(r.sev>1?"late":"live"),r.sev>1?"À relancer":"À envoyer");b.append(mid,bd);b.onclick=()=>{setCur(r.id);render()};ul.appendChild(b)});
   sec.appendChild(ul);app.appendChild(sec);
@@ -4454,7 +4455,7 @@ function viewHubNext(app){
   const pair=$("div","hubpair");const part=(title,kind,first)=>{
     const L=ev.filter(x=>x.e.kind===kind),late=L.filter(x=>x.e.date<t0).reverse(),soon=L.filter(x=>x.e.date>=t0);
     const rows=[...late.slice(0,2),...soon].slice(0,4);
-    const sec=$("section","panel acc");
+    const sec=$("section","panel acc"+(rows.some(x=>isLateEv(x.e,x.n,t0)||x.e.m.blocked)?" late":""));
     const hd=$("div","hubtop");hd.appendChild($("h2",null,title));
     const all=$("button","chip","Tout voir →");all.type="button";all.onclick=openUpcoming;hd.appendChild(all);sec.appendChild(hd);
     if(!rows.length){sec.appendChild($("p","empty","Rien à traiter pour le moment : aucune échéance en attente."));pair.appendChild(sec);return}
@@ -5328,7 +5329,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.5.0",APP_DATE="12/11/2026";
+const APP_VERSION="v2.5.1",APP_DATE="12/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
