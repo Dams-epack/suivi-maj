@@ -1744,7 +1744,7 @@ const GT_SET=new Set(GROUPES_GT.map(akey));
 function csmOf(m){const g=groupOf(m)||m.group||"";const c=CSM_OF[akey(g)]||fileCsm(g);return c?{csm:c,qm:GT_SET.has(akey(g))?CSM_QM["Guillaume TAVERNIERS"]:(CSM_QM[c]||"")}:null}
 function renameMaj(id,t){
   const m=majs[id];t=String(t).replace(/\s+/g," ").trim().slice(0,120);if(!t)return;
-  m.baseTitle=t;stampTitle(m);
+  m.baseTitle=t;m.titleLocked=true;stampTitle(m);
   const g=groupOf(m);if(g)m.group=g;
   persist(id);
 }
@@ -1758,7 +1758,10 @@ function paysCode(label){
   if(/^[A-Za-z]{2}(-[A-Za-z]{2})?$/.test(String(n).trim()))return String(n).trim().toUpperCase();
   return String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 }
-function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).flatMap(r=>String(norm(r.label)).split("/").map(p=>paysCode(p)))))].filter(Boolean);const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+(rs.length>1?" - "+rs.join(", "):"")}
+function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;
+  /* Le nom porte la date de déploiement (recalculée si les dates changent), sauf renommage manuel */
+  if(!m.titleLocked){const dd=parseD(effDeploy(m));if(dd){const g0=groupOf(m);m.baseTitle=(g0?g0+" - ":"")+"Maj du "+fdate(dd.getTime())}}
+  const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).flatMap(r=>String(norm(r.label)).split("/").map(p=>paysCode(p)))))].filter(Boolean);const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+(rs.length>1?" - "+rs.join(", "):"")}
 /* Nom des ZIP : NOM DU GROUPEMENT - Nom du fichier XML */
 const zipGroup=id=>{const m=majs[id];const g=m?(groupOf(m)||m.group||""):"";return String(g).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim()};
 const zipName=(id,base)=>{const g=zipGroup(id);return (g?g+" - ":"")+base+".zip"};
@@ -5338,13 +5341,14 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.5.4",APP_DATE="12/11/2026";
+const APP_VERSION="v2.6.0",APP_DATE="12/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
   buildBar();
   {const vk=String(page)+"|"+(cur||"");if(typeof lastVK!=="undefined"&&vk!==lastVK){try{window.scrollTo(0,0)}catch(e){}}lastVK=vk}
   {const mm=cur&&majs[cur];document.body.classList.toggle("fixmode",!!(mm&&mm.type==="correctif"));document.body.classList.toggle("depmode",!!(mm&&mm.type!=="correctif"))}
+  Object.keys(majs).forEach(k=>{try{stampTitle(majs[k])}catch(e){}});
   const app=document.getElementById("app");
   app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");app.classList.toggle("hubw",!(cur&&majs[cur])&&page==="hub");
   const keepY=window.scrollY;
