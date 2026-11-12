@@ -73,6 +73,9 @@ body.depmode::before{content:"";position:fixed;left:0;right:0;top:0;height:340px
 .brandlogo{height:22px;width:auto;display:block;flex:none}
 .brandbar i{width:10px;height:10px;border-radius:2px;background:var(--cta);flex:none}
 .wrap.wide{max-width:min(1500px,100%)}
+.wrap.hubw{max-width:min(1240px,100%)}
+.hubpair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+@media (max-width:900px){.hubpair{grid-template-columns:minmax(0,1fr)}}
 .wrap{max-width:900px;margin:0 auto;padding-inline:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
 h1{font-size:1.5rem;margin:0;font-weight:600;text-wrap:balance}
 h2{font-size:1.05rem;margin:0;font-weight:600}
@@ -4448,13 +4451,13 @@ function viewReminders(app){
 }
 function viewHubNext(app){
   const t0=startOfToday(),ev=majEvents().map(e=>({e,n:nextStep(e)})).filter(x=>x.n);
-  const part=(title,kind,first)=>{
+  const pair=$("div","hubpair");const part=(title,kind,first)=>{
     const L=ev.filter(x=>x.e.kind===kind),late=L.filter(x=>x.e.date<t0).reverse(),soon=L.filter(x=>x.e.date>=t0);
     const rows=[...late.slice(0,2),...soon].slice(0,4);
     const sec=$("section","panel acc");
     const hd=$("div","hubtop");hd.appendChild($("h2",null,title));
     const all=$("button","chip","Tout voir →");all.type="button";all.onclick=openUpcoming;hd.appendChild(all);sec.appendChild(hd);
-    if(!rows.length){sec.appendChild($("p","empty","Rien à traiter pour le moment : aucune échéance en attente."));app.appendChild(sec);return}
+    if(!rows.length){sec.appendChild($("p","empty","Rien à traiter pour le moment : aucune échéance en attente."));pair.appendChild(sec);return}
     const ul=$("div","nextlist");
     rows.forEach(({e,n})=>{
       const d=Math.round((e.date-t0)/86400000);
@@ -4466,10 +4469,11 @@ function viewHubNext(app){
       const bd=e.m.blocked?$("span","badge block","Bloquée · client"):$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":wv?"En attente du siège":"À traiter");
       r.append(dt,mid,bd);r.onclick=()=>{focusEv={id:e.id,kind:e.kind};openUpcoming()};ul.appendChild(r);
     });
-    sec.appendChild(ul);app.appendChild(sec);
+    sec.appendChild(ul);pair.appendChild(sec);
   };
   part("Échéances MAJ siège","dateSiege");
   part("Échéances MAJ nationale / internationale","dateDeploiement");
+  app.appendChild(pair);
 }
 const GUIDE_URL="https://epack.sharepoint.com/:b:/s/STU/IQATmqvcQ70JS6VNkUE34PnwAcXxZw0SHKQFE_3U6iHZNcY?e=rm49ra";
 function openSettings(){
@@ -5324,7 +5328,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.4.3",APP_DATE="10/11/2026";
+const APP_VERSION="v2.5.0",APP_DATE="12/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
@@ -5332,7 +5336,7 @@ function render(){
   {const vk=String(page)+"|"+(cur||"");if(typeof lastVK!=="undefined"&&vk!==lastVK){try{window.scrollTo(0,0)}catch(e){}}lastVK=vk}
   {const mm=cur&&majs[cur];document.body.classList.toggle("fixmode",!!(mm&&mm.type==="correctif"));document.body.classList.toggle("depmode",!!(mm&&mm.type!=="correctif"))}
   const app=document.getElementById("app");
-  app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");
+  app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");app.classList.toggle("hubw",!(cur&&majs[cur])&&page==="hub");
   const keepY=window.scrollY;
   app.textContent="";
   if(cur&&majs[cur])viewMaj(app,cur);else if(page==='hub')viewHub(app);else if(page==='search')viewSearch(app);else if(page==='live')viewLive(app,false);else if(page==='archived')viewLive(app,true);else if(page==='upcoming')viewUpcoming(app);else viewHome(app);

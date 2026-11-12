@@ -73,6 +73,9 @@ body.depmode::before{content:"";position:fixed;left:0;right:0;top:0;height:340px
 .brandlogo{height:22px;width:auto;display:block;flex:none}
 .brandbar i{width:10px;height:10px;border-radius:2px;background:var(--cta);flex:none}
 .wrap.wide{max-width:min(1500px,100%)}
+.wrap.hubw{max-width:min(1240px,100%)}
+.hubpair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+@media (max-width:900px){.hubpair{grid-template-columns:minmax(0,1fr)}}
 .wrap{max-width:900px;margin:0 auto;padding-inline:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
 h1{font-size:1.5rem;margin:0;font-weight:600;text-wrap:balance}
 h2{font-size:1.05rem;margin:0;font-weight:600}
@@ -773,7 +776,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.4.3";
+const APP_VERSION="v2.5.0";
 const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
