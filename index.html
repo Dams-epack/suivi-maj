@@ -4442,13 +4442,19 @@ function reminders(){
     const D=parseD(m.dateDeploiement);
     if(D&&m.type!=="correctif"&&!k.prise&&D>=t0&&D-t0<=7*86400000){const j=Math.round((D-t0)/86400000);out.push({id,m,sev:1,txt:"Déploiement "+(j===0?"aujourd'hui":j===1?"demain":"dans "+j+" jours")+" : rétroplanning pas encore envoyé"})}
   });
-  return out.sort((a,b)=>b.sev-a.sev);
+  majEvents().forEach(e=>{
+    if(e.kind!=="dateDeploiement"||e.m.blocked||e.date>=t0)return;
+    const n=nextStep(e);if(!n||n[1]||!isLateEv(e,n,t0))return;
+    const d=Math.round((t0-e.date)/86400000);
+    out.push({id:e.id,m:e.m,sev:2,txt:"Déploiement en retard de "+d+" jour"+(d>1?"s":"")+" : "+n[0].charAt(0).toLowerCase()+n[0].slice(1)});
+  });
+  return out.sort((x,y)=>y.sev-x.sev);
 }
 function viewReminders(app){
   const R=reminders();if(!R.length)return;
   const sec=$("section","panel acc rem"+(R.some(r=>r.sev>1)?" late":""));const hd=$("div","hubtop");hd.append($("h2",null,"Rappels"),$("span","badge late",String(R.length)));sec.appendChild(hd);
   const ul=$("div","nextlist");
-  R.slice(0,6).forEach(r=>{const b=$("button","nrow");b.type="button";const mid=$("span","nmid");mid.append($("strong",null,r.m.title),$("small",null,r.txt));const bd=$("span","badge "+(r.sev>1?"late":"live"),r.sev>1?"À relancer":"À envoyer");b.append(mid,bd);b.onclick=()=>{setCur(r.id);render()};ul.appendChild(b)});
+  R.slice(0,8).forEach(r=>{const b=$("button","nrow");b.type="button";const mid=$("span","nmid");mid.append($("strong",null,r.m.title),$("small",null,r.txt));const bd=$("span","badge "+(r.sev>1?"late":"live"),r.sev>1?"À relancer":"À envoyer");b.append(mid,bd);b.onclick=()=>{setCur(r.id);render()};ul.appendChild(b)});
   sec.appendChild(ul);app.appendChild(sec);
 }
 function viewHubNext(app){
@@ -5330,7 +5336,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.5.2",APP_DATE="12/11/2026";
+const APP_VERSION="v2.5.3",APP_DATE="12/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
