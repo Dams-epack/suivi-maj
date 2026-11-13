@@ -790,7 +790,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.15.2";
+const APP_VERSION="v2.16.0";
 const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
@@ -2568,7 +2568,13 @@ function openGen(m,k,id,M,r){
         st.res.push({type:t,sheet:s.name,dir:GENX.dirCode(s.name),g});
       });
     });
-    flag();markOk();paint();
+    flag();markOk();renameTbd();paint();
+  }
+  function renameTbd(){
+    const cm=majs[id],Mx=cm&&(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));
+    if(!(Mx&&Mx.name===MOD_TBD))return;
+    const ts=[...new Set(okRes().map(x=>x.type))];if(ts.length!==1||!GEN_LABEL[ts[0]])return;
+    Mx.name=GEN_LABEL[ts[0]];persist(id);render();toast("Module reconnu : « "+Mx.name+" ».");
   }
   const Mx0=()=>{const cm=majs[id];return cm&&(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k))};
   const regOf=(Mx,sheet)=>{const sn=GENX.gnorm(sheet);return Mx.regions.find(rr=>sn===GENX.gnorm(rr.label+(rr.concept?" "+rr.concept:""))||sn===GENX.gnorm(rr.label)||GENX.dirCode(sheet)===GENX.dirCode(rr.label))};

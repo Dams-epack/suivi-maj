@@ -2193,6 +2193,7 @@ async function reviewMail(){
   if(asks.length){const r=await replyDialog(asks);if(r.cancel){draft.msg="Création annulée.";draft.err=true;render();return false}}
   return true;
 }
+const MOD_TBD="À définir";
 async function analyse(){
   const mail=draft.mail.trim();
   if(!mail){draft.msg="Colle d'abord le mail du client.";draft.err=true;render();return}
@@ -2234,7 +2235,7 @@ async function analyse(){
   }
   mods=mods.map(m=>({name:m.name,regions:[...new Set(m.regions.flatMap(splitReg).map(norm))]}));
   draft.busy=false;
-  if(!mods.length){draft.msg="Je n'ai trouvé aucun module dans ce mail. Vérifie le texte collé.";draft.err=true;draft.parsed=null}
+  if(!mods.length){draft.parsed=[{name:MOD_TBD,regions:["FR"]}];draft.msg="Aucun module trouvé dans le mail : le suivi sera créé avec un module « "+MOD_TBD+" », renommé quand tu déposeras l'Excel dans le générateur XML.";draft.err=false}
   else{draft.parsed=mods;draft.msg="";draft.err=false}
   render();
 }
@@ -3082,7 +3083,7 @@ function viewMaj(app,id){
     const allDone=md===M.regions.length*stepsOf(M).length,bk="mod_"+id+"_"+M.id;
     const mOpen=bk in blocClosed?!blocClosed[bk]:true;
     const h=$("div","mod-h modtog");h.setAttribute("role","button");h.tabIndex=0;h.setAttribute("aria-expanded",String(mOpen));h.title=mOpen?"Réduire ce module":"Développer ce module";
-    h.appendChild($("h2",null,(mOpen?"▾ ":"▸ ")+M.name));h.appendChild($("span","cnt",md+" / "+M.regions.length*stepsOf(M).length+" étapes"));
+    h.appendChild($("h2",null,(mOpen?"▾ ":"▸ ")+M.name));if(M.name===MOD_TBD){const tb=$("span","gpill fix","Module à définir");tb.title="Dépose l'Excel dans le générateur XML (étape « Fichier d'import ») : le module sera reconnu et renommé.";h.appendChild(tb)}h.appendChild($("span","cnt",md+" / "+M.regions.length*stepsOf(M).length+" étapes"));
     const togM=()=>{blocClosed[bk]=mOpen;try{localStorage.setItem("suivi-maj-bloc",JSON.stringify(blocClosed))}catch(e){}render()};
     h.onclick=togM;h.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();togM()}};
     if(allDone)sec.classList.add("done");
@@ -3984,7 +3985,13 @@ function openGen(m,k,id,M,r){
         st.res.push({type:t,sheet:s.name,dir:GENX.dirCode(s.name),g});
       });
     });
-    flag();markOk();paint();
+    flag();markOk();renameTbd();paint();
+  }
+  function renameTbd(){
+    const cm=majs[id],Mx=cm&&(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));
+    if(!(Mx&&Mx.name===MOD_TBD))return;
+    const ts=[...new Set(okRes().map(x=>x.type))];if(ts.length!==1||!GEN_LABEL[ts[0]])return;
+    Mx.name=GEN_LABEL[ts[0]];persist(id);render();toast("Module reconnu : « "+Mx.name+" ».");
   }
   const Mx0=()=>{const cm=majs[id];return cm&&(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k))};
   const regOf=(Mx,sheet)=>{const sn=GENX.gnorm(sheet);return Mx.regions.find(rr=>sn===GENX.gnorm(rr.label+(rr.concept?" "+rr.concept:""))||sn===GENX.gnorm(rr.label)||GENX.dirCode(sheet)===GENX.dirCode(rr.label))};
@@ -5488,7 +5495,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.15.2",APP_DATE="13/11/2026";
+const APP_VERSION="v2.16.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
