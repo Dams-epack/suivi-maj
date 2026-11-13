@@ -4463,8 +4463,8 @@ async function saveFile(filename,data){
   try{
     const d=await window.claude.use("downloads");
     if(!d){setBk("Le téléchargement n'est pas disponible dans cette vue.",true);return false}
-    await d.save({filename,data});setBk("Fichier enregistré : "+filename+".",false);return true;
-  }catch(e){setBk(e&&e.code==="declined"?"Enregistrement annulé.":"Enregistrement impossible ("+((e&&e.code)||"erreur")+").",true);return false}
+    await d.save({filename,data:typeof data==="string"?new TextEncoder().encode(data):data});setBk("Fichier enregistré : "+filename+".",false);return true;
+  }catch(e){setBk(e&&e.code==="declined"?"Enregistrement annulé.":"Enregistrement impossible ("+((e&&e.code)||"erreur")+(e&&e.message?" : "+String(e.message).slice(0,120):"")+").",true);return false}
 }
 function backupJson(){
   const ms={};Object.keys(majs).forEach(k=>{const c=JSON.parse(JSON.stringify(majs[k]));delete c._pending;ms[k]=c});
@@ -5482,7 +5482,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.15.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.15.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
