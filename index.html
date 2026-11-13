@@ -4461,9 +4461,15 @@ const stampDay=()=>{const d=new Date();return d.getFullYear()+"-"+pad2(d.getMont
 function setBk(t,err){bkMsg=t;bkErr=!!err;const e=document.getElementById("bkmsg");if(e){e.textContent=t;e.classList.toggle("err",!!err)}}
 async function saveFile(filename,data){
   try{
-    const d=await window.claude.use("downloads");
-    if(!d){setBk("Le téléchargement n'est pas disponible dans cette vue.",true);return false}
-    await d.save({filename,data:typeof data==="string"?new TextEncoder().encode(data):data});setBk("Fichier enregistré : "+filename+".",false);return true;
+    const bytes=typeof data==="string"?new TextEncoder().encode(data):data;
+    const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
+    if(!d){
+      /* hors de claude.ai (page ouverte seule, copie GitHub) : téléchargement classique du navigateur */
+      const u=URL.createObjectURL(new Blob([bytes],{type:/\.csv$/i.test(filename)?"text/csv;charset=utf-8":/\.json$/i.test(filename)?"application/json":"application/octet-stream"}));
+      const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+      setBk("Fichier téléchargé : "+filename+".",false);return true;
+    }
+    await d.save({filename,data:bytes});setBk("Fichier enregistré : "+filename+".",false);return true;
   }catch(e){setBk(e&&e.code==="declined"?"Enregistrement annulé.":"Enregistrement impossible ("+((e&&e.code)||"erreur")+(e&&e.message?" : "+String(e.message).slice(0,120):"")+").",true);return false}
 }
 function backupJson(){
@@ -5482,7 +5488,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.15.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.15.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
