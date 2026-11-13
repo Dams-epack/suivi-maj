@@ -1793,9 +1793,22 @@ function changeGroup(id){
   bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
   const t=$("h2",null,"Changer le groupement");t.id="cgt";
   const cur0=groupOf(m)||m.group||"";
-  const p=$("p",null,"Groupement actuel : "+(cur0||"aucun")+". Choisis-en un dans la liste ou tape un nouveau nom.");
-  const gi=$("input");gi.type="text";gi.value=cur0;gi.maxLength=60;gi.autocomplete="off";gi.setAttribute("aria-label","Nouveau groupement");gi.setAttribute("list","cglist");
-  const dl=$("datalist");dl.id="cglist";allGroups().forEach(g=>{const o=$("option");o.value=g;dl.appendChild(o)});
+  const p=$("p",null,"Groupement actuel : "+(cur0||"aucun")+". Cherche-le dans la liste ou crée-en un nouveau.");
+  const gi=$("input");gi.type="text";gi.value=cur0;gi.maxLength=60;gi.autocomplete="off";gi.setAttribute("aria-label","Nouveau groupement");gi.placeholder="Tape pour chercher un groupement (ex. otacos, domino, sushi)";
+  const sug=$("div","gsug");sug.setAttribute("role","listbox");
+  let opts=[],act=-1;
+  const computeS=()=>{
+    const raw=gi.value.trim();opts=[];
+    if(raw&&gfold(raw)!==gfold(cur0)){const hits=searchGroups(raw,6);hits.forEach(g=>opts.push({g}));if(!hits.some(g=>gfold(g)===gfold(raw)))opts.push({g:cleanG(raw),add:true})}
+    if(act>=opts.length)act=-1;
+  };
+  const paintS=()=>{
+    sug.textContent="";
+    if(!opts.length){sug.appendChild($("small",null,"Commence à taper : la recherche tolère les accents, les espaces et les fautes de frappe."));return}
+    opts.forEach((o,i)=>{const b=$("button","gopt"+(i===act?" act":""));b.type="button";b.setAttribute("role","option");
+      if(o.add){b.append($("span",null,"Créer le groupement « "+o.g+" »"));b.classList.add("add")}else b.appendChild($("strong",null,o.g));
+      b.onmousedown=e=>e.preventDefault();b.onclick=()=>{gi.value=o.g;go()};sug.appendChild(b)});
+  };
   const w=$("p","msg");w.style.fontSize=".85rem";w.textContent="Les dossiers SharePoint déjà créés gardent l'ancien nom.";
   const ac=$("div","actions");const ok=$("button","btn","Valider");ok.type="button";const no=$("button","btn ghost","Annuler");no.type="button";
   const go=()=>{
@@ -1805,8 +1818,14 @@ function changeGroup(id){
     m.baseTitle=x?g+x[2]:baseTitleFor(g,m.created);
     stampTitle(m);persist(id);close();render();toast("Groupement changé : "+g+".");
   };
-  ok.onclick=go;no.onclick=close;gi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
-  ac.append(ok,no);md.append(t,p,gi,dl,w,ac);setTimeout(()=>{gi.focus();gi.select()},30);
+  ok.onclick=()=>{if(act>=0&&opts[act])gi.value=opts[act].g;go()};no.onclick=close;
+  gi.oninput=()=>{act=-1;computeS();paintS()};
+  gi.onkeydown=e=>{
+    if(e.key==="Enter"){e.preventDefault();if(act>=0&&opts[act])gi.value=opts[act].g;else if(opts[0]&&!opts[0].add&&gfold(opts[0].g)===gfold(gi.value))gi.value=opts[0].g;go()}
+    else if(e.key==="ArrowDown"){e.preventDefault();if(opts.length){act=(act+1)%opts.length;paintS()}}
+    else if(e.key==="ArrowUp"){e.preventDefault();if(opts.length){act=act<=0?opts.length-1:act-1;paintS()}}};
+  computeS();paintS();
+  ac.append(ok,no);md.append(t,p,gi,sug,w,ac);setTimeout(()=>{gi.focus();gi.select()},30);
 }
 const regionsOf=m=>[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ");
 /* Nom de la MAJ : si plusieurs codes pays / langues sont suivis, ils sont ajoutés au nom (ex. « O TACOS FR, BE-NL - Maj du 17/10/2026 ») */
@@ -5522,7 +5541,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.17.2",APP_DATE="13/11/2026";
+const APP_VERSION="v2.17.3",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
