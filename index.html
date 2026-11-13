@@ -1787,46 +1787,67 @@ let renaming=null,siteEdit=null;
 function changeGroup(id){
   const m=majs[id];if(!m)return;
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","cgt");
-  const md=$("div","modal");md.style.maxWidth="520px";bg.appendChild(md);document.body.appendChild(bg);
+  const md=$("div","modal");md.style.maxWidth="520px";md.style.overflow="visible";bg.appendChild(md);document.body.appendChild(bg);
   const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true)};
-  const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}};document.addEventListener("keydown",kd,true);
+  const kd=e=>{if(e.key==="Escape"&&!open){e.stopPropagation();close()}};document.addEventListener("keydown",kd,true);
   bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
   const t=$("h2",null,"Changer le groupement");t.id="cgt";
   const cur0=groupOf(m)||m.group||"";
-  const p=$("p",null,"Groupement actuel : "+(cur0||"aucun")+". Cherche-le dans la liste ou crée-en un nouveau.");
-  const gi=$("input");gi.type="text";gi.value=cur0;gi.maxLength=60;gi.autocomplete="off";gi.setAttribute("aria-label","Nouveau groupement");gi.placeholder="Tape pour chercher un groupement (ex. otacos, domino, sushi)";
-  const sug=$("div","gsug");sug.setAttribute("role","listbox");
-  let opts=[],act=-1;
-  const computeS=()=>{
-    const raw=gi.value.trim();opts=[];
-    if(raw&&gfold(raw)!==gfold(cur0)){const hits=searchGroups(raw,6);hits.forEach(g=>opts.push({g}));if(!hits.some(g=>gfold(g)===gfold(raw)))opts.push({g:cleanG(raw),add:true})}
-    if(act>=opts.length)act=-1;
+  const p=$("p",null,"Groupement actuel : "+(cur0||"aucun")+".");
+  const cw=$("div","combo");
+  const gi=$("input");gi.type="text";gi.autocomplete="off";gi.placeholder="Tape pour chercher ou ajouter un groupe";gi.maxLength=60;
+  gi.setAttribute("role","combobox");gi.setAttribute("aria-autocomplete","list");gi.setAttribute("aria-expanded","false");gi.setAttribute("aria-controls","cglb");gi.setAttribute("aria-label","Nouveau groupement");
+  const arrow=$("button","carrow","▾");arrow.type="button";arrow.tabIndex=-1;arrow.setAttribute("aria-label","Afficher la liste");
+  const glb=$("div","glb");glb.id="cglb";glb.setAttribute("role","listbox");glb.hidden=true;
+  cw.append(gi,arrow,glb);
+  const w=$("p","msg");w.style.fontSize=".85rem";w.style.marginTop="10px";w.textContent="Les dossiers SharePoint déjà créés gardent l'ancien nom.";
+  const ac=$("div","actions");const ok=$("button","btn","Valider");ok.type="button";ok.disabled=true;const no=$("button","btn ghost","Annuler");no.type="button";
+  let open=false,act=-1,opts=[],chosen="";
+  const nf=x=>fold(x).replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
+  const rank=(g,q)=>{const n=nf(g);if(n===q)return 0;if(n.startsWith(q))return 1;if(n.split(" ").some(w=>w.startsWith(q)))return 2;if(n.includes(q))return 3;const tk=q.split(" ");if(tk.length>1&&tk.every(x=>n.includes(x)))return 4;return gScore(g,q)>=200?5:-1};
+  const computeOpts=()=>{
+    const raw=gi.value.trim(),q=nf(gi.value),base=allGroups();
+    const hits=q?base.map(g=>[g,rank(g,q)]).filter(x=>x[1]>=0).sort((a,b)=>a[1]-b[1]||a[0].localeCompare(b[0],"fr")).map(x=>x[0]):base;
+    opts=hits.slice(0,50).map(g=>({t:"g",g}));
+    if(raw&&!base.some(g=>nf(g)===q))opts.push({t:"add",g:cleanG(raw)});
   };
-  const paintS=()=>{
-    sug.textContent="";
-    if(!opts.length){sug.appendChild($("small",null,"Commence à taper : la recherche tolère les accents, les espaces et les fautes de frappe."));return}
-    opts.forEach((o,i)=>{const b=$("button","gopt"+(i===act?" act":""));b.type="button";b.setAttribute("role","option");
-      if(o.add){b.append($("span",null,"Créer le groupement « "+o.g+" »"));b.classList.add("add")}else b.appendChild($("strong",null,o.g));
-      b.onmousedown=e=>e.preventDefault();b.onclick=()=>{gi.value=o.g;go()};sug.appendChild(b)});
+  const hl=(el,text)=>{const L=gi.value.trim().length,i=L?fold(text).indexOf(fold(gi.value.trim())):-1;if(i>=0){el.append(text.slice(0,i));el.appendChild($("mark",null,text.slice(i,i+L)));el.append(text.slice(i+L))}else el.textContent=text};
+  const paint=()=>{
+    glb.textContent="";
+    if(!open){glb.hidden=true;gi.setAttribute("aria-expanded","false");return}
+    computeOpts();if(act>=opts.length)act=opts.length-1;
+    if(!opts.length)glb.appendChild($("div","gnone","La liste est vide : saisis un nom pour l'ajouter."));
+    opts.forEach((o,i)=>{const b=$("div","gopt2"+(i===act?" act":""));b.setAttribute("role","option");b.setAttribute("aria-selected",String(i===act));
+      if(o.t==="add"){b.classList.add("add");b.append("+ Ajouter le groupe « ",$("b",null,o.g)," »")}else hl(b,o.g);
+      b.onmousedown=e=>{e.preventDefault();choose(o)};
+      b.onmouseenter=()=>{act=i;[...glb.children].forEach((c,j)=>c.classList.toggle("act",j===i))};glb.appendChild(b)});
+    glb.hidden=false;gi.setAttribute("aria-expanded","true");
+    if(act>=0){const el=glb.children[act];if(el&&el.scrollIntoView)el.scrollIntoView({block:"nearest"})}
   };
-  const w=$("p","msg");w.style.fontSize=".85rem";w.textContent="Les dossiers SharePoint déjà créés gardent l'ancien nom.";
-  const ac=$("div","actions");const ok=$("button","btn","Valider");ok.type="button";const no=$("button","btn ghost","Annuler");no.type="button";
+  const choose=o=>{chosen=o.t==="add"?o.g:o.g;gi.value=chosen;open=false;act=-1;paint();ok.disabled=cleanG(chosen)===cleanG(cur0);if(!ok.disabled)ok.focus()};
   const go=()=>{
-    const g=cleanG(gi.value);if(!g||g===cleanG(cur0)){close();return}
+    const g=cleanG(chosen||gi.value);if(!g||g===cleanG(cur0)){close();return}
     registerGroup(g);m.group=g;
     const bt=String(m.baseTitle||""),x=/^(.+?)(\s+-\s+maj\b.*)$/i.exec(bt);
     m.baseTitle=x?g+x[2]:baseTitleFor(g,m.created);
     stampTitle(m);persist(id);close();render();toast("Groupement changé : "+g+".");
   };
-  ok.onclick=()=>{if(act>=0&&opts[act])gi.value=opts[act].g;go()};no.onclick=close;
-  gi.oninput=()=>{act=-1;computeS();paintS()};
+  ok.onclick=go;no.onclick=close;
+  gi.oninput=()=>{chosen="";ok.disabled=!gi.value.trim()||cleanG(gi.value)===cleanG(cur0);open=true;act=gi.value.trim()?0:-1;paint()};
+  gi.onfocus=()=>{if(!chosen){open=true;paint()}};
+  gi.onclick=()=>{if(!open){open=true;paint()}};
   gi.onkeydown=e=>{
-    if(e.key==="Enter"){e.preventDefault();if(act>=0&&opts[act])gi.value=opts[act].g;else if(opts[0]&&!opts[0].add&&gfold(opts[0].g)===gfold(gi.value))gi.value=opts[0].g;go()}
-    else if(e.key==="ArrowDown"){e.preventDefault();if(opts.length){act=(act+1)%opts.length;paintS()}}
-    else if(e.key==="ArrowUp"){e.preventDefault();if(opts.length){act=act<=0?opts.length-1:act-1;paintS()}}};
-  computeS();paintS();
-  ac.append(ok,no);md.append(t,p,gi,sug,w,ac);setTimeout(()=>{gi.focus();gi.select()},30);
+    if(e.key==="ArrowDown"){e.preventDefault();if(!open){open=true;act=0}else act=Math.min(opts.length-1,act+1);paint()}
+    else if(e.key==="ArrowUp"){e.preventDefault();act=Math.max(0,act-1);paint()}
+    else if(e.key==="Enter"){e.preventDefault();if(open&&opts[act])choose(opts[act]);else if(open&&opts[0]&&gi.value.trim())choose(opts[0]);else if(!ok.disabled)go()}
+    else if(e.key==="Escape"&&open){e.preventDefault();e.stopPropagation();open=false;paint()}
+    else if(e.key==="Tab"&&open&&opts[act]&&gi.value.trim())choose(opts[act]);
+  };
+  arrow.onmousedown=e=>{e.preventDefault();open=!open;if(open)gi.focus();paint()};
+  gi.onblur=()=>{open=false;paint()};
+  ac.append(ok,no);md.append(t,p,cw,w,ac);setTimeout(()=>gi.focus(),30);
 }
+
 const regionsOf=m=>[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ");
 /* Nom de la MAJ : si plusieurs codes pays / langues sont suivis, ils sont ajoutés au nom (ex. « O TACOS FR, BE-NL - Maj du 17/10/2026 ») */
 const PAYS_CODES={fr:"FR",france:"FR",befr:"BE-FR",benl:"BE-NL",blufr:"BE-FR",blunl:"BE-NL",it:"IT",italie:"IT",es:"ES",espagne:"ES",de:"DE",allemagne:"DE",en:"EN",uk:"EN",pt:"PT",portugal:"PT",lareunion:"REUNION",reunion:"REUNION",antilles:"ANTILLES",nouvellecaledonie:"NC",nc:"NC"};
@@ -5541,7 +5562,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.17.3",APP_DATE="13/11/2026";
+const APP_VERSION="v2.17.4",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
