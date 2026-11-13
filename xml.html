@@ -355,6 +355,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .dd.up .ddl{top:auto;bottom:calc(100% + 6px);transform-origin:bottom}
 .ddl li{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.92rem}
 .ddl li .ddk{width:14px;flex:none;opacity:0;color:#4fa800;transform:scale(.5);transition:.18s}
+.ddsrch{position:sticky;top:-6px;z-index:1;background:var(--surface);padding:0 0 6px;margin:-0px 0 2px;cursor:default}.ddsrch input{width:100%;font:inherit;font-size:.9rem;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:inherit}.ddsrch input:focus{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}.ddnone{padding:8px 10px;opacity:.65;font-size:.9rem}
 .ddl li.hi{background:rgba(155,249,68,.18)}.ddl li.on{font-weight:700}.ddl li.on .ddk{opacity:1;transform:none}
 @keyframes ddin{from{opacity:0;transform:translateY(-6px) scaleY(.92)}to{opacity:1;transform:none}}
 .dd.ddc2 .ddb{padding:6px 10px}.dd.ddc2{min-width:160px}
@@ -789,7 +790,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.13.0";
+const APP_VERSION="v2.14.0";
 const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;

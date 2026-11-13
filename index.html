@@ -355,6 +355,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .dd.up .ddl{top:auto;bottom:calc(100% + 6px);transform-origin:bottom}
 .ddl li{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.92rem}
 .ddl li .ddk{width:14px;flex:none;opacity:0;color:#4fa800;transform:scale(.5);transition:.18s}
+.ddsrch{position:sticky;top:-6px;z-index:1;background:var(--surface);padding:0 0 6px;margin:-0px 0 2px;cursor:default}.ddsrch input{width:100%;font:inherit;font-size:.9rem;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:inherit}.ddsrch input:focus{outline:none;border-color:#9BF944;box-shadow:0 0 0 3px rgba(155,249,68,.25)}.ddnone{padding:8px 10px;opacity:.65;font-size:.9rem}
 .ddl li.hi{background:rgba(155,249,68,.18)}.ddl li.on{font-weight:700}.ddl li.on .ddk{opacity:1;transform:none}
 @keyframes ddin{from{opacity:0;transform:translateY(-6px) scaleY(.92)}to{opacity:1;transform:none}}
 .dd.ddc2 .ddb{padding:6px 10px}.dd.ddc2{min-width:160px}
@@ -4942,12 +4943,24 @@ function mkDD(opts,get,set){
   car.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
   btn.append(bt,car);list.setAttribute("role","listbox");list.hidden=true;root.append(btn,list);
   let hi=-1;const items=[];
+  let sIn=null,sNone=null;
+  if(opts.length>8){const sl=$("li","ddsrch");sl.setAttribute("role","presentation");sIn=$("input");sIn.type="search";sIn.placeholder="Rechercher…";sIn.setAttribute("aria-label","Rechercher dans la liste");sIn.autocomplete="off";sl.appendChild(sIn);list.appendChild(sl);sNone=$("li","ddnone","Aucun résultat");sNone.hidden=true;sNone.setAttribute("role","presentation")}
+  const vis=()=>items.map((_,k)=>k).filter(k=>!items[k].hidden);
+  const filt=()=>{const q=fold(sIn.value.trim());items.forEach((li,k)=>{li.hidden=!!q&&!fold(opts[k][1]).includes(q)});const v=vis();sNone.hidden=!!v.length;if(!v.includes(hi))hi=v.length?v[0]:-1;paint()};
   const idx=()=>Math.max(0,opts.findIndex(o=>o[0]===get()));
   const paint=()=>{const i=idx();bt.textContent=opts[i][1];btn.classList.toggle("set",i>0&&opts[0][0]==="");items.forEach((li,k)=>{li.classList.toggle("on",k===i);li.classList.toggle("hi",k===hi);li.setAttribute("aria-selected",String(k===i))})};
   const close=()=>{list.hidden=true;root.classList.remove("open");btn.setAttribute("aria-expanded","false");DD_OPEN.delete(ctl)};
-  const open=()=>{DD_OPEN.forEach(c=>c.close());list.hidden=false;root.classList.add("open");btn.setAttribute("aria-expanded","true");hi=idx();paint();DD_OPEN.add(ctl);const r=list.getBoundingClientRect();root.classList.toggle("up",r.bottom>innerHeight-8&&btn.getBoundingClientRect().top>r.height+16);const on=items[hi];if(on)on.scrollIntoView({block:"nearest"})};
+  const open=()=>{DD_OPEN.forEach(c=>c.close());list.hidden=false;root.classList.add("open");btn.setAttribute("aria-expanded","true");hi=idx();if(sIn){sIn.value="";items.forEach(li=>li.hidden=false);sNone.hidden=true}paint();DD_OPEN.add(ctl);if(sIn)setTimeout(()=>sIn.focus({preventScroll:true}),0);const r=list.getBoundingClientRect();root.classList.toggle("up",r.bottom>innerHeight-8&&btn.getBoundingClientRect().top>r.height+16);const on=items[hi];if(on)on.scrollIntoView({block:"nearest"})};
   const pick=i=>{set(opts[i][0]);hi=i;close();paint();btn.focus()};
   opts.forEach(([v,t],i)=>{const li=$("li",null);li.setAttribute("role","option");const ck=$("span","ddk");ck.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';li.append(ck,$("span",null,t));li.onmousedown=e=>e.preventDefault();li.onclick=()=>pick(i);li.onmousemove=()=>{hi=i;paint()};items.push(li);list.appendChild(li)});
+  if(sNone)list.appendChild(sNone);
+  if(sIn)sIn.onkeydown=e=>{
+    if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close();btn.focus();return}
+    if(e.key==="Tab"){close();return}
+    if(["ArrowDown","ArrowUp"].includes(e.key)){e.preventDefault();const v=vis();if(!v.length)return;const p=v.indexOf(hi),n=e.key==="ArrowDown"?Math.min(v.length-1,p+1):Math.max(0,p-1);hi=v[p<0?0:n];paint();items[hi].scrollIntoView({block:"nearest"})}
+    else if(e.key==="Enter"){e.preventDefault();if(hi>=0)pick(hi)}
+  };
+  if(sIn)sIn.oninput=filt;
   btn.onclick=()=>list.hidden?open():close();
   btn.onkeydown=e=>{
     if(e.key==="Escape"){if(!list.hidden){e.preventDefault();e.stopPropagation();close()}return}
@@ -5465,7 +5478,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.13.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.14.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
