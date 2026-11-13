@@ -788,7 +788,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.10.0";
-const SUPPORT_BUILD="v1.0.2";
+const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3642,21 +3642,37 @@ let helpDlg=null,helpTab=0;
 function helpSeen(){try{return localStorage.getItem("xml-help-seen")==="1"}catch(e){return true}}
 function helpData(){
   const en=LANG==="en";
-  return en?{
-   sub:"Drop a file, check, download.",
-   items:[
-    ["→","Excel → XML","Drop the client's Excel or CSV, tick the XML type, click « Validate and generate »."],
-    ["+","Complete an XML","Drop the configurator's XML: the tool adds what is missing. Download the result."],
-    ["←","XML → Excel","Drop the client's ZIP, tick the modules, download the Excel (or a CSV)."]],
-   tip:"Nothing leaves your browser."
-  }:{
-   sub:"Dépose un fichier, vérifie, télécharge.",
-   items:[
-    ["→","Excel → XML","Dépose l'Excel ou le CSV du client, coche le type d'XML, clique sur « Valider et générer »."],
-    ["+","Compléter un XML","Dépose l'XML du configurateur : l'outil ajoute ce qui manque. Télécharge le résultat."],
-    ["←","XML → Excel","Dépose le ZIP du client, coche les modules, télécharge l'Excel (ou un CSV)."]],
-   tip:"Rien ne sort de ton navigateur."
-  };
+  return en?[
+   {t:"Excel → XML",lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
+    ["Drop the file","Drop the client's .xlsx or .csv (or click the box). One sheet = one XML."],
+    ["Pick the XML type(s)","Tick one or several types: warming, stickers, miscellaneous controls… The tool recognises the columns by their names."],
+    ["Check the columns","Open « Adjust columns » if something was not recognised. You can also set one fixed value for all products."],
+    ["Fill in what is missing","If values are missing (e.g. min/max temperature), a window asks for them. Defaults: -10 °C and 99 °C."],
+    ["Generate","Click « Validate and generate »: a ZIP with all the XML files at its root is downloaded."]],tip:"Nothing is sent anywhere: everything stays in your browser."},
+   {t:"Complete an XML",lead:"Fix an XML export from the configurator.",steps:[
+    ["Drop the XML","Products, checklists or cleaning plans exported from the configurator."],
+    ["Let it work","Missing tags are added and the file is normalised (tag order, namespaces, encoding)."],
+    ["Download","Save the completed XML and import it."]],tip:"If the type is not in the registry, the tool stops instead of guessing."},
+   {t:"XML → Excel",lead:"Read a client's configuration as a spreadsheet.",steps:[
+    ["Drop the ZIP","The client's configuration ZIP, or a single XML file."],
+    ["Tick the modules","One tab per module. Use « Preview » to see the first rows; empty modules are hidden."],
+    ["Download","« Download Excel » gives one workbook. With one module ticked you can get a CSV; with several, one CSV per module in a ZIP."]],tip:"Deleted items are not exported and user passwords never are."}
+  ]:[
+   {t:"Excel → XML",lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
+    ["Dépose le fichier","Dépose le .xlsx ou .csv du client (ou clique sur la zone). Un onglet = un XML."],
+    ["Choisis le ou les types d'XML","Coche un ou plusieurs types : mise en température, étiquettes, contrôles divers… Les colonnes sont reconnues d'après leur nom."],
+    ["Vérifie les colonnes","Ouvre « Ajuster les colonnes » si quelque chose n'est pas reconnu. Tu peux aussi saisir une valeur fixe pour tous les produits."],
+    ["Complète ce qui manque","S'il manque des valeurs (ex. températures mini et maxi), une fenêtre te les demande. Valeurs par défaut : -10 °C et 99 °C."],
+    ["Génère","Clique sur « Valider et générer » : un ZIP avec tous les XML à la racine se télécharge."]],tip:"Rien n'est envoyé : tout reste dans ton navigateur."},
+   {t:"Compléter un XML",lead:"Remet d'aplomb un export XML du configurateur.",steps:[
+    ["Dépose le XML","Produits, checklists ou plans de nettoyage exportés du configurateur."],
+    ["Laisse faire","Les balises manquantes sont ajoutées et le fichier est normalisé (ordre des balises, espaces de noms, encodage)."],
+    ["Télécharge","Enregistre le XML complété et importe-le."]],tip:"Si le type n'est pas dans le registre, l'outil s'arrête plutôt que de deviner."},
+   {t:"XML → Excel",lead:"Lis la configuration d'un client sous forme de tableur.",steps:[
+    ["Dépose le ZIP","Le ZIP de la configuration du client, ou un seul fichier XML."],
+    ["Coche les modules","Un onglet par module. « Aperçu » montre les premières lignes ; les modules vides sont masqués."],
+    ["Télécharge","« Télécharger l'Excel » donne un classeur. Avec un seul module coché, tu peux sortir un CSV ; avec plusieurs, un CSV par module dans un ZIP."]],tip:"Les éléments supprimés ne sont pas repris et les mots de passe ne sont jamais exportés."}
+  ];
 }
 function helpClose(){if(!helpDlg)return;const b=helpDlg.parentNode;(b&&b.classList&&b.classList.contains("modal-bg")?b:helpDlg).remove();helpDlg=null;document.removeEventListener("keydown",helpKey,true)}
 function helpKey(e){if(e.key==="Escape"){e.stopPropagation();helpClose()}}
@@ -3672,10 +3688,15 @@ function helpOpen(){
 function helpPaint(){
   const md=helpDlg;if(!md)return;const D=helpData(),en=LANG==="en";md.textContent="";
   const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label",en?"Close":"Fermer");x.onclick=helpClose;hd.append($("h2",null,en?"How to use":"Mode d'emploi"),x);md.appendChild(hd);
-  md.appendChild($("p","gsubp",D.sub));
-  const ol=$("ol","hsteps");D.items.forEach(([g,h,t],i)=>{const li=$("li");li.style.setProperty("--i",i);const n=$("span","hn",g);const bd=$("div");bd.append($("b",null,h),$("span",null,t));li.append(n,bd);ol.appendChild(li)});
-  md.appendChild(ol);md.appendChild($("p","htip",D.tip));
-}
+  md.appendChild($("p","gsubp",en?"Three tools, one idea: drop a file, check, download.":"Trois outils, une idée : tu déposes un fichier, tu vérifies, tu télécharges."));
+  const tabs=$("div","htabs");tabs.setAttribute("role","tablist");
+  D.forEach((d,i)=>{const b=$("button","htab"+(helpTab===i?" on":""),d.t);b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",helpTab===i?"true":"false");b.onclick=()=>{helpTab=i;helpPaint()};tabs.appendChild(b)});
+  md.appendChild(tabs);
+  const d=D[helpTab];
+  const pane=$("div","hpane");pane.appendChild($("p","hlead",d.lead));
+  const ol=$("ol","hsteps");d.steps.forEach(([h,t],i)=>{const li=$("li");li.style.setProperty("--i",i);const n=$("span","hn",String(i+1));const bd=$("div");bd.append($("b",null,h),$("span",null,t));li.append(n,bd);ol.appendChild(li)});
+  pane.appendChild(ol);pane.appendChild($("p","htip",d.tip));md.appendChild(pane);
+  }
 
 render();
 
