@@ -1751,7 +1751,7 @@ function renameMaj(id,t){
 }
 let renaming=null,siteEdit=null;
 const regionsOf=m=>[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ");
-/* Nom de la MAJ : si plusieurs codes pays / langues sont suivis, ils sont ajoutés au nom (ex. « O TACOS - Maj du 17/10/2026 - FR, BE-NL ») */
+/* Nom de la MAJ : si plusieurs codes pays / langues sont suivis, ils sont ajoutés au nom (ex. « O TACOS FR, BE-NL - Maj du 17/10/2026 ») */
 const PAYS_CODES={fr:"FR",france:"FR",befr:"BE-FR",benl:"BE-NL",blufr:"BE-FR",blunl:"BE-NL",it:"IT",italie:"IT",es:"ES",espagne:"ES",de:"DE",allemagne:"DE",en:"EN",uk:"EN",pt:"PT",portugal:"PT",lareunion:"REUNION",reunion:"REUNION",antilles:"ANTILLES",nouvellecaledonie:"NC",nc:"NC"};
 function paysCode(label){
   const n=norm(label),k=String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
@@ -1764,7 +1764,10 @@ function regCodesOf(m){return [...new Set((m.mods||[]).flatMap(M=>(M.regions||[]
 function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;
   /* Le nom porte la date de déploiement (recalculée si les dates changent), sauf renommage manuel */
   if(!m.titleLocked){const dd=parseD(effDeploy(m));if(dd){const g0=groupOf(m);m.baseTitle=(g0?g0+" - ":"")+"Maj du "+fdate(dd.getTime())}}
-  const rs=regCodesOf(m);const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+((rs.length>1||(rs.length&&rs[0]!=="FR"))?" - "+rs.join(", "):"")}
+  const rs=regCodesOf(m),cs=(rs.length>1||(rs.length&&rs[0]!=="FR"))?rs.join(", "):"",sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";
+  /* Les codes pays se placent à gauche, juste après le nom du groupement (ex. « O TACOS FR, BE-FR - Maj du 20/09/2025 ») */
+  const mt=/^(.+?)\s+-\s+(maj\b.*)$/i.exec(m.baseTitle);
+  m.title=mt?mt[1]+(cs?" "+cs:"")+" - "+mt[2]+tx+sx:m.baseTitle+tx+sx+(cs?" - "+cs:"")}
 /* Nom des ZIP : NOM DU GROUPEMENT - Nom du fichier XML */
 const zipGroup=id=>{const m=majs[id];const g=m?(groupOf(m)||m.group||""):"";return String(g).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim()};
 const zipName=(id,base)=>{const g=zipGroup(id);return (g?g+" - ":"")+base+".zip"};
@@ -5344,7 +5347,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.6.4",APP_DATE="13/11/2026";
+const APP_VERSION="v2.6.5",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
