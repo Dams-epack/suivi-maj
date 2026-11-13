@@ -1556,6 +1556,8 @@ Passer en correctif ⇒ Switch to fix
 Repasser en déploiement ⇒ Switch back to deployment
 Ajouter un module ⇒ Add a module
 Actions sur cette MAJ ⇒ Actions for this update
+Afficher plus ⇒ Show more
+Tout afficher ⇒ Show all
 Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche. ⇒ Enter the update dates (request, HQ update and deployment) before leaving this page.
 Dates obligatoires : renseigne la date de la demande (ou choisis « Dates personnalisées ») pour pouvoir quitter cette fiche. ⇒ Dates required: enter the request date (or choose "Custom dates") to be able to leave this page.`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
@@ -4789,7 +4791,7 @@ app.appendChild(tl);
 
 /*SEARCH-START*/
 const SF0={q:"",status:"",group:"",mod:"",reg:"",who:"",csm:"",qm:"",dfield:"created",from:"",to:"",prog:"",dur:"",sort:"recent"};
-let sf=Object.assign({},SF0);let backTo=null;let sfOpen=false;
+let sf=Object.assign({},SF0),sfLim=25;let backTo=null;let sfOpen=false;
 function openSearch(){page="search";render()}
 function openLive(){page="live";backTo=null;render()}
 function openArch(){page="archived";backTo=null;render()}
@@ -5007,7 +5009,7 @@ function viewSearch(app){
   const bar=$("div","actions");
   const so=$("div","fld");so.style.flexDirection="row";so.style.alignItems="center";so.style.gap="8px";so.appendChild($("span",null,"Trier par"));
   const ss=mkDD([["recent","Plus récentes"],["old","Plus anciennes"],["prog","Avancement"],["dur","Durée"],["name","Nom"]],()=>sf.sort,v=>{sf.sort=v;update()});ss.classList.add("ddc2");so.appendChild(ss);
-  const rs=$("button","btn ghost","Réinitialiser");rs.onclick=()=>{sf=Object.assign({},SF0);render()};
+  const rs=$("button","btn ghost","Réinitialiser");rs.onclick=()=>{sf=Object.assign({},SF0);sfLim=25;render()};
   const cnt=$("span","msg");cnt.id="scount";cnt.setAttribute("aria-live","polite");
   const sp=$("span");sp.style.flex="1";
   bar.append(so,sp,cnt,rs);panel.appendChild(bar);
@@ -5051,7 +5053,8 @@ function viewSearch(app){
     });
     stx.appendChild(cols);
   }
-  function update(){
+  function update(keep){
+    if(!keep)sfLim=25;
     paintF();
     const terms=fold(sf.q).split(/\s+/).filter(Boolean);
     const from=sf.from?new Date(sf.from+"T00:00:00").getTime():null,to=sf.to?new Date(sf.to+"T23:59:59").getTime():null;
@@ -5088,7 +5091,8 @@ function viewSearch(app){
     cnt.textContent=rows.length+" résultat"+(rows.length>1?"s":"")+" sur "+all.length;
     res.textContent="";
     if(!rows.length){res.appendChild($("p","empty","Aucune MAJ ne correspond à ces critères."));return}
-    rows.forEach(x=>{
+    const PG=25;
+    rows.slice(0,sfLim).forEach(x=>{
       const m=x.m,b=$("button","sitem acc"+(m_isFix(x.m)?" fixcard":""));
       const top=$("div","stop");{const tt=$("span","ttl");if(m_isFix(m))tt.appendChild($("span","gpill fix","Correctif"));tt.appendChild($("strong",null,m.title));top.appendChild(tt)}
       const st=majStatus(m);
@@ -5099,8 +5103,14 @@ function viewSearch(app){
       const mt=$("small","sm",names.join(", ")+" - "+rg.join(", "));
       b.append(top,meta,mt);b.onclick=()=>{backTo="search";setCur(x.id)};res.appendChild(b);
     });
+    if(rows.length>sfLim){
+      const left=rows.length-sfLim,mw=$("div","actions");mw.style.justifyContent="center";mw.style.margin="14px 0";
+      const mb=$("button","btn","Afficher plus");mb.type="button";mb.title=Math.min(PG,left)+" résultats de plus ("+left+" restants)";mb.onclick=()=>{sfLim+=PG;update(true)};
+      const ab=$("button","btn ghost","Tout afficher");ab.type="button";ab.onclick=()=>{sfLim=rows.length;update(true)};
+      mw.append(mb,ab,$("span","msg",sfLim+" affichés sur "+rows.length));res.appendChild(mw);
+    }
   }
-  update();
+  update(true);
 }
 /*SEARCH-END*/
 
@@ -5455,7 +5465,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.12.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.13.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
