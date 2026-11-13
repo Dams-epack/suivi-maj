@@ -1558,6 +1558,7 @@ Repasser en déploiement ⇒ Switch back to deployment
 Ajouter un module ⇒ Add a module
 Actions sur cette MAJ ⇒ Actions for this update
 Afficher plus ⇒ Show more
+Exporter (CSV) ⇒ Export (CSV)
 Tout afficher ⇒ Show all
 Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche. ⇒ Enter the update dates (request, HQ update and deployment) before leaving this page.
 Dates obligatoires : renseigne la date de la demande (ou choisis « Dates personnalisées ») pour pouvoir quitter cette fiche. ⇒ Dates required: enter the request date (or choose "Custom dates") to be able to leave this page.`;
@@ -4471,14 +4472,14 @@ function backupJson(){
   return JSON.stringify({format:"suivi-maj-sauvegarde",version:1,exportedAt:Date.now(),majs:ms,groupes:gs},null,1);
 }
 function csvCell(v){v=String(v==null?"":v);return /[";\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-function exportCsv(){
-  const head=["Titre","Groupement","Type","Statut","Créée le","Archivée le","Durée (heures)","Avancement (%)","Préparée par","Modules","Régions"];
-  const rows=Object.keys(majs).map(k=>majs[k]).sort((a,b)=>b.created-a.created).map(m=>{
+function exportCsv(list,prefix){
+  const head=["Titre","Groupement","Type","Statut","Créée le","Archivée le","Durée (heures)","Avancement (%)","Préparée par","Modules","Régions","Date de la demande","MAJ siège","Déploiement"];
+  const rows=(list||Object.keys(majs).map(k=>majs[k]).sort((a,b)=>b.created-a.created)).map(m=>{
     const s=stats(m),st=majStatus(m)[0];
-    return [m.title,groupOf(m),m.type==="correctif"?"Correctif":"Déploiement",st,fdate(m.created),m.archived?fdate(m.archivedAt||m.created):"",(durOf(m)/3600000).toFixed(2).replace(".",","),s.pct,m.createdBy?(who(m.createdBy)||""):"",[...new Set(m.mods.map(M=>M.name))].join(", "),[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ")];
+    return [m.title,groupOf(m),m.type==="correctif"?"Correctif":"Déploiement",st,fdate(m.created),m.archived?fdate(m.archivedAt||m.created):"",(durOf(m)/3600000).toFixed(2).replace(".",","),s.pct,m.createdBy?(who(m.createdBy)||""):"",[...new Set(m.mods.map(M=>M.name))].join(", "),[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", "),m.dateDemande?fdate(m.dateDemande):"",m.dateSiege?fdate(m.dateSiege):"",m.dateDeploiement?fdate(m.dateDeploiement):""];
   });
   const txt="﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n");
-  saveFile("export-maj-"+stampDay()+".csv",txt);
+  return saveFile((prefix||"export-maj")+"-"+stampDay()+".csv",txt);
 }
 function restoreDialog(info){
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");
@@ -4522,7 +4523,7 @@ function backupCard(){
   c.appendChild($("p","sub","Enregistre un fichier à déposer dans ton dossier SharePoint. La sauvegarde contient toutes les MAJ et tous les groupes."));
   const ac=$("div","actions");
   const b1=$("button","btn","Sauvegarder (JSON)");b1.onclick=()=>saveFile("sauvegarde-suivi-maj-"+stampDay()+".json",backupJson());
-  const b2=$("button","btn ghost","Exporter les MAJ (CSV, Excel)");b2.onclick=exportCsv;
+  const b2=$("button","btn ghost","Exporter les MAJ (CSV, Excel)");b2.onclick=()=>exportCsv();
   const fi=$("input");fi.type="file";fi.accept=".json,application/json";fi.hidden=true;fi.onchange=()=>{if(fi.files[0])restoreFile(fi.files[0]);fi.value=""};
   const b3=$("button","btn ghost","Restaurer une sauvegarde");b3.onclick=()=>fi.click();
   ac.append(b1,b2,b3,fi);c.appendChild(ac);
@@ -5025,7 +5026,9 @@ function viewSearch(app){
   const rs=$("button","btn ghost","Réinitialiser");rs.onclick=()=>{sf=Object.assign({},SF0);sfLim=25;render()};
   const cnt=$("span","msg");cnt.id="scount";cnt.setAttribute("aria-live","polite");
   const sp=$("span");sp.style.flex="1";
-  bar.append(so,sp,cnt,rs);panel.appendChild(bar);
+  const ex=$("button","btn ghost","Exporter (CSV)");ex.type="button";ex.title="Télécharge les résultats de la recherche (tous, pas seulement ceux affichés) dans un fichier lisible par Excel";
+  const exb=$("span");exb.hidden=true;
+  bar.append(so,sp,cnt,ex,rs);panel.appendChild(bar);
   app.appendChild(panel);
   const stx=$("section","card sstats acc");app.appendChild(stx);
   const res=$("div","sres");app.appendChild(res);
@@ -5101,6 +5104,7 @@ function viewSearch(app){
     const key={recent:x=>-x.m.created,old:x=>x.m.created,prog:x=>-x.s.pct,dur:x=>-durOf(x.m)}[sf.sort];
     rows.sort(key?((a,b)=>key(a)-key(b)):((a,b)=>a.m.title.localeCompare(b.m.title,"fr")));
     paintStats(rows);
+    ex.disabled=!rows.length;ex.onclick=async()=>{const ok=await exportCsv(rows.map(x=>x.m),"recherche-maj");toast(ok?rows.length+" MAJ exportées.":(bkMsg||"Export impossible."),!ok)};
     cnt.textContent=rows.length+" résultat"+(rows.length>1?"s":"")+" sur "+all.length;
     res.textContent="";
     if(!rows.length){res.appendChild($("p","empty","Aucune MAJ ne correspond à ces critères."));return}
@@ -5478,7 +5482,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.14.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.15.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
