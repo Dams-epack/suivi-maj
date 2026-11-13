@@ -267,6 +267,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .mrow .mlab{display:flex;flex-direction:column;min-width:0}.mrow small{color:var(--muted)}
 .mrow .step{width:auto;min-width:120px}
 @media (max-width:620px){.mrow{grid-template-columns:minmax(0,1fr) auto}.mrow .mlab{grid-column:1/-1}.mrow .step{justify-content:center}}
+.dates.need{outline:2px solid var(--bad);outline-offset:6px;border-radius:8px}
 .datesave{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .dates{align-items:flex-end}
 .datef{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
@@ -787,7 +788,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.10.1";
+const APP_VERSION="v2.11.0";
 const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
@@ -1608,6 +1609,8 @@ Passer en correctif ⇒ Switch to fix
 Repasser en déploiement ⇒ Switch back to deployment
 Ajouter un module ⇒ Add a module
 Actions sur cette MAJ ⇒ Actions for this update
+Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche. ⇒ Enter the update dates (request, HQ update and deployment) before leaving this page.
+Dates obligatoires : renseigne la date de la demande (ou choisis « Dates personnalisées ») pour pouvoir quitter cette fiche. ⇒ Dates required: enter the request date (or choose "Custom dates") to be able to leave this page.
 Outils XML ⇒ XML tools
 Génère ou complète les XML des modules à partir des fichiers du client. Rien n'est enregistré : les fichiers restent dans ton navigateur. ⇒ Generate or complete the module XML files from the client's files. Nothing is saved: files stay in your browser.
 Excel → XML ⇒ Excel → XML

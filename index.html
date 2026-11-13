@@ -267,6 +267,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .mrow .mlab{display:flex;flex-direction:column;min-width:0}.mrow small{color:var(--muted)}
 .mrow .step{width:auto;min-width:120px}
 @media (max-width:620px){.mrow{grid-template-columns:minmax(0,1fr) auto}.mrow .mlab{grid-column:1/-1}.mrow .step{justify-content:center}}
+.dates.need{outline:2px solid var(--bad);outline-offset:6px;border-radius:8px}
 .datesave{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .dates{align-items:flex-end}
 .datef{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
@@ -1553,7 +1554,9 @@ Présélectionné d'après le mail. Modifiable. ⇒ Preselected from the email. 
 Passer en correctif ⇒ Switch to fix
 Repasser en déploiement ⇒ Switch back to deployment
 Ajouter un module ⇒ Add a module
-Actions sur cette MAJ ⇒ Actions for this update`;
+Actions sur cette MAJ ⇒ Actions for this update
+Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche. ⇒ Enter the update dates (request, HQ update and deployment) before leaving this page.
+Dates obligatoires : renseigne la date de la demande (ou choisis « Dates personnalisées ») pour pouvoir quitter cette fiche. ⇒ Dates required: enter the request date (or choose "Custom dates") to be able to leave this page.`;
 let I18N_RE=null;const I18N_MAP=new Map(),I18N_EX=new Map(),TR_CACHE=new Map();
 function i18nBuild(){
   const keys=[];
@@ -1913,7 +1916,16 @@ function openTimerEdit(id){
   paint();setTimeout(()=>ih.select(),30);
   md.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}});
 }
-function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;delReg=null;delMod=null;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
+const datesMissing=m=>!!m&&!m.archived&&m.type!=="correctif"&&!(parseD(m.dateSiege)&&parseD(m.dateDeploiement));
+function leaveBlocked(id){
+  if(!cur||id===cur||!majs[cur])return false;
+  flushDates(cur);
+  if(!datesMissing(majs[cur]))return false;
+  page="tool";toast("Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche.");
+  render();setTimeout(()=>{const d=document.querySelector(".dates");if(d){d.scrollIntoView({block:"center",behavior:"smooth"});d.classList.add("need");setTimeout(()=>d.classList.remove("need"),2500)}},50);
+  return true;
+}
+function setCur(id){if(leaveBlocked(id))return;if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;delReg=null;delMod=null;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
 
 /* ---- Analyse du mail ---- */
 /* « France/BE FR/BE NL » saisi d'un bloc : une ligne par région (FR, BE FR, BE NL) */
@@ -2844,7 +2856,7 @@ function viewMaj(app,id){
   const m=majs[id];
   syncDone(m);
   const top=$("div","topbar");
-  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(backTo){page=backTo;backTo=null}setCur(null)};
+  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(leaveBlocked(null))return;if(backTo){page=backTo;backTo=null}setCur(null)};
   top.append(back);app.appendChild(top);
   const hrow=$("div","hrow"),acts=[],quick=[];if(renaming===id){const ri=$("input","h1edit");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");
     const go=()=>{if(ri.value.trim()){renameMaj(id,ri.value);renaming=null;render()}};
@@ -2973,7 +2985,8 @@ function viewMaj(app,id){
    const sw=$("div","datesave");sw.append(sv,sm);dw.appendChild(sw);
    if(m.calSent){const wn=$("p","sub warnmsg","⚠ Attention : cela peut entraîner des doublons dans Outlook. Supprime manuellement les événements précédents dans le calendrier.");wn.style.gridColumn="1/-1";dw.appendChild(wn)}
    app.appendChild(dw);
-   app.appendChild(sub)}
+   app.appendChild(sub);
+   if(datesMissing(m)){const rq=$("p","msg err","Dates obligatoires : renseigne la date de la demande (ou choisis « Dates personnalisées ») pour pouvoir quitter cette fiche.");rq.setAttribute("role","alert");app.appendChild(rq)}}
   const s=stats(m);
   const hero=$("div","hero");
   const ht=$("div","hero-top");
@@ -5437,7 +5450,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.10.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.11.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
