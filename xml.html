@@ -149,6 +149,7 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .stats b{color:var(--fg);font-family:var(--mono);font-weight:500}
 .chip{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 12px;border-radius:999px;cursor:pointer}
 .chip:hover{background:var(--accent-soft)}
+.chip.add{border-color:var(--accent);color:var(--accent);font-weight:600}.chip.add:hover{background:var(--accent-soft)}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 section.mod{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .mod-h{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -779,7 +780,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.6.6";
+const APP_VERSION="v2.7.0";
 const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
@@ -1145,6 +1146,7 @@ Enregistre les dates et envoie les événements « MAJ siège » et « Déploiem
 Nom de la MAJ ⇒ Update name
 Renommer la MAJ ⇒ Rename the update
 Ajouter un site / concept ⇒ Add a site / concept
++ Ajouter un site / concept ⇒ + Add a site / concept
 Site ou concept visé par la MAJ (ajouté au nom) ⇒ Site or concept targeted by the update (added to the name)
 ▶ Reprendre ⇒ ▶ Resume
 Reprendre le chronomètre ⇒ Resume the timer

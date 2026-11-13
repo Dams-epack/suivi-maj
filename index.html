@@ -149,6 +149,7 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .stats b{color:var(--fg);font-family:var(--mono);font-weight:500}
 .chip{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 12px;border-radius:999px;cursor:pointer}
 .chip:hover{background:var(--accent-soft)}
+.chip.add{border-color:var(--accent);color:var(--accent);font-weight:600}.chip.add:hover{background:var(--accent-soft)}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 section.mod{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .mod-h{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -1091,6 +1092,7 @@ Enregistre les dates et envoie les événements « MAJ siège » et « Déploiem
 Nom de la MAJ ⇒ Update name
 Renommer la MAJ ⇒ Rename the update
 Ajouter un site / concept ⇒ Add a site / concept
++ Ajouter un site / concept ⇒ + Add a site / concept
 Site ou concept visé par la MAJ (ajouté au nom) ⇒ Site or concept targeted by the update (added to the name)
 ▶ Reprendre ⇒ ▶ Resume
 Reprendre le chronomètre ⇒ Resume the timer
@@ -2792,7 +2794,7 @@ function viewMaj(app,id){
   const top=$("div","topbar");
   const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(backTo){page=backTo;backTo=null}setCur(null)};
   top.append(back);app.appendChild(top);
-  const hrow=$("div","hrow"),acts=[];if(renaming===id){const ri=$("input","h1edit");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");
+  const hrow=$("div","hrow"),acts=[],quick=[];if(renaming===id){const ri=$("input","h1edit");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");
     const go=()=>{if(ri.value.trim()){renameMaj(id,ri.value);renaming=null;render()}};
     const rok=$("button","chip h1ok","✓ Enregistrer"),rno=$("button","chip","Annuler");
     rok.onclick=go;rno.onclick=()=>{renaming=null;render()};
@@ -2875,11 +2877,11 @@ function viewMaj(app,id){
     si.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();gos()}else if(e.key==="Escape"){siteEdit=null;render()}};
     sw.append(si,siteList(),sok,sno);app.appendChild(sw);setTimeout(()=>si.focus(),0);
   }else{
-    const sc=$("button","chip","Ajouter un site / concept");sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};acts.push(sc);
+    const sc=$("button","chip add","+ Ajouter un site / concept");sc.type="button";sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};quick.push(sc);
   }
   if(!m.archived){const tc=$("button","chip",m.type==="correctif"?"Repasser en déploiement":"Passer en correctif");if(m.type!=="correctif")tc.dataset.fix="1";tc.type="button";tc.title="Changer le type de MAJ (déploiement ou correctif)";tc.onclick=()=>{const mm=majs[id]||m;if(mm.type==="correctif")delete mm.type;else mm.type="correctif";stampTitle(mm);persist(id);render()};acts.push(tc)}
   if(!m.archived&&dirFlow()){const dc=$("button","chip","Créer les dossiers SharePoint");dc.type="button";dc.title="crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec 0. SOURCES et REPLACE dans le SharePoint du groupement";dc.onclick=()=>{dc.disabled=true;syncDirs(id,true).then(r=>{toast(r);render()})};acts.push(dc)}
-  if(!m.archived){const am=$("button","chip","Ajouter un module");am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);acts.push(am)}
+  if(!m.archived){const am=$("button","chip add","+ Ajouter un module");am.type="button";am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);quick.push(am)}
   actMenu(hrow,acts);
   if(m.type!=="correctif")
   {const dw=$("div","dates");if(!dateDraft||dateDraft.id!==id){dateDraft={id,dateDemande:m.dateDemande||"",dateSiege:m.dateSiege||"",dateDeploiement:m.dateDeploiement||""};const c0=!m.archived&&calcDates(m,m.dateDemande);if(c0)Object.assign(dateDraft,c0)}const dr=dateDraft;
@@ -2951,7 +2953,7 @@ function viewMaj(app,id){
   const tools=$("div","actions");
   const fa=$("button","chip","Tout");fa.setAttribute("aria-pressed",String(!onlyTodo));fa.onclick=()=>{onlyTodo=false;render()};
   const ft=$("button","chip","Reste à faire");ft.setAttribute("aria-pressed",String(onlyTodo));ft.onclick=()=>{onlyTodo=true;render()};
-  tools.append(fa,ft);
+  tools.append(fa,ft);quick.slice().reverse().forEach(b=>tools.appendChild(b));
   const setAll=v=>{m.mods.forEach(M=>M.regions.forEach(r=>{const k=M.id+"_"+r.key;m.prog[k]={s:[v,v,v],note:(m.prog[k]&&m.prog[k].note)||""}}));confirmClear=false;render();persist(id,"*")};
   const spacer=$("span");spacer.style.flex="1";tools.appendChild(spacer);
   const ca=$("button","btn","Tout cocher");ca.onclick=()=>setAll(true);tools.appendChild(ca);
@@ -5349,7 +5351,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.6.6",APP_DATE="13/11/2026";
+const APP_VERSION="v2.7.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
