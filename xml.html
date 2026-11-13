@@ -152,6 +152,8 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .addrow{display:flex;flex-wrap:wrap;gap:10px}
 .addb{font:inherit;display:inline-flex;align-items:center;gap:9px;padding:8px 14px 8px 10px;border-radius:8px;border:1px dashed var(--accent);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s,border-color .15s}
 .addb .addi{position:relative;display:inline-flex;color:var(--accent)}.addb .addi svg{width:20px;height:20px}.addb .addi i{position:absolute;right:-5px;top:-6px;width:12px;height:12px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font:700 .7rem/12px sans-serif;text-align:center;font-style:normal}
+.addb.dang{border-color:var(--line);color:var(--muted)}.addb.dang .addi{color:var(--muted)}.addb.dang:hover,.addb.dang:focus-visible{border-color:var(--bad);color:var(--bad);background:transparent}.addb.dang:hover .addi{color:var(--bad)}
+.addrow .regdelq{margin-left:6px}
 .addb:hover,.addb:focus-visible{background:var(--accent-soft);border-style:solid;outline:none}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 section.mod{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -785,7 +787,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.9.0";
+const APP_VERSION="v2.10.0";
 const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
@@ -1074,6 +1076,9 @@ Ajouter à la liste ⇒ Add to the list
 Ajouter une langue à ce module ⇒ Add a language to this module
 Ajouter une langue ⇒ Add a language
 Supprimer ? ⇒ Delete?
+Supprimer ce module ⇒ Delete this module
+Supprimer ce module et ses cases cochées ? ⇒ Delete this module and its ticked boxes?
+Retirer ce module du suivi (ajouté par erreur) ⇒ Remove this module from the tracking (added by mistake)
 Supprimer cette langue de ce module (ajoutée par erreur) ⇒ Delete this language from this module (added by mistake)
 Un module garde au moins une langue ⇒ A module keeps at least one language
 Supprimer cette langue du module ⇒ Delete this language from the module

@@ -152,6 +152,8 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .addrow{display:flex;flex-wrap:wrap;gap:10px}
 .addb{font:inherit;display:inline-flex;align-items:center;gap:9px;padding:8px 14px 8px 10px;border-radius:8px;border:1px dashed var(--accent);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s,border-color .15s}
 .addb .addi{position:relative;display:inline-flex;color:var(--accent)}.addb .addi svg{width:20px;height:20px}.addb .addi i{position:absolute;right:-5px;top:-6px;width:12px;height:12px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font:700 .7rem/12px sans-serif;text-align:center;font-style:normal}
+.addb.dang{border-color:var(--line);color:var(--muted)}.addb.dang .addi{color:var(--muted)}.addb.dang:hover,.addb.dang:focus-visible{border-color:var(--bad);color:var(--bad);background:transparent}.addb.dang:hover .addi{color:var(--bad)}
+.addrow .regdelq{margin-left:6px}
 .addb:hover,.addb:focus-visible{background:var(--accent-soft);border-style:solid;outline:none}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 section.mod{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -716,7 +718,7 @@ const STEPS=[["Fichier d'import","Import"],["Configurateur (XML)","XML"],["Mouli
 const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dépôt SharePoint"]];
 const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?STEPS2:STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
-let delReg=null,userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
+let delReg=null,delMod=null,userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
 /* Journal de synchronisation : état courant + 40 derniers événements, consultable depuis le bandeau */
 let syncKind="",lastOk=0;const syncLog=[],syncFail=new Set();
 const hhmm=t=>{const d=new Date(t),p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds())};
@@ -1020,6 +1022,9 @@ Ajouter à la liste ⇒ Add to the list
 Ajouter une langue à ce module ⇒ Add a language to this module
 Ajouter une langue ⇒ Add a language
 Supprimer ? ⇒ Delete?
+Supprimer ce module ⇒ Delete this module
+Supprimer ce module et ses cases cochées ? ⇒ Delete this module and its ticked boxes?
+Retirer ce module du suivi (ajouté par erreur) ⇒ Remove this module from the tracking (added by mistake)
 Supprimer cette langue de ce module (ajoutée par erreur) ⇒ Delete this language from this module (added by mistake)
 Un module garde au moins une langue ⇒ A module keeps at least one language
 Supprimer cette langue du module ⇒ Delete this language from the module
@@ -1908,7 +1913,7 @@ function openTimerEdit(id){
   paint();setTimeout(()=>ih.select(),30);
   md.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}});
 }
-function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;delReg=null;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
+function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;delReg=null;delMod=null;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
 
 /* ---- Analyse du mail ---- */
 /* « France/BE FR/BE NL » saisi d'un bloc : une ligne par région (FR, BE FR, BE NL) */
@@ -3063,7 +3068,20 @@ function viewMaj(app,id){
     const cols=$("div","cols"+(stepsOf(M).length===1?" one":"")+(stepsOf(M).length===2?" two":""));["Région",...stepsOf(M).map(x=>x[0])].forEach(x=>cols.appendChild($("div",null,x)));
     sec.appendChild(h);
     if(mOpen){sec.appendChild(cols);if(!body.children.length)sec.appendChild($("div","empty","Tout est fait pour ce module."));else sec.appendChild(body)}
-    if(mOpen&&!m.archived){const ar=$("div","addrow");ar.style.padding="10px 12px";const ab=$("button","addb","Ajouter une langue à ce module");ab.type="button";ab.title="Ajouter une langue ou un pays oublié à ce module uniquement";ab.onclick=()=>openAddRegion(id,M.id);{const ic=$("span","addi");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.500 5.600 12 3z"/></svg><i>+</i>';ab.prepend(ic)}ar.appendChild(ab);sec.appendChild(ar)}
+    if(mOpen&&!m.archived){const ar=$("div","addrow");ar.style.padding="10px 12px";const ab=$("button","addb","Ajouter une langue à ce module");ab.type="button";ab.title="Ajouter une langue ou un pays oublié à ce module uniquement";ab.onclick=()=>openAddRegion(id,M.id);{const ic=$("span","addi");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.500 5.600 12 3z"/></svg><i>+</i>';ab.prepend(ic)}ar.appendChild(ab);
+      if(m.mods.length>1){
+        if(delMod===M.id){
+          const q=$("span","regdelq");q.append($("span",null,"Supprimer ce module et ses cases cochées ?"));
+          const y=$("button","btn danger regdy","Oui");y.type="button";y.onclick=()=>{m.mods=m.mods.filter(x=>x.id!==M.id);Object.keys(m.prog||{}).forEach(pk=>{if(pk.startsWith(M.id+"_"))delete m.prog[pk]});delMod=null;stampTitle(m);persist(id);render();toast("Module « "+M.name+" » supprimé.")};
+          const n=$("button","btn ghost regdn","Non");n.type="button";n.onclick=()=>{delMod=null;render()};
+          q.append(y,n);ar.appendChild(q);
+        }else{
+          const db=$("button","addb dang");db.type="button";db.title="Retirer ce module du suivi (ajouté par erreur)";
+          const ic=$("span","addi");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>';
+          db.append(ic,$("span",null,"Supprimer ce module"));db.onclick=()=>{delMod=M.id;render()};ar.appendChild(db);
+        }
+      }
+      sec.appendChild(ar)}
     body1.appendChild(sec);
   });
   if(foot){foot.style.marginTop="18px";app.appendChild(foot)}
@@ -5419,7 +5437,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.9.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.10.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
