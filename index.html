@@ -1917,7 +1917,7 @@ function openTimerEdit(id){
   md.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}});
 }
 let needHl=null;
-const datesMissing=m=>!!m&&!m.archived&&m.type!=="correctif"&&!(parseD(m.dateSiege)&&parseD(m.dateDeploiement));
+const datesMissing=m=>!!m&&!m.archived&&m.type!=="correctif"&&!(parseD(m.dateSiege)&&parseD(m.dateDeploiement)&&(m.datesPerso||parseD(m.dateDemande)));
 function leaveBlocked(id){
   if(!cur||id===cur||!majs[cur])return false;
   flushDates(cur);
@@ -2957,7 +2957,7 @@ function viewMaj(app,id){
    const canResend=()=>!!(cal()&&m.dateSiege&&m.dateDeploiement&&m.calSent===m.dateSiege+"|"+m.dateDeploiement);
    const note=()=>{const rs=!dirty()&&!pend()&&canResend();sv.disabled=!dirty()&&!pend()&&!rs;sv.textContent=m.type==="correctif"?"Enregistrer les dates":rs?"Renvoyer dans Outlook":"Enregistrer et envoyer dans Outlook";sm.textContent=dirty()?"Modifications non enregistrées":pend()?"Dates pas encore envoyées à Outlook":rs?"Déjà envoyé : tu peux renvoyer les événements":""};
    /* Déploiement = demande + délai (J-7 par défaut, J-5 pour certains groupements) en jours ouvrés ; siège = J-3 ouvrés */
-   const recalc=()=>{const c=calcDates(m,dr.dateDemande);if(!c)return;Object.assign(dr,c);inp.dateDeploiement.value=dr.dateDeploiement;inp.dateSiege.value=dr.dateSiege};
+   const recalc=()=>{const c=calcDates(m,dr.dateDemande);if(!c){if(!m.datesPerso&&!parseD(dr.dateDemande)){dr.dateSiege=dr.dateDeploiement="";inp.dateSiege.value=inp.dateDeploiement.value=""}return}Object.assign(dr,c);inp.dateDeploiement.value=dr.dateDeploiement;inp.dateSiege.value=dr.dateSiege};
    [["dateDemande","Date de la demande"],["dateSiege","Date de la mise à jour siège"],["dateDeploiement","Date de déploiement de la mise à jour"]].forEach(([f,lab])=>{
      const l=$("label","datef");l.append($("span",null,lab));
      const i=$("input");i.type="date";i.value=dr[f];i.setAttribute("aria-label",lab);inp[f]=i;if(f!=="dateDemande"){lbs[f]=l.firstChild;i.disabled=!m.datesPerso;i.title="Calculée à partir de la date de la demande et du délai de prévenance"}
@@ -5452,7 +5452,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.11.3",APP_DATE="13/11/2026";
+const APP_VERSION="v2.11.4",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
