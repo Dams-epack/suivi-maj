@@ -2638,7 +2638,7 @@ function showTeams(m,kind,id,onDone){
   const toTitle=t=>"<h3>"+esc(String(t))+"</h3>";
   const flowUrl=u=>{const ps=ta.value.split(/\r?\n/),hd0=ps[0]||"",tl=ps.slice(1).join("\n").replace(/^\s+/,"");return u+(u.includes("?")?"&":"?")+"message="+encodeURIComponent(toTitle(hd0))+"&tail="+encodeURIComponent(toHtml(tl))+(qmMail?"&qm="+encodeURIComponent(qmMail):"")};
   const send=async()=>{const u=cleanUrl(fu.value);if(!u)return;st.textContent="Envoi dans Teams…";st.classList.remove("tmok");bs.classList.add("fly");
-    try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans le canal Teams.";st.classList.add("tmok");bs.classList.remove("fly");flash(bs,"Envoyé ✓","done");ensureValid()}
+    try{await fetch(flowUrl(u),{method:"GET",mode:"no-cors"});st.textContent="Message envoyé au flux Power Automate. Vérifie qu'il apparaît dans le canal Teams.";st.classList.add("tmok");bs.classList.remove("fly");flash(bs,"Envoyé ✓","done");ensureValid();const me=teamsDlg;setTimeout(()=>{if(teamsDlg&&teamsDlg===me)closeTeams()},1300)}
     catch(e){await copy();
       let w=null;try{w=window.open(flowUrl(u),"_blank");if(w){try{w.opener=null}catch(e3){}setTimeout(()=>{try{w.close()}catch(e4){}},3000)}}catch(e2){}
       st.textContent=w!==null?"Message envoyé via un onglet qui se ferme tout seul (si l'onglet reste ouvert, tu peux le fermer). Vérifie dans Teams ; sinon le message est copié, colle-le dans la conversation.":"Envoi bloqué par le navigateur. Message copié : colle-le dans la conversation."}};
@@ -5495,7 +5495,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.16.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.16.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
