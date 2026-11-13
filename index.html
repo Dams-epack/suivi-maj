@@ -2945,7 +2945,7 @@ function viewMaj(app,id){
     sl.onchange=()=>{if(sl.value==="perso")setPerso(m,id,true);else{setPerso(m,id,false);setDelay(m,id,+sl.value);recalc()}applyMode();note()};
     l.appendChild(sl);dw.insertBefore(l,dw.children[1])}
    const sub=$("p","sub");
-   const applyMode=()=>{const p=!!m.datesPerso;inp.dateSiege.disabled=inp.dateDeploiement.disabled=!p;lbs.dateSiege.textContent="Date de la mise à jour siège"+(p?"":" (calculée)");lbs.dateDeploiement.textContent="Date de déploiement de la mise à jour"+(p?"":" (calculée)");sub.textContent=p?"Dates personnalisées : choisis toi-même les dates de la mise à jour siège et du déploiement. Les mails de cette MAJ reprennent ces dates.":"La date de la demande et le délai de prévenance calculent la mise à jour siège (J-3) et le déploiement (J), en jours ouvrés (du lundi au vendredi, hors jours fériés)."};applyMode();
+   const applyMode=()=>{const p=!!m.datesPerso;inp.dateSiege.disabled=inp.dateDeploiement.disabled=!p;lbs.dateSiege.textContent="Date de la mise à jour siège";lbs.dateDeploiement.textContent="Date de déploiement de la mise à jour";sub.textContent=p?"Dates personnalisées : choisis toi-même les dates de la mise à jour siège et du déploiement. Les mails de cette MAJ reprennent ces dates.":"La date de la demande et le délai de prévenance calculent la mise à jour siège (J-3) et le déploiement (J), en jours ouvrés (du lundi au vendredi, hors jours fériés)."};applyMode();
    note();
    sv.onclick=async()=>{
      if(!(dr.dateSiege&&dr.dateDeploiement&&cal())){flushDates(id);sv.disabled=true;sm.textContent="Dates enregistrées";syncCalendar(id).then(toast);return}
@@ -5399,7 +5399,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.8.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.8.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
