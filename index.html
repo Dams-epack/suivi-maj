@@ -2858,6 +2858,7 @@ function viewMaj(app,id){
   const m=majs[id];
   syncDone(m);
   const top=$("div","topbar");
+  if(!backTo)backTo="hub";
   const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(leaveBlocked(null))return;if(backTo){page=backTo;backTo=null}setCur(null)};
   top.append(back);app.appendChild(top);
   const hrow=$("div","hrow"),acts=[],quick=[];if(renaming===id){const ri=$("input","h1edit");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");
@@ -5454,7 +5455,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.12.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.12.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
