@@ -1558,6 +1558,7 @@ Repasser en déploiement ⇒ Switch back to deployment
 Ajouter un module ⇒ Add a module
 Actions sur cette MAJ ⇒ Actions for this update
 Afficher plus ⇒ Show more
+Changer le groupement ⇒ Change group
 Exporter (CSV) ⇒ Export (CSV)
 Tout afficher ⇒ Show all
 Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche. ⇒ Enter the update dates (request, HQ update and deployment) before leaving this page.
@@ -1782,6 +1783,30 @@ function renameMaj(id,t){
   persist(id);
 }
 let renaming=null,siteEdit=null;
+function changeGroup(id){
+  const m=majs[id];if(!m)return;
+  const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","cgt");
+  const md=$("div","modal");md.style.maxWidth="520px";bg.appendChild(md);document.body.appendChild(bg);
+  const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true)};
+  const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}};document.addEventListener("keydown",kd,true);
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+  const t=$("h2",null,"Changer le groupement");t.id="cgt";
+  const cur0=groupOf(m)||m.group||"";
+  const p=$("p",null,"Groupement actuel : "+(cur0||"aucun")+". Choisis-en un dans la liste ou tape un nouveau nom.");
+  const gi=$("input");gi.type="text";gi.value=cur0;gi.maxLength=60;gi.autocomplete="off";gi.setAttribute("aria-label","Nouveau groupement");gi.setAttribute("list","cglist");
+  const dl=$("datalist");dl.id="cglist";allGroups().forEach(g=>{const o=$("option");o.value=g;dl.appendChild(o)});
+  const w=$("p","msg");w.style.fontSize=".85rem";w.textContent="Les dossiers SharePoint déjà créés gardent l'ancien nom.";
+  const ac=$("div","actions");const ok=$("button","btn","Valider");ok.type="button";const no=$("button","btn ghost","Annuler");no.type="button";
+  const go=()=>{
+    const g=cleanG(gi.value);if(!g||g===cleanG(cur0)){close();return}
+    registerGroup(g);m.group=g;
+    const bt=String(m.baseTitle||""),x=/^(.+?)(\s+-\s+maj\b.*)$/i.exec(bt);
+    m.baseTitle=x?g+x[2]:baseTitleFor(g,m.created);
+    stampTitle(m);persist(id);close();render();toast("Groupement changé : "+g+".");
+  };
+  ok.onclick=go;no.onclick=close;gi.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
+  ac.append(ok,no);md.append(t,p,gi,dl,w,ac);setTimeout(()=>{gi.focus();gi.select()},30);
+}
 const regionsOf=m=>[...new Set(m.mods.flatMap(M=>M.regions.map(r=>norm(r.label))))].join(", ");
 /* Nom de la MAJ : si plusieurs codes pays / langues sont suivis, ils sont ajoutés au nom (ex. « O TACOS FR, BE-NL - Maj du 17/10/2026 ») */
 const PAYS_CODES={fr:"FR",france:"FR",befr:"BE-FR",benl:"BE-NL",blufr:"BE-FR",blunl:"BE-NL",it:"IT",italie:"IT",es:"ES",espagne:"ES",de:"DE",allemagne:"DE",en:"EN",uk:"EN",pt:"PT",portugal:"PT",lareunion:"REUNION",reunion:"REUNION",antilles:"ANTILLES",nouvellecaledonie:"NC",nc:"NC"};
@@ -2927,6 +2952,7 @@ function viewMaj(app,id){
      if(fx.length){const fr=$("p","sub fixref");fr.append($("span",null,"Corrigée par : "));fx.forEach(k=>{const b=$("button","chip",(majs[k].baseTitle||majs[k].title)+" ↗");b.type="button";b.onclick=()=>setCur(k);fr.appendChild(b)});app.appendChild(fr)}}}
   {
     const rc=$("button","chip","Renommer la MAJ");rc.onclick=()=>{renaming=id;render()};if(renaming!==id)acts.push(rc);
+    const cg=$("button","chip","Changer le groupement");cg.onclick=()=>changeGroup(id);acts.push(cg);
   }
   if(siteEdit===id){
     const sw=$("div","actions");
@@ -5495,7 +5521,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.16.3",APP_DATE="13/11/2026";
+const APP_VERSION="v2.17.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
