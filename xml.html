@@ -53,6 +53,7 @@ body.depmode::before{content:"";position:fixed;left:0;right:0;top:0;height:340px
 .amenu{width:auto;min-width:250px;padding:6px;gap:2px}
 .amitem{font:inherit;text-align:left;background:transparent;border:0;color:inherit;padding:9px 12px;border-radius:8px;cursor:pointer}
 .amitem{--c:#9BF944;border-left:3px solid color-mix(in srgb,var(--c) 45%,transparent);transition:background .15s,color .15s,border-color .15s,padding-left .15s}
+.amitem.autoit{display:flex;align-items:center;gap:9px;margin-top:4px;border-top:1px solid color-mix(in srgb,#9BF944 25%,transparent);border-radius:0 0 8px 8px;padding-top:11px}.amitem.autoit .amico{display:inline-flex;color:#4fa800;flex:none}.amitem.autoit .amico svg{width:21px;height:21px}.amitem.autoit{gap:8px;padding-right:8px;font-weight:600}
 .amitem.fixit{--c:#FF8A28}.amitem.fixit:hover,.amitem.fixit:focus-visible{background:rgba(255,138,40,.18)!important;color:#FF8A28!important;border-left-color:#FF8A28!important}
 .amitem:hover,.amitem:focus-visible{background:color-mix(in srgb,#305754 70%,transparent);border-left-color:var(--c);color:var(--c);padding-left:16px;outline:none}
 :root[data-theme="light"] .amitem:hover,:root[data-theme="light"] .amitem:focus-visible{background:rgba(155,249,68,.28);color:#305754;border-left-color:#305754}
@@ -790,7 +791,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.17.0";
+const APP_VERSION="v2.17.2";
 const SUPPORT_BUILD="v1.0.1";
 
 const SUPPORT=true;
@@ -3053,7 +3054,7 @@ function actMenu(row,acts){
     const old=document.getElementById("amenu");if(old){pmClose(old);return}
     const pm=$("div","pmenu amenu");pm.id="amenu";pm.setAttribute("role","menu");
     const end=()=>{pmClose(pm);document.removeEventListener("mousedown",away);document.removeEventListener("keydown",esc)};
-    acts.forEach(a=>{const it=$("button","amitem",a.textContent);it.type="button";if(a.dataset&&a.dataset.fix)it.classList.add("fixit");it.setAttribute("role","menuitem");if(a.title)it.title=a.title;it.onclick=()=>{end();a.onclick()};pm.appendChild(it)});
+    acts.forEach(a=>{const it=$("button","amitem",a.textContent);it.type="button";if(a.dataset&&a.dataset.fix)it.classList.add("fixit");if(a.dataset&&a.dataset.auto){it.classList.add("autoit");const ic=$("span","amico");ic.setAttribute("aria-hidden","true");ic.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M13 10l-3 4h4l-3 4"/></svg>';it.prepend(ic)}it.setAttribute("role","menuitem");if(a.title)it.title=a.title;it.onclick=()=>{end();a.onclick()};pm.appendChild(it)});
     const r=b.getBoundingClientRect();pm.style.top=(r.bottom+window.scrollY+8)+"px";pm.style.left=Math.max(8,Math.min(r.left+window.scrollX,document.documentElement.clientWidth-270))+"px";pm.style.transformOrigin="top left";
     document.body.appendChild(pm);
     const away=e=>{if(!pm.contains(e.target)&&!b.contains(e.target))end()};
