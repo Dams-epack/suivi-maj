@@ -1759,10 +1759,12 @@ function paysCode(label){
   if(/^[A-Za-z]{2}(-[A-Za-z]{2})?$/.test(String(n).trim()))return String(n).trim().toUpperCase();
   return String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 }
+/* Codes du nom et du dossier : le concept (ex. CANADA) remplace le code pays de sa ligne */
+function regCodesOf(m){return [...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).flatMap(r=>r.concept?[paysCode(r.concept)]:String(norm(r.label)).split("/").map(p=>paysCode(p)))))].filter(Boolean)}
 function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;
   /* Le nom porte la date de déploiement (recalculée si les dates changent), sauf renommage manuel */
   if(!m.titleLocked){const dd=parseD(effDeploy(m));if(dd){const g0=groupOf(m);m.baseTitle=(g0?g0+" - ":"")+"Maj du "+fdate(dd.getTime())}}
-  const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).flatMap(r=>String(norm(r.label)).split("/").map(p=>paysCode(p)))))].filter(Boolean);const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+(rs.length>1?" - "+rs.join(", "):"")}
+  const rs=regCodesOf(m),hc=(m.mods||[]).some(M=>(M.regions||[]).some(r=>r.concept));const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+((rs.length>1||(hc&&rs.length))?" - "+rs.join(", "):"")}
 /* Nom des ZIP : NOM DU GROUPEMENT - Nom du fichier XML */
 const zipGroup=id=>{const m=majs[id];const g=m?(groupOf(m)||m.group||""):"";return String(g).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim()};
 const zipName=(id,base)=>{const g=zipGroup(id);return (g?g+" - ":"")+base+".zip"};
@@ -2704,7 +2706,7 @@ const DIR_ALIAS=[[/papilles/,"ATELIER PAPILLES"],[/sophie.?le.?b/,"BOULANGERIE S
 const dirName=g=>{const k=String(g||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z]/g,"");const a=DIR_ALIAS.find(([r])=>r.test(k));return a?a[1]:String(g||"").trim()};
 /* Codes pays dans le nom du dossier (ex. « 2026-11-16 MAROC », « 2026-11-02 FR BE-FR BE-NL »). FR par défaut si aucune langue n'est indiquée. */
 function dirCodes(m){
-  const rs=[...new Set((m.mods||[]).flatMap(M=>(M.regions||[]).flatMap(r=>String(norm(r.label)).split("/").map(x=>paysCode(x)))))].filter(Boolean);
+  const rs=regCodesOf(m);
   if(!rs.length)return ["FR"];
   const pr=["FR","BE-FR","BE-NL"];return pr.filter(x=>rs.includes(x)).concat(rs.filter(x=>!pr.includes(x)));
 }
@@ -5342,7 +5344,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.6.2",APP_DATE="12/11/2026";
+const APP_VERSION="v2.6.3",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
