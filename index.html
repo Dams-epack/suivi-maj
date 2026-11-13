@@ -149,7 +149,10 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .stats b{color:var(--fg);font-family:var(--mono);font-weight:500}
 .chip{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 12px;border-radius:999px;cursor:pointer}
 .chip:hover{background:var(--accent-soft)}
-.chip.add{border-color:var(--accent);color:var(--accent);font-weight:600}.chip.add:hover{background:var(--accent-soft)}
+.addrow{display:flex;flex-wrap:wrap;gap:10px}
+.addb{font:inherit;display:inline-flex;align-items:center;gap:9px;padding:8px 14px 8px 10px;border-radius:8px;border:1px dashed var(--accent);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s,border-color .15s}
+.addb .addi{position:relative;display:inline-flex;color:var(--accent)}.addb .addi svg{width:20px;height:20px}.addb .addi i{position:absolute;right:-5px;top:-6px;width:12px;height:12px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font:700 .7rem/12px sans-serif;text-align:center;font-style:normal}
+.addb:hover,.addb:focus-visible{background:var(--accent-soft);border-style:solid;outline:none}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 section.mod{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .mod-h{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -2877,11 +2880,11 @@ function viewMaj(app,id){
     si.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();gos()}else if(e.key==="Escape"){siteEdit=null;render()}};
     sw.append(si,siteList(),sok,sno);app.appendChild(sw);setTimeout(()=>si.focus(),0);
   }else{
-    const sc=$("button","chip add","+ Ajouter un site / concept");sc.type="button";sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};quick.push(sc);
+    const sc=$("button","addb","Ajouter un site / concept");sc.type="button";sc.dataset.k="site";sc.title="Ajoute un concept : une ligne de suivi par module et par pays, comme à la création";sc.onclick=()=>{siteEdit=id;render()};quick.push(sc);
   }
   if(!m.archived){const tc=$("button","chip",m.type==="correctif"?"Repasser en déploiement":"Passer en correctif");if(m.type!=="correctif")tc.dataset.fix="1";tc.type="button";tc.title="Changer le type de MAJ (déploiement ou correctif)";tc.onclick=()=>{const mm=majs[id]||m;if(mm.type==="correctif")delete mm.type;else mm.type="correctif";stampTitle(mm);persist(id);render()};acts.push(tc)}
   if(!m.archived&&dirFlow()){const dc=$("button","chip","Créer les dossiers SharePoint");dc.type="button";dc.title="crée le dossier AAAA-MM-JJ + codes pays (date de début de déploiement, ex. 2026-11-16 MAROC) avec 0. SOURCES et REPLACE dans le SharePoint du groupement";dc.onclick=()=>{dc.disabled=true;syncDirs(id,true).then(r=>{toast(r);render()})};acts.push(dc)}
-  if(!m.archived){const am=$("button","chip add","+ Ajouter un module");am.type="button";am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);quick.push(am)}
+  if(!m.archived){const am=$("button","addb","Ajouter un module");am.type="button";am.dataset.k="mod";am.title="Ajouter un module que le mail n'avait pas fait ressortir";am.onclick=()=>openAddMods(id);quick.push(am)}
   actMenu(hrow,acts);
   if(m.type!=="correctif")
   {const dw=$("div","dates");if(!dateDraft||dateDraft.id!==id){dateDraft={id,dateDemande:m.dateDemande||"",dateSiege:m.dateSiege||"",dateDeploiement:m.dateDeploiement||""};const c0=!m.archived&&calcDates(m,m.dateDemande);if(c0)Object.assign(dateDraft,c0)}const dr=dateDraft;
@@ -2953,7 +2956,7 @@ function viewMaj(app,id){
   const tools=$("div","actions");
   const fa=$("button","chip","Tout");fa.setAttribute("aria-pressed",String(!onlyTodo));fa.onclick=()=>{onlyTodo=false;render()};
   const ft=$("button","chip","Reste à faire");ft.setAttribute("aria-pressed",String(onlyTodo));ft.onclick=()=>{onlyTodo=true;render()};
-  tools.append(fa,ft);quick.slice().reverse().forEach(b=>tools.appendChild(b));
+  tools.append(fa,ft);
   const setAll=v=>{m.mods.forEach(M=>M.regions.forEach(r=>{const k=M.id+"_"+r.key;m.prog[k]={s:[v,v,v],note:(m.prog[k]&&m.prog[k].note)||""}}));confirmClear=false;render();persist(id,"*")};
   const spacer=$("span");spacer.style.flex="1";tools.appendChild(spacer);
   const ca=$("button","btn","Tout cocher");ca.onclick=()=>setAll(true);tools.appendChild(ca);
@@ -2965,6 +2968,12 @@ function viewMaj(app,id){
     tools.append(y,n);
   }
   body1.appendChild(tools);
+  if(quick.length){
+    const AI={mod:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12v9M12 12L4 7.5M12 12l8-4.5"/></svg>',site:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>'};
+    const ar=$("div","addrow");
+    quick.slice().reverse().forEach(b=>{const t=b.textContent;b.textContent="";const ic=$("span","addi");ic.innerHTML=AI[b.dataset.k]+'<i>+</i>';b.append(ic,$("span",null,t));ar.appendChild(b)});
+    body1.appendChild(ar);
+  }
   const focusId=document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.fid:null;
   m.mods.forEach(M=>{
     const sec=$("section","mod");let md=0;const body=$("div");
@@ -5351,7 +5360,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.7.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.7.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
