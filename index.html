@@ -1921,7 +1921,7 @@ function leaveBlocked(id){
   if(!cur||id===cur||!majs[cur])return false;
   flushDates(cur);
   if(!datesMissing(majs[cur]))return false;
-  page="tool";toast("Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche.");
+  page="tool";toast("Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche.",true);
   render();setTimeout(()=>{const d=document.querySelector(".dates");if(d){d.scrollIntoView({block:"center",behavior:"smooth"});d.classList.add("need");setTimeout(()=>d.classList.remove("need"),2500)}},50);
   return true;
 }
@@ -2703,10 +2703,10 @@ const LSCAL="suivi-maj-cal";
 const calFlow=()=>getFlow(LSCAL);
 const ymdOf=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const dayAfter=s=>{const x=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||"");if(!x)return "";const d=new Date(+x[1],+x[2]-1,+x[3]+1);return ymdOf(d)};
-function toast(msg){
+function toast(msg,err){
   if(!msg)return;const old=document.getElementById("toast");if(old)old.remove();
-  const t=document.createElement("div");t.id="toast";t.setAttribute("role","status");t.textContent=msg;
-  t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(560px,92vw);background:var(--band);color:var(--band-fg);border-bottom:3px solid var(--cta);padding:12px 18px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.35);z-index:1000;font-size:.92rem";
+  const t=document.createElement("div");t.id="toast";t.setAttribute("role",err?"alert":"status");t.textContent=msg;
+  t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(560px,92vw);background:var(--band);color:var(--band-fg);border-bottom:3px solid var(--cta);padding:12px 18px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.35);z-index:1000;font-size:.92rem"+(err?";background:#C0161B;color:#fff;border-bottom-color:#7d0c10;font-weight:600":"");
   document.body.appendChild(t);setTimeout(()=>{try{t.remove()}catch(e){}},8000);
 }
 const calBusy={};
@@ -5450,7 +5450,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.11.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.11.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
