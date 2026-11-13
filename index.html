@@ -178,6 +178,8 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .step[aria-checked="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ok) 26%,transparent),color-mix(in srgb,var(--ok) 12%,transparent));border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 40%,transparent),0 4px 16px -8px var(--ok)}
 .step[aria-checked="true"]:hover{box-shadow:0 0 0 1px var(--ok),0 6px 18px -6px var(--ok)}
 .stepcell{gap:6px}.regline{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.reg .chip.gx{align-self:center;margin:0 0 0 auto}
+.regdel{font:inherit;line-height:1;width:22px;height:22px;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}.regdel:hover:not(:disabled),.regdel:focus-visible{opacity:1;color:var(--bad);border-color:var(--bad);outline:none}.regdel:disabled{opacity:.2;cursor:not-allowed}
+.regdelq{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--bad)}.regdelq .btn{padding:3px 10px;font-size:.8rem}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
 .chip.gx::before{content:"⚡";font-size:.85rem}
 .chip.gx:hover,.chip.gx:focus-visible{background:var(--cta);color:var(--cta-fg);border-style:solid;box-shadow:0 4px 16px -6px rgba(155,249,68,.8);transform:translateY(-1px)}
@@ -714,7 +716,7 @@ const STEPS=[["Fichier d'import","Import"],["Configurateur (XML)","XML"],["Mouli
 const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dépôt SharePoint"]];
 const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?STEPS2:STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
-let userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
+let delReg=null,userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
 /* Journal de synchronisation : état courant + 40 derniers événements, consultable depuis le bandeau */
 let syncKind="",lastOk=0;const syncLog=[],syncFail=new Set();
 const hhmm=t=>{const d=new Date(t),p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds())};
@@ -1017,6 +1019,10 @@ Ajouter un module qui n'est pas dans la liste ⇒ Add a module that is not in th
 Ajouter à la liste ⇒ Add to the list
 Ajouter une langue à ce module ⇒ Add a language to this module
 Ajouter une langue ⇒ Add a language
+Supprimer ? ⇒ Delete?
+Supprimer cette langue de ce module (ajoutée par erreur) ⇒ Delete this language from this module (added by mistake)
+Un module garde au moins une langue ⇒ A module keeps at least one language
+Supprimer cette langue du module ⇒ Delete this language from the module
 Ajouter au module ⇒ Add to module
 Autre langue ou pays (ex. CA) ⇒ Other language or country (e.g. CA)
 Ajouter une langue ou un pays oublié à ce module uniquement ⇒ Add a forgotten language or country to this module only
@@ -1902,7 +1908,7 @@ function openTimerEdit(id){
   paint();setTimeout(()=>ih.select(),30);
   md.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}});
 }
-function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
+function setCur(id){if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;delReg=null;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
 
 /* ---- Analyse du mail ---- */
 /* « France/BE FR/BE NL » saisi d'un bloc : une ligne par région (FR, BE FR, BE NL) */
@@ -3030,6 +3036,20 @@ function viewMaj(app,id){
         b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&stepsOf(M).length===3)openXml(m,k,id)};
         if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg);ln.appendChild(gx)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}else row.appendChild(b);
       });
+      if(!m.archived){
+        const ln=reg.querySelector(".regline")||reg,gxb=reg.querySelector(".gx"),only=M.regions.length<2;
+        const put=el=>{if(gxb&&gxb.parentNode===ln)ln.insertBefore(el,gxb);else ln.appendChild(el)};
+        if(delReg===k){
+          const w=$("span","regdelq");w.append($("span",null,"Supprimer ?"));
+          const y=$("button","btn danger regdy","Oui");y.type="button";y.onclick=()=>{M.regions=M.regions.filter(z=>z.key!==r.key);delete m.prog[k];delReg=null;stampTitle(m);persist(id);render();toast("Langue « "+norm(r.label)+" » supprimée du module « "+M.name+" ».")};
+          const n=$("button","btn ghost regdn","Non");n.type="button";n.onclick=()=>{delReg=null;render()};
+          w.append(y,n);if(gxb)gxb.style.display="none";put(w);
+        }else{
+          const d=$("button","regdel","×");d.type="button";d.setAttribute("aria-label","Supprimer cette langue du module");
+          d.title=only?"Un module garde au moins une langue":"Supprimer cette langue de ce module (ajoutée par erreur)";d.disabled=only;
+          d.onclick=()=>{delReg=k;render()};put(d);
+        }
+      }
       if(warn)row.appendChild($("div","warnmsg","Une étape est cochée alors qu'une étape précédente ne l'est pas. Vérifie l'ordre."));
       body.appendChild(row);
     });
@@ -5399,7 +5419,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.8.2",APP_DATE="13/11/2026";
+const APP_VERSION="v2.9.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
