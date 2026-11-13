@@ -267,7 +267,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .mrow .mlab{display:flex;flex-direction:column;min-width:0}.mrow small{color:var(--muted)}
 .mrow .step{width:auto;min-width:120px}
 @media (max-width:620px){.mrow{grid-template-columns:minmax(0,1fr) auto}.mrow .mlab{grid-column:1/-1}.mrow .step{justify-content:center}}
-.dates.need{outline:2px solid var(--bad);outline-offset:6px;border-radius:8px}
+.dates input.need{outline:3px solid var(--bad);outline-offset:2px;border-radius:6px;background:color-mix(in srgb,var(--bad) 14%,transparent)}
 .datesave{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .dates{align-items:flex-end}
 .datef{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
@@ -1922,7 +1922,7 @@ function leaveBlocked(id){
   flushDates(cur);
   if(!datesMissing(majs[cur]))return false;
   page="tool";toast("Saisis les dates de la MAJ (demande, MAJ siège et déploiement) avant de quitter cette fiche.",true);
-  render();setTimeout(()=>{const d=document.querySelector(".dates");if(d){d.scrollIntoView({block:"center",behavior:"smooth"});d.classList.add("need");setTimeout(()=>d.classList.remove("need"),2500)}},50);
+  render();setTimeout(()=>{const l=[...document.querySelectorAll(".dates input[type=date]")].filter(i=>!i.disabled&&!i.value);if(l.length){l[0].scrollIntoView({block:"center",behavior:"smooth"});l.forEach(i=>i.classList.add("need"));setTimeout(()=>l.forEach(i=>i.classList.remove("need")),3000)}},50);
   return true;
 }
 function setCur(id){if(leaveBlocked(id))return;if(id!==cur)xmlOpenId=null;cur=id;if(id)page="tool";confirmDel=false;delReg=null;delMod=null;confirmClear=false;try{id?localStorage.setItem(LSCUR,id):localStorage.removeItem(LSCUR)}catch(e){}render()}
@@ -5450,7 +5450,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.11.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.11.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
