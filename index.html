@@ -473,6 +473,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .ucard{border:1px solid var(--line);border-left:5px solid var(--cta);border-radius:12px;background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .ucard.late{border-left-color:var(--bad)}.ucard.fix{border-left-color:#FF8A28}.ucard.alldone{border-color:var(--ok);border-left-color:var(--ok)}
 .ucard.flash{animation:evflash 2.2s ease-out}
+.ucard.focus{outline:3px solid var(--cta);outline-offset:3px;box-shadow:0 0 0 6px color-mix(in srgb,var(--cta) 22%,transparent)}
 .ucar{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:.8rem;transition:transform .2s,background .2s}.ucar:hover{background:rgba(155,249,68,.14);color:var(--fg)}.uhead .utitle{flex:1;text-align:left}.uhead .ucar+.utitle,.uhead .ucar+.gpill{margin-left:-6px}.uhead>.gpill{flex:none;cursor:default}.ucard.ucol .ucar{transform:rotate(-90deg)}.ucard.ucol .usteps,.ucard.ucol .ufoot{display:none}.ucard.ucol{gap:6px;padding-top:10px;padding-bottom:10px}.uhead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:space-between}
 .utitle{all:unset;cursor:pointer;font-weight:700;font-size:1.05rem;display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap}.utitle:hover,.utitle:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .upc{color:var(--muted);font-size:.85rem}.upc b{color:var(--fg);font-family:var(--mono)}
@@ -4591,7 +4592,7 @@ function viewHubNext(app){
       const dt=$("span","ndate");dt.append($("b",null,e.date.toLocaleDateString(LOC(),{day:"2-digit",month:"short"})),$("small",null,when));if(lt&&!e.m.blocked)dt.classList.add("late");else if(old||ws||(e.m.blocked&&d<0))dt.classList.add("wait");
       const mid=$("span","nmid");mid.append($("strong",null,e.m.title),$("small",null,ws?"Déploiement impossible tant que le siège n'a pas validé":n[0]));
       const bd=e.m.blocked?$("span","badge block","Bloquée · client"):$("span","badge "+(n[1]?"ready":lt?"late":"live"),n[1]?"Prête à archiver":lt?"En retard":(wv||ws)?"En attente du siège":"À traiter");
-      r.append(dt,mid,bd);r.onclick=()=>{focusEv={id:e.id,kind:e.kind};openUpcoming()};ul.appendChild(r);
+      r.append(dt,mid,bd);r.onclick=()=>{focusEv={id:e.id,kind:e.kind};upFocus=e.id;upFilter="";delete ucol[e.id];openUpcoming()};ul.appendChild(r);
     });
     sec.appendChild(ul);pair.appendChild(sec);
   };
@@ -4791,7 +4792,8 @@ let sf=Object.assign({},SF0);let backTo=null;let sfOpen=false;
 function openSearch(){page="search";render()}
 function openLive(){page="live";backTo=null;render()}
 function openArch(){page="archived";backTo=null;render()}
-let focusEv=null;
+let focusEv=null,upFocus=null;
+document.addEventListener("pointerdown",()=>{if(upFocus){upFocus=null;document.querySelectorAll(".ucard.focus").forEach(x=>x.classList.remove("focus"))}},true);
 function openUpcoming(){page="upcoming";backTo=null;render()}
 const parseD=v=>{const x=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||"");return x?new Date(+x[1],+x[2]-1,+x[3]):null};
 const startOfToday=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())};
@@ -4836,7 +4838,7 @@ function viewUpcoming(app){
     else if(k==="pass2")openMail(id,"fin2ok",["fin2ok"])};
   const card=c=>{
     const {id,m,sg,dp,key,late}=c,fix=m.type==="correctif",mk=m.mails||{},s=stats(m);
-    const w=$("article","ucard"+(late?" late":"")+(fix?" fix":""));w.dataset.ev=id+"|dateSiege";w.dataset.ev2=id+"|dateDeploiement";
+    const w=$("article","ucard"+(late?" late":"")+(fix?" fix":"")+(upFocus===id?" focus":""));w.dataset.ev=id+"|dateSiege";w.dataset.ev2=id+"|dateDeploiement";
     const cb=$("button","ucar","▾");cb.type="button";cb.setAttribute("aria-expanded",String(!ucol[id]));cb.setAttribute("aria-label","Réduire ou développer la carte");cb.title=ucol[id]?"Développer":"Réduire";cb.onclick=()=>{if(ucol[id])delete ucol[id];else ucol[id]=1;try{localStorage.setItem("suivi-maj-ucol",JSON.stringify(ucol))}catch(e){}w.classList.toggle("ucol",!!ucol[id]);cb.setAttribute("aria-expanded",String(!ucol[id]));cb.title=ucol[id]?"Développer":"Réduire";render()};
     if(ucol[id])w.classList.add("ucol");
     const head=$("div","uhead"),tl=$("button","utitle");tl.type="button";tl.title="Ouvrir la fiche";tl.onclick=()=>{backTo="upcoming";setCur(id)};
@@ -4867,7 +4869,7 @@ function viewUpcoming(app){
   if(show("later"))sec("Plus tard","later",cards.filter(c=>!c.late&&days(c.key.e.date)>7));
   if(!cards.length)app.appendChild($("p","empty","Aucune MAJ avec des dates pour le moment."));
   else if(upFilter&&!app.querySelector(".usec"))app.appendChild($("p","empty","Aucune MAJ dans cette catégorie."));
-  if(focusEv){const fk=focusEv.id+"|"+focusEv.kind;focusEv=null;setTimeout(()=>{const el=[...document.querySelectorAll(".ucard")].find(x=>x.dataset.ev===fk||x.dataset.ev2===fk);if(el){el.scrollIntoView({block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),2200)}},30)}
+  if(focusEv){const fk=focusEv.id+"|"+focusEv.kind;focusEv=null;setTimeout(()=>{const el=[...document.querySelectorAll(".ucard")].find(x=>x.dataset.ev===fk||x.dataset.ev2===fk);if(el){el.scrollIntoView({block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),2200);setTimeout(()=>el.scrollIntoView({block:"center"}),250)}},30)}
   if(undated)app.appendChild($("p","sub",undated+" MAJ en cours "+(undated>1?"n'ont":"n'a")+" aucune date renseignée."));
 }
 
@@ -5452,7 +5454,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.11.4",APP_DATE="13/11/2026";
+const APP_VERSION="v2.12.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
