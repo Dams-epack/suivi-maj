@@ -1764,7 +1764,7 @@ function regCodesOf(m){return [...new Set((m.mods||[]).flatMap(M=>(M.regions||[]
 function stampTitle(m){if(!m.baseTitle)m.baseTitle=m.title;
   /* Le nom porte la date de déploiement (recalculée si les dates changent), sauf renommage manuel */
   if(!m.titleLocked){const dd=parseD(effDeploy(m));if(dd){const g0=groupOf(m);m.baseTitle=(g0?g0+" - ":"")+"Maj du "+fdate(dd.getTime())}}
-  const rs=regCodesOf(m),hc=(m.mods||[]).some(M=>(M.regions||[]).some(r=>r.concept));const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+((rs.length>1||(hc&&rs.length))?" - "+rs.join(", "):"")}
+  const rs=regCodesOf(m);const sx=m.site?" - "+m.site:"",tx=m.type==="correctif"?" - CORRECTIF":"";m.title=m.baseTitle+tx+sx+((rs.length>1||(rs.length&&rs[0]!=="FR"))?" - "+rs.join(", "):"")}
 /* Nom des ZIP : NOM DU GROUPEMENT - Nom du fichier XML */
 const zipGroup=id=>{const m=majs[id];const g=m?(groupOf(m)||m.group||""):"";return String(g).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim()};
 const zipName=(id,base)=>{const g=zipGroup(id);return (g?g+" - ":"")+base+".zip"};
@@ -5344,7 +5344,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.6.3",APP_DATE="13/11/2026";
+const APP_VERSION="v2.6.4",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
