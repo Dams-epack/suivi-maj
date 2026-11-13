@@ -831,6 +831,8 @@ vue d'ensemble des MAJ de modules ⇒ overview of module updates
 Vue d'ensemble des MAJ de modules ⇒ Overview of module updates
 Tu as ⇒ You have
 MAJ en cours à ton nom ⇒ updates in progress under your name
+, dont ⇒ , including
+en retard ⇒ late
 Mon nom ⇒ My name
 Prénom Nom ⇒ First name Last name
 Enregistrer et envoyer dans Outlook ⇒ Save and send to Outlook
@@ -4574,7 +4576,7 @@ function viewHub(app){
   const fn=myName().split(" ")[0];
   {const h1=$("h1",null,fn?(new Date().getHours()<18?"Bonjour ":"Bonsoir ")+fn:"Accueil");hr.appendChild(h1)}
   app.appendChild(hr);
-  app.appendChild($("p","sub",new Date().toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long",year:"numeric"}).replace(/^./,c=>c.toUpperCase())+" · vue d'ensemble des MAJ de modules."+(()=>{const k=meKey();if(!k)return"";const n=Object.values(majs).filter(m=>!m.archived&&m.createdBy===k).length;return n?" Tu as "+n+" MAJ en cours à ton nom.":""})()));
+  app.appendChild($("p","sub",new Date().toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long",year:"numeric"}).replace(/^./,c=>c.toUpperCase())+(()=>{const k=meKey();if(!k)return"";const mine=Object.keys(majs).filter(i=>!majs[i].archived&&majs[i].createdBy===k),n=mine.length;if(!n)return"";const t0=startOfToday(),late=new Set();majEvents().forEach(e=>{if(e.m.createdBy!==k||e.m.blocked)return;const nx=nextStep(e);if(nx&&isLateEv(e,nx,t0))late.add(e.id)});reminders().forEach(r=>{if(r.sev>1&&r.m.createdBy===k)late.add(r.id)});const l=mine.filter(i=>late.has(i)).length;return" · "+n+" MAJ en cours à ton nom"+(l?", dont "+l+" en retard":"")})()));
   const all=Object.keys(majs).map(k=>({id:k,m:majs[k],s:stats(majs[k])}));
   const live=all.filter(x=>!x.m.archived),arch=all.filter(x=>x.m.archived);
   const todo=live.filter(x=>canArchive(x.m));
@@ -5347,7 +5349,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.6.5",APP_DATE="13/11/2026";
+const APP_VERSION="v2.6.6",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
