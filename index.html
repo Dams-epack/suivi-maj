@@ -1015,6 +1015,12 @@ Rechercher un module ⇒ Search for a module
 Autre module (nom libre) ⇒ Other module (free name)
 Ajouter un module qui n'est pas dans la liste ⇒ Add a module that is not in the list
 Ajouter à la liste ⇒ Add to the list
+Ajouter une langue à ce module ⇒ Add a language to this module
+Ajouter une langue ⇒ Add a language
+Ajouter au module ⇒ Add to module
+Autre langue ou pays (ex. CA) ⇒ Other language or country (e.g. CA)
+Ajouter une langue ou un pays oublié à ce module uniquement ⇒ Add a forgotten language or country to this module only
+Les langues déjà suivies dans ce module sont grisées. ⇒ Languages already tracked in this module are greyed out.
 Ajouter au suivi ⇒ Add to the tracker
 (déjà dans le suivi) ⇒ (already in the tracker)
 Ajoutés à la main ⇒ Added manually
@@ -2744,6 +2750,38 @@ function flushDates(id){
   if(ch)persist(id);return ch;
 }
 /* Ajout de modules à un suivi existant (quand l'analyse du mail en a oublié) */
+/* Ajoute une langue / un pays oublié à un seul module */
+function openAddRegion(id,Mid){
+  const m0=majs[id];const M0=m0&&m0.mods.find(x=>x.id===Mid);if(!M0)return;
+  const have=new Set((M0.regions||[]).filter(r=>!r.concept).map(r=>r.key));
+  const opts=[...REGIONS];(m0.mods||[]).forEach(X=>(X.regions||[]).forEach(r=>{if(!r.concept&&!opts.includes(r.label))opts.push(r.label)}));
+  const chosen=new Set(),extra=[];
+  const bg=$("div","modal-bg");bg.id="arlg";bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","art");
+  const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
+  const key=e=>{if(e.key==="Escape")close()};
+  const close=()=>{document.removeEventListener("keydown",key);bg.remove()};
+  document.addEventListener("keydown",key);bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+  const h=$("h2",null,"Ajouter une langue");h.id="art";
+  const hd=$("div","xhead");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=close;hd.append(h,x);
+  md.append(hd,$("p",null,"Module : "+M0.name+". Les langues déjà suivies dans ce module sont grisées."));
+  const rl=$("div","rpills");
+  const ex=$("div","actions");const ei=$("input");ei.type="text";ei.placeholder="Autre langue ou pays (ex. CA)";ei.maxLength=30;ei.setAttribute("aria-label","Autre langue ou pays");
+  const eb=$("button","btn ghost","Ajouter à la liste");eb.type="button";ex.append(ei,eb);
+  const cnt=$("span","msg");const ok=$("button","btn","Ajouter au module");ok.type="button";const no=$("button","btn ghost","Annuler");no.type="button";
+  const upd=()=>{ok.disabled=!chosen.size;cnt.textContent=chosen.size?chosen.size+" langue"+(chosen.size>1?"s":""):""};
+  const paint=()=>{rl.textContent="";[...opts,...extra].forEach(l=>{const dis=have.has(slug(l));const b=$("button","rp");b.type="button";b.disabled=dis;b.setAttribute("aria-pressed",String(chosen.has(l)));b.title=dis?"Déjà dans ce module":l;b.append(flagEl(l),/^[A-Za-z]{2}-[A-Za-z]{2}$/.test(l)?l:regCode(l));b.onclick=()=>{chosen.has(l)?chosen.delete(l):chosen.add(l);paint();upd()};rl.appendChild(b)})};
+  const addExtra=()=>{const v=ei.value.replace(/\s+/g," ").trim().slice(0,30);if(!v)return;ei.value="";const f=[...opts,...extra].find(l=>fold(l)===fold(v)||slug(l)===slug(v));if(f){if(!have.has(slug(f)))chosen.add(f)}else{extra.push(v);chosen.add(v)}paint();upd()};
+  eb.onclick=addExtra;ei.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addExtra()}};
+  no.onclick=close;
+  ok.onclick=()=>{
+    const mm=majs[id],M=mm&&mm.mods.find(z=>z.id===Mid);if(!M||!chosen.size)return;
+    let n=0;chosen.forEach(l=>{const k=slug(l);if(!M.regions.some(r=>r.key===k)){M.regions.push({key:k,label:l});n++}});
+    stampTitle(mm);persist(id);close();render();toast(n+" langue"+(n>1?"s ajoutées":" ajoutée")+" au module « "+M.name+" ».");
+  };
+  const ac=$("div","actions");ac.append(ok,no,cnt);
+  md.append(rl,ex,ac);paint();upd();
+  setTimeout(()=>ei.focus(),0);
+}
 function openAddMods(id){
   const m0=majs[id];if(!m0||document.getElementById("amdlg"))return;
   const have=new Set(m0.mods.map(M=>fold(M.name)));
@@ -3005,6 +3043,7 @@ function viewMaj(app,id){
     const cols=$("div","cols"+(stepsOf(M).length===1?" one":"")+(stepsOf(M).length===2?" two":""));["Région",...stepsOf(M).map(x=>x[0])].forEach(x=>cols.appendChild($("div",null,x)));
     sec.appendChild(h);
     if(mOpen){sec.appendChild(cols);if(!body.children.length)sec.appendChild($("div","empty","Tout est fait pour ce module."));else sec.appendChild(body)}
+    if(mOpen&&!m.archived){const ar=$("div","addrow");ar.style.padding="10px 12px";const ab=$("button","addb","Ajouter une langue à ce module");ab.type="button";ab.title="Ajouter une langue ou un pays oublié à ce module uniquement";ab.onclick=()=>openAddRegion(id,M.id);{const ic=$("span","addi");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.500 5.600 12 3z"/></svg><i>+</i>';ab.prepend(ic)}ar.appendChild(ab);sec.appendChild(ar)}
     body1.appendChild(sec);
   });
   if(foot){foot.style.marginTop="18px";app.appendChild(foot)}
@@ -5360,7 +5399,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.7.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.8.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
