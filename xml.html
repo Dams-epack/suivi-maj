@@ -324,6 +324,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .row:has(.stepcell){align-items:start}.row:has(.stepcell) .reg{padding-top:9px}
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
+.gsum{opacity:.8;margin:4px 0}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
 .gsheet span{color:var(--muted);font-size:.85rem}
 .gmapc{display:flex;flex-direction:column;gap:6px}
@@ -796,8 +797,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.18.5";
-const SUPPORT_BUILD="v1.3.5";
+const APP_VERSION="v2.18.6";
+const SUPPORT_BUILD="v1.3.6";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2696,8 +2697,13 @@ function openGen(m,k,id,M,r){
     const hp=$("p",null,"Onglets à traiter (un XML par onglet) : ");
     if(okI.length>1){const all=okI.every(i=>st.sel.has(i));const tb=$("button","chip",all?"Tout décocher":"Tout cocher");tb.type="button";
       tb.onclick=()=>{if(all)okI.forEach(i=>st.sel.delete(i));else okI.forEach(i=>st.sel.add(i));st.res=null;paint()};hp.appendChild(tb)}
+    const rb=$("button","chip",st.shCol?"Développer":"Réduire");rb.type="button";rb.setAttribute("aria-expanded",st.shCol?"false":"true");
+    rb.onclick=()=>{st.shCol=!st.shCol;paint()};hp.appendChild(rb);
     md.appendChild(hp);
+    if(st.shCol){const nm=[...st.sel].sort((a,b)=>a-b).map(i=>st.sheets[i].name);
+      md.appendChild($("p","gsum",nm.length?nm.length+" onglet(s) sélectionné(s) : "+nm.join(", "):"Aucun onglet sélectionné"))}
     const sl=$("div","gsheets");
+    if(st.shCol)sl.style.display="none";
     st.sheets.forEach((s,i)=>{
       const l=$("label","gsheet");const cb=$("input");cb.type="checkbox";cb.checked=st.sel.has(i);cb.disabled=s.count===0;
       cb.onchange=()=>{if(cb.checked)st.sel.add(i);else st.sel.delete(i);st.res=null;paint()};
