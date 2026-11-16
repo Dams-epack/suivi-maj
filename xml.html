@@ -796,8 +796,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.18.3";
-const SUPPORT_BUILD="v1.3.3";
+const APP_VERSION="v2.18.4";
+const SUPPORT_BUILD="v1.3.4";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2537,7 +2537,9 @@ function openGen(m,k,id,M,r){
     const hd=$("div","adqhd");const ic=$("span","adqic","✎");ic.setAttribute("aria-hidden","true");
     const ht=$("div",null);ht.append($("h2",null,"Informations manquantes"),$("p","adqsub","Absentes de l'Excel du client. La valeur saisie s'applique à toutes les lignes du type concerné."));
     const xb=$("button","adqx","×");xb.type="button";xb.setAttribute("aria-label","Fermer");xb.onclick=close;hd.append(ic,ht,xb);md.appendChild(hd);
-    const UNIT={TempMin:"°C",TempMax:"°C",TempLimit:"°C",MesureMin:"",MesureMax:"",Dlc:"jours",Ddm:"jours",DateLimit:"jours",Conservation:"jours"};
+    const UNIT0={TempMin:"°C",TempMax:"°C",TempLimit:"°C",MesureMin:"",MesureMax:"",DateLimit:"jours",Conservation:"jours"};
+    const DLU={"-1":"","0":"jours","1":"services","2":"heures","3":"minutes"};
+    const unitOf=(ty,x)=>(ty==="Stickers"&&x==="DateLimit")?(DLU[String(st.dl)]||""):(UNIT0[x]||"");
     const TDEF={TempMin:"-10",TempMax:"99"};
     const first=[];
     blocks.forEach(([ty,miss])=>{
@@ -2549,7 +2551,7 @@ function openGen(m,k,id,M,r){
         i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
         i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;err.textContent=""};
         i.onkeydown=e=>{if(e.key==="Enter")ok.click()};
-        w.appendChild(i);if(UNIT[x])w.appendChild($("span","adqu",UNIT[x]));l.appendChild(w);gr.appendChild(l);first.push(i)});
+        w.appendChild(i);{const un=unitOf(ty,x);if(un)w.appendChild($("span","adqu",un))}l.appendChild(w);gr.appendChild(l);first.push(i)});
       card.appendChild(gr);md.appendChild(card);
     });
     const err=$("p","msg err");md.appendChild(err);
