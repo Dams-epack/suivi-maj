@@ -791,8 +791,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.17.5";
-const SUPPORT_BUILD="v1.0.1";
+const APP_VERSION="v2.17.6";
+const SUPPORT_BUILD="v1.0.2";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2685,7 +2685,11 @@ function openGen(m,k,id,M,r){
     const fl=subP;fl.append("Fichier : ",$("b",null,st.file)," ");
     const ch=$("button","chip","Changer de fichier");ch.type="button";ch.onclick=()=>inp.click();fl.append(ch,inp);
     /* onglets */
-    md.appendChild($("p",null,"Onglets à traiter (un XML par onglet) :"));
+    const okI=st.sheets.map((s,i)=>s.count?i:-1).filter(i=>i>=0);
+    const hp=$("p",null,"Onglets à traiter (un XML par onglet) : ");
+    if(okI.length>1){const all=okI.every(i=>st.sel.has(i));const tb=$("button","chip",all?"Tout décocher":"Tout cocher");tb.type="button";
+      tb.onclick=()=>{if(all)okI.forEach(i=>st.sel.delete(i));else okI.forEach(i=>st.sel.add(i));st.res=null;paint()};hp.appendChild(tb)}
+    md.appendChild(hp);
     const sl=$("div","gsheets");
     st.sheets.forEach((s,i)=>{
       const l=$("label","gsheet");const cb=$("input");cb.type="checkbox";cb.checked=st.sel.has(i);cb.disabled=s.count===0;
