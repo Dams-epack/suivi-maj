@@ -750,7 +750,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 @keyframes helpPulse{0%{transform:scale(.9);opacity:.8}70%,100%{transform:scale(1.45);opacity:0}}
 @media (prefers-reduced-motion:reduce){.helpbtn.new::after{animation:none;opacity:.6;transform:none}.helpbtn,.helpbtn svg{transition:none}}
 .helpm .gsubp{margin:0 0 6px}
-.hlead{margin:0 0 14px;font-size:1rem;font-weight:600}.hvid{display:block;width:100%;max-height:46vh;border-radius:12px;background:#000;margin:14px 0 14px;border:1px solid var(--line)}.hcap{margin:-6px 0 14px;font-size:.8rem;color:var(--muted)}
+.hlead{margin:0 0 14px;font-size:1rem;font-weight:600}.hx{margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.hx ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.hvid{display:block;width:100%;max-height:46vh;border-radius:12px;background:#000;margin:14px 0 14px;border:1px solid var(--line)}.hcap{margin:-6px 0 14px;font-size:.8rem;color:var(--muted)}
 .hsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .hsteps li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgba(128,128,128,.1);animation:hstep .35s ease-out both;animation-delay:calc(var(--i)*60ms)}
 @keyframes hstep{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -794,7 +795,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.17.9";
-const SUPPORT_BUILD="v1.1.4";
+const SUPPORT_BUILD="v1.2.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3685,7 +3686,7 @@ function helpSeen(){try{return localStorage.getItem("xml-help-seen")==="1"}catch
 function helpData(){
   const en=LANG==="en";
   return en?[
-   {t:"Excel → XML",v:"videos/excel-xml.mp4",lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
+   {t:"Excel → XML",v:"videos/excel-xml.mp4",x:["Adjust columns, in detail",[["Where","« Adjust columns » panel, under the recognised columns: common data first, then data specific to each module."],["Automatic","The tool looks for the column by its name (accents, case and spaces ignored, synonyms accepted)."],["Ignore","No column is read for this tag: it is written empty (or -1 / the value you enter for a required number). On Id, new Ids are generated."],["Fixed value","The same value is written for every product, without reading the Excel."],["Column name","Forces this column when its name is not recognised."],["Good to know","A setting applies to all ticked tabs. Ignoring Name blocks generation. So does an empty DLC: enter -1 if the product has none."]]],lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
     ["Drop the file","Drop the client's .xlsx or .csv (or click the box). One sheet = one XML."],
     ["Pick the XML type(s)","Tick one or several types: warming, stickers, miscellaneous controls… The tool recognises the columns by their names."],
     ["Check the columns","Open « Adjust columns » if something was not recognised. You can also set one fixed value for all products."],
@@ -3700,7 +3701,7 @@ function helpData(){
     ["Tick the modules","One tab per module. Use « Preview » to see the first rows; empty modules are hidden."],
     ["Download","« Download Excel » gives one workbook. With one module ticked you can get a CSV; with several, one CSV per module in a ZIP."]],tip:"Deleted items are not exported and user passwords never are."}
   ]:[
-   {t:"Excel → XML",v:"videos/excel-xml.mp4",lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
+   {t:"Excel → XML",v:"videos/excel-xml.mp4",x:["Ajuster les colonnes, en détail",[["Où","Volet « Ajuster les colonnes », sous la liste des colonnes reconnues : d'abord les données communes, puis les données propres à chaque module."],["Automatique","L'outil cherche seul la colonne d'après son nom (accents, majuscules et espaces ignorés, synonymes acceptés : nom, désignation, dlc, frigo…)."],["Ignorer","Aucune colonne n'est lue pour cette balise : elle est écrite vide (ou -1 / la valeur saisie pour un nombre obligatoire). Sur Id, de nouveaux Id sont générés."],["Valeur fixe","La même valeur est écrite pour tous les produits, sans lire l'Excel."],["Nom d'une colonne","Force l'usage de cette colonne quand son nom n'est pas reconnu."],["Bon à savoir","Un réglage vaut pour tous les onglets cochés. Ignorer Name bloque la génération. Une DLC vide aussi : saisis -1 si le produit n'en a pas."]]],lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
     ["Dépose le fichier","Dépose le .xlsx ou .csv du client (ou clique sur la zone). Un onglet = un XML."],
     ["Choisis le ou les types d'XML","Coche un ou plusieurs types : mise en température, étiquettes, contrôles divers… Les colonnes sont reconnues d'après leur nom."],
     ["Vérifie les colonnes","Ouvre « Ajuster les colonnes » si quelque chose n'est pas reconnu. Tu peux aussi saisir une valeur fixe pour tous les produits."],
@@ -3738,6 +3739,7 @@ function helpPaint(){
   const pane=$("div","hpane");pane.appendChild($("p","hlead",d.lead));
   const ol=$("ol","hsteps");d.steps.forEach(([h,t],i)=>{const li=$("li");li.style.setProperty("--i",i);const n=$("span","hn",String(i+1));const bd=$("div");bd.append($("b",null,h),$("span",null,t));li.append(n,bd);ol.appendChild(li)});
   pane.appendChild(ol);pane.appendChild($("p","htip",d.tip));
+  if(d.x){const xb=$("div","hx");xb.appendChild($("strong",null,d.x[0]));const ul=$("ul");d.x[1].forEach(([a,b])=>{const li=$("li");li.append($("b",null,a+" : "),b);ul.appendChild(li)});xb.appendChild(ul);pane.appendChild(xb)}
   if(d.v){const vd=$("video","hvid");vd.controls=true;vd.preload="metadata";vd.setAttribute("playsinline","");vd.src=d.v;vd.onerror=()=>vd.remove();pane.appendChild(vd);if(en)pane.appendChild($("p","hcap","Video narrated in French."))}md.appendChild(pane);
   }
 
