@@ -793,8 +793,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.17.8";
-const SUPPORT_BUILD="v1.1.3";
+const APP_VERSION="v2.17.9";
+const SUPPORT_BUILD="v1.1.4";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2747,7 +2747,7 @@ function openGen(m,k,id,M,r){
         const sl0=(sel([["auto","Automatique"],["none","Ignorer"],["fix","Valeur fixe pour tous les produits…"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
           st.map[t]=v==="auto"?{t:"auto"}:v==="none"?{t:"none"}:v==="fix"?{t:"fix",v:""}:{t:"col",v:v.slice(2)};st.res=null;paint();const d2=md.querySelector("details.adj");if(d2){d2.open=true;if(v==="fix"){const ii=[...d2.querySelectorAll("input.gfix")].find(z=>z.dataset.tag===t);if(ii)ii.focus()}}}));
         const SELX=sl0.tagName==="SELECT"?sl0:sl0.querySelector("select");
-        const TIPS={auto:"Automatique : l'outil cherche tout seul la colonne de l'Excel d'après son nom.",none:"Ignorer : cette balise n'est pas remplie à partir de l'Excel (valeur par défaut de l'outil).",fix:"Valeur fixe : la même valeur est écrite pour tous les produits, sans lire l'Excel.",col:"Nom d'une colonne de l'Excel : on force l'utilisation de cette colonne pour cette balise."};
+        const TIPS={auto:"Automatique : l'outil cherche tout seul la colonne de l'Excel d'après son nom.",none:"Ignorer : l'outil ne lit aucune colonne de l'Excel pour cette balise, même si une colonne porte le même nom. La balise est écrite vide dans le XML (ou prend la valeur par défaut, par exemple -1, pour un nombre obligatoire).",fix:"Valeur fixe : la même valeur est écrite pour tous les produits, sans lire l'Excel.",col:"Nom d'une colonne de l'Excel : on force l'utilisation de cette colonne pour cette balise."};
         if(SELX)[...SELX.options].forEach(op=>{const k=op.value==="auto"?"auto":op.value==="none"?"none":op.value==="fix"?"fix":"col";op.title=TIPS[k]});
         const rowc=$("div","gmapsel");rowc.appendChild(sl0);
         const ib=$("button","ginfo","i");ib.type="button";ib.setAttribute("aria-label","À quoi servent ces choix ?");ib.title="À quoi servent ces choix ?";
