@@ -184,6 +184,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .regdel{font:inherit;line-height:1;width:22px;height:22px;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}.regdel:hover:not(:disabled),.regdel:focus-visible{opacity:1;color:var(--bad);border-color:var(--bad);outline:none}.regdel:disabled{opacity:.2;cursor:not-allowed}
 .regdelq{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--bad)}.regdelq .btn{padding:3px 10px;font-size:.8rem}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
+.gmapsel{position:relative;display:flex;gap:6px;align-items:center}.gmapsel select{flex:1;min-width:0}.ginfo{flex:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font:italic 700 .8rem Georgia,serif;cursor:pointer;padding:0}.ginfo:hover,.ginfo:focus-visible{border-color:var(--cta);color:var(--fg);outline:none}.gpop{position:absolute;z-index:60;top:calc(100% + 6px);right:0;width:min(360px,86vw);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-top:3px solid var(--cta);border-radius:10px;box-shadow:0 12px 30px -8px rgba(0,0,0,.4);padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:.85rem}.gpr{display:flex;flex-direction:column}.gpr span{color:var(--muted)}.gpx{align-self:flex-end;font:inherit;font-size:.8rem;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:8px;padding:3px 10px;cursor:pointer}
 .gmaph{grid-column:1/-1;margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line);font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}.gmaph:first-child{margin-top:0;padding-top:0;border-top:0}
 .chip.gx::before{content:"⚡";font-size:.85rem}
 .chip.gx:hover,.chip.gx:focus-visible{background:var(--cta);color:var(--cta-fg);border-style:solid;box-shadow:0 4px 16px -6px rgba(155,249,68,.8);transform:translateY(-1px)}
@@ -4225,8 +4226,21 @@ function openGen(m,k,id,M,r){
         const cur=st.map[t]||{t:"auto"};
         gr.appendChild($("span","gt",t));
         const cell=$("div","gmapc");
-        cell.appendChild(sel([["auto","Automatique"],["none","Ignorer"],["fix","Valeur fixe pour tous les produits…"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
+        const sl0=(sel([["auto","Automatique"],["none","Ignorer"],["fix","Valeur fixe pour tous les produits…"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
           st.map[t]=v==="auto"?{t:"auto"}:v==="none"?{t:"none"}:v==="fix"?{t:"fix",v:""}:{t:"col",v:v.slice(2)};st.res=null;paint();const d2=md.querySelector("details.adj");if(d2){d2.open=true;if(v==="fix"){const ii=[...d2.querySelectorAll("input.gfix")].find(z=>z.dataset.tag===t);if(ii)ii.focus()}}}));
+        const SELX=sl0.tagName==="SELECT"?sl0:sl0.querySelector("select");
+        const TIPS={auto:"Automatique : l'outil cherche tout seul la colonne de l'Excel d'après son nom.",none:"Ignorer : cette balise n'est pas remplie à partir de l'Excel (valeur par défaut de l'outil).",fix:"Valeur fixe : la même valeur est écrite pour tous les produits, sans lire l'Excel.",col:"Nom d'une colonne de l'Excel : on force l'utilisation de cette colonne pour cette balise."};
+        if(SELX)[...SELX.options].forEach(op=>{const k=op.value==="auto"?"auto":op.value==="none"?"none":op.value==="fix"?"fix":"col";op.title=TIPS[k]});
+        const rowc=$("div","gmapsel");rowc.appendChild(sl0);
+        const ib=$("button","ginfo","i");ib.type="button";ib.setAttribute("aria-label","À quoi servent ces choix ?");ib.title="À quoi servent ces choix ?";
+        ib.onclick=ev=>{ev.stopPropagation();const old=document.querySelector(".gpop");const same=old&&old.dataset.tag===t;if(old)old.remove();if(same)return;
+          const pp=$("div","gpop");pp.dataset.tag=t;pp.setAttribute("role","dialog");
+          const hd=$("strong",null,t+" : que choisir ?");pp.appendChild(hd);
+          [["Automatique",TIPS.auto.split(" : ")[1]],["Ignorer",TIPS.none.split(" : ")[1]],["Valeur fixe pour tous les produits",TIPS.fix.split(" : ")[1]],["Nom d'une colonne de l'Excel",TIPS.col.split(" : ")[1]]].forEach(([a,b])=>{const r=$("div","gpr");r.append($("b",null,a),$("span",null,b));pp.appendChild(r)});
+          const cl=$("button","gpx","Fermer");cl.type="button";cl.onclick=e2=>{e2.stopPropagation();pp.remove()};pp.appendChild(cl);
+          rowc.appendChild(pp);
+          const off=e3=>{if(!pp.contains(e3.target)){pp.remove();document.removeEventListener("mousedown",off,true)}};setTimeout(()=>document.addEventListener("mousedown",off,true),0)};
+        rowc.appendChild(ib);cell.appendChild(rowc);
         if(cur.t==="fix"){const fi=$("input","gfix");fi.type="text";fi.dataset.tag=t;fi.placeholder="Valeur à mettre pour tous les produits";fi.value=cur.v||"";fi.setAttribute("aria-label",t+" : valeur fixe");
           fi.oninput=()=>{st.map[t]={t:"fix",v:fi.value};st.res=null};
           cell.appendChild(fi)}
@@ -5574,7 +5588,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.17.7",APP_DATE="13/11/2026";
+const APP_VERSION="v2.17.8",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
