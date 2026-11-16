@@ -748,7 +748,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 @keyframes helpPulse{0%{transform:scale(.9);opacity:.8}70%,100%{transform:scale(1.45);opacity:0}}
 @media (prefers-reduced-motion:reduce){.helpbtn.new::after{animation:none;opacity:.6;transform:none}.helpbtn,.helpbtn svg{transition:none}}
 .helpm .gsubp{margin:0 0 6px}
-.hlead{margin:0 0 14px;font-size:1rem;font-weight:600}
+.hlead{margin:0 0 14px;font-size:1rem;font-weight:600}.hvid{display:block;width:100%;max-height:46vh;border-radius:12px;background:#000;margin:0 0 14px;border:1px solid var(--line)}.hcap{margin:-8px 0 14px;font-size:.8rem;color:var(--muted)}
 .hsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .hsteps li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgba(128,128,128,.1);animation:hstep .35s ease-out both;animation-delay:calc(var(--i)*60ms)}
 @keyframes hstep{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -792,7 +792,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.17.6";
-const SUPPORT_BUILD="v1.0.2";
+const SUPPORT_BUILD="v1.1.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3663,32 +3663,32 @@ function helpSeen(){try{return localStorage.getItem("xml-help-seen")==="1"}catch
 function helpData(){
   const en=LANG==="en";
   return en?[
-   {t:"Excel → XML",lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
+   {t:"Excel → XML",v:"videos/excel-xml.mp4",lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
     ["Drop the file","Drop the client's .xlsx or .csv (or click the box). One sheet = one XML."],
     ["Pick the XML type(s)","Tick one or several types: warming, stickers, miscellaneous controls… The tool recognises the columns by their names."],
     ["Check the columns","Open « Adjust columns » if something was not recognised. You can also set one fixed value for all products."],
     ["Fill in what is missing","If values are missing (e.g. min/max temperature), a window asks for them. Defaults: -10 °C and 99 °C."],
     ["Generate","Click « Validate and generate »: a ZIP with all the XML files at its root is downloaded."]],tip:"Nothing is sent anywhere: everything stays in your browser."},
-   {t:"Complete an XML",lead:"Fix an XML export from the configurator.",steps:[
+   {t:"Complete an XML",v:"videos/completer-xml.mp4",lead:"Fix an XML export from the configurator.",steps:[
     ["Drop the XML","Products, checklists or cleaning plans exported from the configurator."],
     ["Let it work","Missing tags are added and the file is normalised (tag order, namespaces, encoding)."],
     ["Download","Save the completed XML and import it."]],tip:"If the type is not in the registry, the tool stops instead of guessing."},
-   {t:"XML → Excel",lead:"Read a client's configuration as a spreadsheet.",steps:[
+   {t:"XML → Excel",v:"videos/xml-excel.mp4",lead:"Read a client's configuration as a spreadsheet.",steps:[
     ["Drop the ZIP","The client's configuration ZIP, or a single XML file."],
     ["Tick the modules","One tab per module. Use « Preview » to see the first rows; empty modules are hidden."],
     ["Download","« Download Excel » gives one workbook. With one module ticked you can get a CSV; with several, one CSV per module in a ZIP."]],tip:"Deleted items are not exported and user passwords never are."}
   ]:[
-   {t:"Excel → XML",lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
+   {t:"Excel → XML",v:"videos/excel-xml.mp4",lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
     ["Dépose le fichier","Dépose le .xlsx ou .csv du client (ou clique sur la zone). Un onglet = un XML."],
     ["Choisis le ou les types d'XML","Coche un ou plusieurs types : mise en température, étiquettes, contrôles divers… Les colonnes sont reconnues d'après leur nom."],
     ["Vérifie les colonnes","Ouvre « Ajuster les colonnes » si quelque chose n'est pas reconnu. Tu peux aussi saisir une valeur fixe pour tous les produits."],
     ["Complète ce qui manque","S'il manque des valeurs (ex. températures mini et maxi), une fenêtre te les demande. Valeurs par défaut : -10 °C et 99 °C."],
     ["Génère","Clique sur « Valider et générer » : un ZIP avec tous les XML à la racine se télécharge."]],tip:"Rien n'est envoyé : tout reste dans ton navigateur."},
-   {t:"Compléter un XML",lead:"Remet d'aplomb un export XML du configurateur.",steps:[
+   {t:"Compléter un XML",v:"videos/completer-xml.mp4",lead:"Remet d'aplomb un export XML du configurateur.",steps:[
     ["Dépose le XML","Produits, checklists ou plans de nettoyage exportés du configurateur."],
     ["Laisse faire","Les balises manquantes sont ajoutées et le fichier est normalisé (ordre des balises, espaces de noms, encodage)."],
     ["Télécharge","Enregistre le XML complété et importe-le."]],tip:"Si le type n'est pas dans le registre, l'outil s'arrête plutôt que de deviner."},
-   {t:"XML → Excel",lead:"Lis la configuration d'un client sous forme de tableur.",steps:[
+   {t:"XML → Excel",v:"videos/xml-excel.mp4",lead:"Lis la configuration d'un client sous forme de tableur.",steps:[
     ["Dépose le ZIP","Le ZIP de la configuration du client, ou un seul fichier XML."],
     ["Coche les modules","Un onglet par module. « Aperçu » montre les premières lignes ; les modules vides sont masqués."],
     ["Télécharge","« Télécharger l'Excel » donne un classeur. Avec un seul module coché, tu peux sortir un CSV ; avec plusieurs, un CSV par module dans un ZIP."]],tip:"Les éléments supprimés ne sont pas repris et les mots de passe ne sont jamais exportés."}
@@ -3714,6 +3714,7 @@ function helpPaint(){
   md.appendChild(tabs);
   const d=D[helpTab];
   const pane=$("div","hpane");pane.appendChild($("p","hlead",d.lead));
+  if(d.v){const vd=$("video","hvid");vd.controls=true;vd.preload="metadata";vd.setAttribute("playsinline","");vd.src=d.v;vd.onerror=()=>vd.remove();pane.appendChild(vd);if(en)pane.appendChild($("p","hcap","Video narrated in French."))}
   const ol=$("ol","hsteps");d.steps.forEach(([h,t],i)=>{const li=$("li");li.style.setProperty("--i",i);const n=$("span","hn",String(i+1));const bd=$("div");bd.append($("b",null,h),$("span",null,t));li.append(n,bd);ol.appendChild(li)});
   pane.appendChild(ol);pane.appendChild($("p","htip",d.tip));md.appendChild(pane);
   }
