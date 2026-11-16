@@ -186,6 +186,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
 .gmapsel{position:relative;display:flex;gap:6px;align-items:center}.gmapsel select{flex:1;min-width:0}.ginfo{flex:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font:italic 700 .8rem Georgia,serif;cursor:pointer;padding:0}.ginfo:hover,.ginfo:focus-visible{border-color:var(--cta);color:var(--fg);outline:none}.gpop{position:absolute;z-index:60;top:calc(100% + 6px);right:0;width:min(360px,86vw);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-top:3px solid var(--cta);border-radius:10px;box-shadow:0 12px 30px -8px rgba(0,0,0,.4);padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:.85rem}.gpr{display:flex;flex-direction:column}.gpr span{color:var(--muted)}.gpx{align-self:flex-end;font:inherit;font-size:.8rem;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:8px;padding:3px 10px;cursor:pointer}
 .rclact{cursor:pointer}.rclact:hover,.rclact:focus-visible{background:color-mix(in srgb,var(--cta) 12%,transparent);outline:none}.rclact .rclb::after{content:" ›";font-weight:800}
+.gmap .gt.gtreq{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:6px;height:auto;min-height:14px;overflow:visible;padding:3px 6px}.gbadge{white-space:nowrap;font:700 .64rem/1 var(--sans,inherit);font-style:normal;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:999px;background:color-mix(in srgb,var(--cta) 22%,transparent);color:var(--fg)}.gmap .gt.gtmiss .gbadge{background:var(--warn);color:var(--warn-fg,#fff)}.gmap .gt.gtmiss{border-left:3px solid var(--warn)}.gmapc.gmiss select{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 25%,transparent)}
 .gmaph{grid-column:1/-1;margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line);font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}.gmaph:first-child{margin-top:0;padding-top:0;border-top:0}
 .chip.gx::before{content:"⚡";font-size:.85rem}
 .chip.gx:hover,.chip.gx:focus-visible{background:var(--cta);color:var(--cta-fg);border-style:solid;box-shadow:0 4px 16px -6px rgba(155,249,68,.8);transform:translateY(-1px)}
@@ -4231,8 +4232,13 @@ function openGen(m,k,id,M,r){
       tys.forEach(ty=>{const own=T[ty].cols.map(c=>c[0]).filter(t=>!common.includes(t));if(own.length)groups.push([(GEN_LABEL[ty]||ty)+" · données propres au module",own])});
       const addRow=t=>{
         const cur=st.map[t]||{t:"auto"};
-        gr.appendChild($("span","gt",t));
-        const cell=$("div","gmapc");
+        const reqTy=tys.filter(ty=>T[ty].req.includes(t));
+        const fxv=fixOf(),isFix=fxv[t]!==undefined;
+        const unres=reqTy.length&&!isFix&&reqTy.some(ty=>chosen.some(sh=>GENX.resolve(ty,sh,st.map)[t]<0));
+        const gl=$("span","gt"+(reqTy.length?" gtreq":"")+(unres?" gtmiss":""),t);
+        if(reqTy.length){const bd=$("em","gbadge",unres?"à remplir":"requis");gl.appendChild(bd)}
+        gr.appendChild(gl);
+        const cell=$("div","gmapc"+(unres?" gmiss":""));
         const sl0=(sel([["auto","Automatique"],["none","Ignorer"],["fix","Valeur fixe pour tous les produits…"],...heads.map(hh=>["c:"+hh,hh])],cur.t==="col"?"c:"+cur.v:cur.t,v=>{
           st.map[t]=v==="auto"?{t:"auto"}:v==="none"?{t:"none"}:v==="fix"?{t:"fix",v:""}:{t:"col",v:v.slice(2)};st.res=null;paint();const d2=md.querySelector("details.adj");if(d2){d2.open=true;if(v==="fix"){const ii=[...d2.querySelectorAll("input.gfix")].find(z=>z.dataset.tag===t);if(ii)ii.focus()}}}));
         const SELX=sl0.tagName==="SELECT"?sl0:sl0.querySelector("select");
@@ -5595,7 +5601,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.18.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.18.3",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
