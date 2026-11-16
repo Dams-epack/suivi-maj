@@ -796,8 +796,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.18.4";
-const SUPPORT_BUILD="v1.3.4";
+const APP_VERSION="v2.18.5";
+const SUPPORT_BUILD="v1.3.5";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2483,7 +2483,7 @@ function openGen(m,k,id,M,r){
   const fixOf=()=>{const o={};Object.entries(st.map).forEach(([k,v])=>{if(v&&v.t==="fix"&&String(v.v||"").trim()!=="")o[k]=String(v.v).trim()});return o};
   const defsOf=ty=>Object.assign({},st.defs[ty]||{},fixOf());
   const TYPES=()=>MULTI?Object.keys(GENX.MODS).filter(t=>st.types.has(t)):(st.type?[st.type]:[]);
-  const DEFLAB={TempMin:"Temp. mini",TempMax:"Temp. maxi",TempLimit:"Temp. limite",MesureMin:"Mesure mini",MesureMax:"Mesure maxi",Dlc:"DLC",Ddm:"DDM",Du:"Unité",DateLimit:"DLC",Conservation:"Conservation (jours)"};
+  const DEFLAB={TempMin:"Temp. mini",TempMax:"Temp. maxi",TempLimit:"Temp. limite",MesureMin:"Mesure mini",MesureMax:"Mesure maxi",Dlc:"DLC",Ddm:"DDM",Du:"DU",DateLimit:"DLC",Conservation:"Conservation (jours)"};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","gt");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const key=e=>{if(e.key==="Escape")closeGen()};document.addEventListener("keydown",key);
@@ -2539,7 +2539,7 @@ function openGen(m,k,id,M,r){
     const xb=$("button","adqx","×");xb.type="button";xb.setAttribute("aria-label","Fermer");xb.onclick=close;hd.append(ic,ht,xb);md.appendChild(hd);
     const UNIT0={TempMin:"°C",TempMax:"°C",TempLimit:"°C",MesureMin:"",MesureMax:"",DateLimit:"jours",Conservation:"jours"};
     const DLU={"-1":"","0":"jours","1":"services","2":"heures","3":"minutes"};
-    const unitOf=(ty,x)=>(ty==="Stickers"&&x==="DateLimit")?(DLU[String(st.dl)]||""):(UNIT0[x]||"");
+    const unitOf=(ty,x)=>(["Dlc","Ddm","Du"].includes(x)||(ty==="Stickers"&&x==="DateLimit"))?(DLU[String(st.dl)]||""):(UNIT0[x]||"");
     const TDEF={TempMin:"-10",TempMax:"99"};
     const first=[];
     blocks.forEach(([ty,miss])=>{
