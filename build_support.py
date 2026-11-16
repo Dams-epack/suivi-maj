@@ -182,15 +182,15 @@ function helpPaint(){
   md.appendChild(tabs);
   const d=D[helpTab];
   const pane=$("div","hpane");pane.appendChild($("p","hlead",d.lead));
-  if(d.v){const vd=$("video","hvid");vd.controls=true;vd.preload="metadata";vd.setAttribute("playsinline","");vd.src=d.v;vd.onerror=()=>vd.remove();pane.appendChild(vd);if(en)pane.appendChild($("p","hcap","Video narrated in French."))}
   const ol=$("ol","hsteps");d.steps.forEach(([h,t],i)=>{const li=$("li");li.style.setProperty("--i",i);const n=$("span","hn",String(i+1));const bd=$("div");bd.append($("b",null,h),$("span",null,t));li.append(n,bd);ol.appendChild(li)});
-  pane.appendChild(ol);pane.appendChild($("p","htip",d.tip));md.appendChild(pane);
+  pane.appendChild(ol);pane.appendChild($("p","htip",d.tip));
+  if(d.v){const vd=$("video","hvid");vd.controls=true;vd.preload="metadata";vd.setAttribute("playsinline","");vd.src=d.v;vd.onerror=()=>vd.remove();pane.appendChild(vd);if(en)pane.appendChild($("p","hcap","Video narrated in French."))}md.appendChild(pane);
   }
 
 render();
 '''
 import datetime,zoneinfo
-SB='1.1.0'
+SB='1.1.1'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -227,7 +227,7 @@ extra_css='''<style>
 @keyframes helpPulse{0%{transform:scale(.9);opacity:.8}70%,100%{transform:scale(1.45);opacity:0}}
 @media (prefers-reduced-motion:reduce){.helpbtn.new::after{animation:none;opacity:.6;transform:none}.helpbtn,.helpbtn svg{transition:none}}
 .helpm .gsubp{margin:0 0 6px}
-.hlead{margin:0 0 14px;font-size:1rem;font-weight:600}.hvid{display:block;width:100%;max-height:46vh;border-radius:12px;background:#000;margin:0 0 14px;border:1px solid var(--line)}.hcap{margin:-8px 0 14px;font-size:.8rem;color:var(--muted)}
+.hlead{margin:0 0 14px;font-size:1rem;font-weight:600}.hvid{display:block;width:100%;max-height:46vh;border-radius:12px;background:#000;margin:14px 0 14px;border:1px solid var(--line)}.hcap{margin:-6px 0 14px;font-size:.8rem;color:var(--muted)}
 .hsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .hsteps li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgba(128,128,128,.1);animation:hstep .35s ease-out both;animation-delay:calc(var(--i)*60ms)}
 @keyframes hstep{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
