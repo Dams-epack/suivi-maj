@@ -184,6 +184,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .regdel{font:inherit;line-height:1;width:22px;height:22px;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}.regdel:hover:not(:disabled),.regdel:focus-visible{opacity:1;color:var(--bad);border-color:var(--bad);outline:none}.regdel:disabled{opacity:.2;cursor:not-allowed}
 .regdelq{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--bad)}.regdelq .btn{padding:3px 10px;font-size:.8rem}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
+.gmaph{grid-column:1/-1;margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line);font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}.gmaph:first-child{margin-top:0;padding-top:0;border-top:0}
 .chip.gx::before{content:"⚡";font-size:.85rem}
 .chip.gx:hover,.chip.gx:focus-visible{background:var(--cta);color:var(--cta-fg);border-style:solid;box-shadow:0 4px 16px -6px rgba(155,249,68,.8);transform:translateY(-1px)}
 .row:hover{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}.row.full:hover{background:var(--ok-soft)}
@@ -791,8 +792,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.17.6";
-const SUPPORT_BUILD="v1.1.1";
+const APP_VERSION="v2.17.7";
+const SUPPORT_BUILD="v1.1.2";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2732,7 +2733,13 @@ function openGen(m,k,id,M,r){
       const dt=$("details","adj");dt.appendChild($("summary",null,"Ajuster les colonnes"));
       const heads=[...new Set(chosen.flatMap(s=>s.header.filter(Boolean)))];
       const gr=$("div","gmap");
-      [...new Set(TYPES().flatMap(ty=>T[ty].cols.map(c=>c[0])))].forEach(t=>{
+      const tys=TYPES(),COMMON=["Id","TS","Name","Category","Delete","Disable"];
+      const allT=[...new Set(tys.flatMap(ty=>T[ty].cols.map(c=>c[0])))];
+      const cnt=t=>tys.filter(ty=>T[ty].cols.some(c=>c[0]===t)).length;
+      const common=allT.filter(t=>COMMON.includes(t)||cnt(t)>1).sort((a,b)=>(COMMON.indexOf(a)<0?99:COMMON.indexOf(a))-(COMMON.indexOf(b)<0?99:COMMON.indexOf(b)));
+      const groups=[["Données communes",common]];
+      tys.forEach(ty=>{const own=T[ty].cols.map(c=>c[0]).filter(t=>!common.includes(t));if(own.length)groups.push([(GEN_LABEL[ty]||ty)+" · données propres au module",own])});
+      const addRow=t=>{
         const cur=st.map[t]||{t:"auto"};
         gr.appendChild($("span","gt",t));
         const cell=$("div","gmapc");
@@ -2742,7 +2749,8 @@ function openGen(m,k,id,M,r){
           fi.oninput=()=>{st.map[t]={t:"fix",v:fi.value};st.res=null};
           cell.appendChild(fi)}
         gr.appendChild(cell);
-      });
+      };
+      groups.forEach(([h,list])=>{if(!list.length)return;gr.appendChild($("div","gmaph",h));list.forEach(addRow)});
       dt.appendChild(gr);if(Object.keys(st.map).some(t=>st.map[t].t!=="auto"))dt.open=true;md.appendChild(dt);
     }
     if(TYPES().some(ty=>T[ty].params)){
