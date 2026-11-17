@@ -32,6 +32,7 @@ Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation d
 - **MAJ archivée = lecture seule** : plus aucune modification possible (dates, cases, chrono, modules, liens, suppression). Seuls la navigation, les filtres, les téléchargements et « Désarchiver » restent actifs.
 - **Contrôles avant génération XML** : bloquent les Id en double, les durées négatives autres que -1 et les minimums supérieurs aux maximums ; alertent sur les durées supérieures à 3650, les températures hors de -60 à 150 °C et le caractère « � ». Les caractères de contrôle interdits en XML sont supprimés.
 - **Ajuster les colonnes** : colonnes regroupées (communes puis propres au module), pastilles « requis » / « à remplir », bouton ⓘ qui explique chaque choix, lignes d'erreur cliquables qui ouvrent la fenêtre de saisie du module. DLC, DDM et DU prennent l'unité du « Type de DLC ».
+- **Mode avancé / autodiagnostic** : Paramètres > « Mode avancé » > « Lancer l'autodiagnostic ». 25 tests rejoués dans le navigateur sur des données fictives (générateur XML, statuts et durées, À traiter, statistiques, verrou d'archivage, affichage de chaque page). Rien n'est enregistré ; le rapport peut être copié.
 - **Accessibilité** : fenêtre « Informations manquantes » avec focus piégé, retour du focus et annonces d'erreur ; mise en page testée à 375 px de large.
 
 ## Utilisation
