@@ -325,6 +325,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsum{opacity:.8;margin:4px 0}
+.locked .step:disabled,.locked .modtog{opacity:1;cursor:default}.locked .step:disabled{pointer-events:none}.locked .lockmsg{color:var(--muted)}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
 .gsheet span{color:var(--muted);font-size:.85rem}
 .gmapc{display:flex;flex-direction:column;gap:6px}
@@ -3083,7 +3084,7 @@ function viewMaj(app,id){
   if(m.archived){
     const ar=$("div","actions");
     ar.appendChild($("span","msg","Archivée le "+fdate(m.archivedAt||m.created)+(m.archivedBy?" par "+who(m.archivedBy):"")));
-    const un=$("button","btn ghost","Désarchiver");un.onclick=()=>{m.archived=false;delete m.archivedAt;delete m.archivedBy;stampTitle(m);persist(id);render()};
+    const un=$("button","btn ghost keep","Désarchiver");un.onclick=()=>{m.archived=false;delete m.archivedAt;delete m.archivedBy;stampTitle(m);persist(id);render()};
     ar.appendChild(un);foot=ar;
   }else{
     const va=$("div","actions");
@@ -3190,7 +3191,18 @@ function viewMaj(app,id){
     del.append(y,n);setTimeout(()=>n.focus(),0);
   }
   if(!foot)app.appendChild(del);
+  if(m.archived)lockArchived(app);
   if(focusId){const el=[...app.querySelectorAll("[data-fid]")].find(x=>x.dataset.fid===focusId);if(el)el.focus()}
+}
+/* MAJ archivée : lecture seule. Tout est verrouillé sauf la navigation, les filtres d'affichage, les téléchargements/copies et « Désarchiver » */
+function lockArchived(app){
+  app.querySelectorAll(".tmedit,.gx,.regdel,.trash,.actbtn,.addrow,.datesave,.fixref .chip,.h1ok").forEach(e=>e.remove());
+  app.querySelectorAll(".btn").forEach(b=>{if(/^Tout (cocher|décocher)/.test(b.textContent.trim()))b.remove()});
+  app.querySelectorAll("input,select,textarea").forEach(e=>{if(!e.readOnly)e.disabled=true});
+  const keep=b=>b.classList.contains("keep")||b.classList.contains("bloc-h")||b.classList.contains("athb")||b.closest(".topbar")||/^(Télécharger|Copier|Copié|Ouvrir)/.test(b.textContent.trim())||(b.getAttribute("aria-pressed")!==null&&/^(Tout|Reste à faire)$/.test(b.textContent.trim()));
+  app.querySelectorAll("button").forEach(b=>{if(keep(b))return;b.disabled=true;b.setAttribute("aria-disabled","true")});
+  const t=app.querySelector(".timer");if(t){const p=t.querySelector(".chip");if(p)p.remove()}
+  const sub=app.querySelector(".metarow .sub");if(sub&&!app.querySelector(".lockmsg")){const l=$("p","sub lockmsg","🔒 MAJ archivée : lecture seule. Clique sur « Désarchiver » pour la modifier.");sub.parentNode.insertBefore(l,sub.nextSibling)}
 }
 /*XMLC-START*/
 /* Moteur de completion XML : port fidele de complete_xml_products.py (skill completer-produits-xml). */
@@ -5609,13 +5621,13 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.18.6",APP_DATE="13/11/2026";
+const APP_VERSION="v2.18.7",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
   buildBar();
   {const vk=String(page)+"|"+(cur||"");if(typeof lastVK!=="undefined"&&vk!==lastVK){try{window.scrollTo(0,0)}catch(e){}}lastVK=vk}
-  {const mm=cur&&majs[cur];document.body.classList.toggle("fixmode",!!(mm&&mm.type==="correctif"));document.body.classList.toggle("depmode",!!(mm&&mm.type!=="correctif"))}
+  {const mm=cur&&majs[cur];document.body.classList.toggle("locked",!!(mm&&mm.archived));document.body.classList.toggle("fixmode",!!(mm&&mm.type==="correctif"));document.body.classList.toggle("depmode",!!(mm&&mm.type!=="correctif"))}
   Object.keys(majs).forEach(k=>{try{stampTitle(majs[k])}catch(e){}});
   const app=document.getElementById("app");
   app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");app.classList.toggle("hubw",!(cur&&majs[cur])&&page==="hub");

@@ -325,6 +325,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsum{opacity:.8;margin:4px 0}
+.locked .step:disabled,.locked .modtog{opacity:1;cursor:default}.locked .step:disabled{pointer-events:none}.locked .lockmsg{color:var(--muted)}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
 .gsheet span{color:var(--muted);font-size:.85rem}
 .gmapc{display:flex;flex-direction:column;gap:6px}
@@ -797,8 +798,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.18.6";
-const SUPPORT_BUILD="v1.3.6";
+const APP_VERSION="v2.18.7";
+const SUPPORT_BUILD="v1.3.7";
 
 const SUPPORT=true;
 let majs={},cur=null;
