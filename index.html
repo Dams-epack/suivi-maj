@@ -326,6 +326,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsum{opacity:.8;margin:4px 0}
+.histlist{list-style:none;margin:8px 0 0;padding:0;max-height:380px;overflow:auto}.histlist li{display:flex;gap:8px;flex-wrap:wrap;padding:6px 2px;border-bottom:1px solid var(--line);font-size:.9rem}.histlist time{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}.histlist b{font-weight:600}
 .advcard .settop{align-items:center}.advsw{display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:600;margin-left:auto}.advcard .setrow2{margin-top:10px}.sftbody h3{margin:14px 0 6px;font-size:.95rem}.sftrow{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line)}.sftrow small{flex-basis:100%;color:var(--bad);padding-left:24px}.sftrow.ok .sfti{color:var(--ok)}.sftrow.ko .sfti{color:var(--bad)}.sfti{width:16px;font-weight:700}
 .atab td:last-child{color:inherit;font-weight:400}
 .rclact:focus-visible,.nrow:focus-visible,.addb:focus-visible,.modtog:focus-visible,.gsheet:focus-within{outline:2px solid var(--cta)!important;outline-offset:2px}
@@ -948,6 +949,10 @@ Voir les MAJ en cours ⇒ See updates in progress
 Prochaines échéances ⇒ Upcoming deadlines
 Les dates saisies dans les suivis en cours, de la plus proche à la plus lointaine. ⇒ Dates entered in the trackers in progress, from nearest to furthest.
 Tout voir → ⇒ See all →
+Historique des modifications ⇒ Change history
+Copier l'historique ⇒ Copy history
+Télécharger (CSV) ⇒ Download (CSV)
+Tout le monde ⇒ Everyone
 Alertes de durée ⇒ Duration alerts
 Seuil : plus de ⇒ Threshold: more than
 ← Statistiques ⇒ ← Statistics
@@ -1929,6 +1934,7 @@ function mergeMaj(l,r){
   if(!l)return r;
   const base=(r.updatedAt||0)>(l.updatedAt||0)?Object.assign({},r):Object.assign({},l);
   base.updatedAt=Math.max(l.updatedAt||0,r.updatedAt||0);
+  {const h=histMerge(l.hist,r.hist);if(h.length)base.hist=h;else delete base.hist}
   const keys=new Set([...Object.keys(l.prog||{}),...Object.keys(r.prog||{})]);
   base.prog={};
   keys.forEach(k=>{const a=(l.prog||{})[k],b=(r.prog||{})[k];base.prog[k]=!a?b:!b?a:((b.t||0)>(a.t||0)?b:a)});
@@ -1946,8 +1952,78 @@ function setMail(m,k,on){
   if(on){m.mails[k]=t;delete m.mailsOff[k]}else{delete m.mails[k];m.mailsOff[k]=t}
   if(!Object.keys(m.mailsOff).length)delete m.mailsOff;
 }
+/*HIST-START*/
+/* Historique des modifications d'une MAJ : à chaque enregistrement, l'état précédent est comparé au nouveau et les différences deviennent des événements (m.hist). Les listes se fusionnent par identifiant entre postes. */
+const HIST_MAX=300;let histSnap={};
+const fd2=s=>s?String(s).split("-").reverse().join("/"):"vide";
+function histSnapOf(m){
+  if(!m||!Array.isArray(m.mods))return null;
+  const p={},n={},mods={};
+  Object.keys(m.prog||{}).forEach(k=>{const q=m.prog[k]||{};p[k]=(q.s||[]).map(Boolean);n[k]=q.note||""});
+  m.mods.forEach(M=>{const rg={};(M.regions||[]).forEach(r=>{rg[r.key]=r.label+(r.concept?" · "+r.concept:"")});mods[M.id]={name:M.name,regs:rg}});
+  return {p,n,mods,d:[m.dateDemande||"",m.dateSiege||"",m.dateDeploiement||""],dp:!!m.datesPerso,mails:Object.keys(m.mails||{}).filter(k=>m.mails[k]),bl:!!m.blocked,ar:!!m.archived,ty:m.type==="correctif"?"c":"d",bt:m.baseTitle||m.title||"",tl:!!m.titleLocked,g:m.group||"",ta:m.timeAdj||0,sp:!!m.secondPass,lr:(m.liens&&m.liens.ressources)||""};
+}
+function histEvents(a,b,m){
+  const out=[],step=(M,i)=>((stepsOf(M)[i]||[])[0])||("étape "+(i+1));
+  const where=k=>{for(const M of (m.mods||[])){for(const r of (M.regions||[])){if(M.id+"_"+r.key===k)return {M,r,txt:M.name+" · "+r.label+(r.concept?" · "+r.concept:"")}}}const i=k.indexOf("_"),mid=k.slice(0,i),rk=k.slice(i+1),pm=a.mods[mid];return {M:{name:pm?pm.name:"module",id:mid},r:null,txt:(pm?pm.name:"module")+" · "+(pm&&pm.regs[rk]||rk)}};
+  const ch=[];
+  Object.keys(b.p).forEach(k=>{const x=a.p[k]||[],y=b.p[k];for(let i=0;i<Math.max(x.length,y.length);i++){if(!!x[i]!==!!y[i]){const w=where(k);ch.push({on:!!y[i],txt:"« "+step(w.M,i)+" » : "+w.txt})}}});
+  if(ch.length>6){const on=ch.filter(c=>c.on).length;out.push(on===ch.length?"a coché "+ch.length+" étapes d'un coup":on===0?"a décoché "+ch.length+" étapes d'un coup":"a modifié "+ch.length+" étapes d'un coup ("+on+" cochées, "+(ch.length-on)+" décochées)")}
+  else ch.forEach(c=>out.push((c.on?"a coché ":"a décoché ")+c.txt));
+  Object.keys(b.n).forEach(k=>{if((a.n[k]||"")!==b.n[k]&&k in a.p)out.push("a modifié la note de "+where(k).txt)});
+  [["la date de la demande",0],["la date de MAJ siège",1],["la date de déploiement",2]].forEach(([l,i])=>{if(a.d[i]!==b.d[i])out.push("a modifié "+l+" : "+fd2(a.d[i])+" → "+fd2(b.d[i]))});
+  if(a.dp!==b.dp)out.push(b.dp?"a activé les dates personnalisées":"a désactivé les dates personnalisées");
+  const lab=k=>{const z=(typeof MAIL_TRACK!=="undefined"&&MAIL_TRACK.find(q=>q[0]===k));return z?z[1]:k};
+  b.mails.filter(k=>!a.mails.includes(k)).forEach(k=>out.push("a marqué le mail « "+lab(k)+" » comme envoyé"));
+  a.mails.filter(k=>!b.mails.includes(k)).forEach(k=>out.push("a retiré le mail « "+lab(k)+" » des envois"));
+  if(a.bl!==b.bl)out.push(b.bl?"a marqué la MAJ bloquée (attente du client)":"a débloqué la MAJ");
+  if(a.ar!==b.ar)out.push(b.ar?"a archivé la MAJ":"a désarchivé la MAJ");
+  if(a.ty!==b.ty)out.push(b.ty==="c"?"a passé la MAJ en correctif":"a repassé la MAJ en déploiement");
+  if(a.g!==b.g)out.push("a changé le groupement : "+(a.g||"aucun")+" → "+(b.g||"aucun"));
+  else if(b.tl&&a.bt!==b.bt&&a.bt)out.push("a renommé la MAJ : « "+b.bt+" »");
+  Object.keys(b.mods).filter(id=>!a.mods[id]).forEach(id=>out.push("a ajouté le module « "+b.mods[id].name+" »"));
+  Object.keys(a.mods).filter(id=>!b.mods[id]).forEach(id=>out.push("a supprimé le module « "+a.mods[id].name+" »"));
+  Object.keys(b.mods).filter(id=>a.mods[id]).forEach(id=>{
+    Object.keys(b.mods[id].regs).filter(r=>!(r in a.mods[id].regs)).forEach(r=>out.push("a ajouté la langue « "+b.mods[id].regs[r]+" » au module « "+b.mods[id].name+" »"));
+    Object.keys(a.mods[id].regs).filter(r=>!(r in b.mods[id].regs)).forEach(r=>out.push("a supprimé la langue « "+a.mods[id].regs[r]+" » du module « "+b.mods[id].name+" »"));
+    if(a.mods[id].name!==b.mods[id].name)out.push("a renommé le module « "+a.mods[id].name+" » en « "+b.mods[id].name+" »")});
+  if(a.ta!==b.ta){const dl=b.ta-a.ta;out.push("a corrigé le chrono de préparation ("+(dl>0?"+":"−")+fmtDur(Math.abs(dl))+")")}
+  if(a.sp!==b.sp)out.push(b.sp?"a activé la seconde passe":"a désactivé la seconde passe");
+  if(a.lr!==b.lr)out.push("a modifié le lien des ressources");
+  return out;
+}
+function histAdd(m,texts){
+  const t=Date.now(),by=meKey()||"";m.hist=Array.isArray(m.hist)?m.hist.slice():[];
+  texts.forEach((x,i)=>m.hist.push({id:(t+i).toString(36)+Math.random().toString(36).slice(2,6),t:t+i,by,txt:x}));
+  if(m.hist.length>HIST_MAX)m.hist.splice(0,m.hist.length-HIST_MAX);
+}
+function histRecord(id,what){
+  const m=majs[id];if(!m)return;const cur=histSnapOf(m);if(!cur)return;const prev=histSnap[id];
+  if(what==="new"&&!prev){histAdd(m,["a créé la MAJ"]);histSnap[id]=cur;return}
+  if(prev){const ev=histEvents(prev,cur,m);if(ev.length)histAdd(m,ev)}
+  histSnap[id]=cur;
+}
+function histMerge(a,b){const mp={};[...(a||[]),...(b||[])].forEach(e=>{if(e&&e.id)mp[e.id]=e});const L=Object.values(mp).sort((x,y)=>x.t-y.t||(x.id<y.id?-1:1));return L.length>HIST_MAX?L.slice(L.length-HIST_MAX):L}
+function histAdopt(id){const s=histSnapOf(majs[id]);if(s)histSnap[id]=s}
+Object.keys(majs).forEach(histAdopt);
+function histText(m){return (m.hist||[]).slice().sort((a,b)=>a.t-b.t).map(e=>new Date(e.t).toLocaleString(LOC(),{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · "+(who(e.by)||"Quelqu'un")+" · "+e.txt).join("\n")}
+function histCsv(m){const q=v=>'"'+String(v).replace(/"/g,'""')+'"';return "﻿"+["Date;Personne;Action"].concat((m.hist||[]).slice().sort((a,b)=>a.t-b.t).map(e=>[q(new Date(e.t).toLocaleString(LOC(),{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})),q(who(e.by)||"Quelqu'un"),q(e.txt)].join(";"))).join("\r\n")}
+function viewHist(app,m,id){
+  const H=m.hist||[];if(blocClosed.hist===undefined)blocClosed.hist=true;
+  const box=$("section","bloc liensbox histbox");box.appendChild(blocHead("hist","Historique des modifications",H.length+" événement"+(H.length>1?"s":"")));
+  const body=$("div","bloc-b");body.hidden=!!blocClosed.hist;box.appendChild(body);
+  if(!H.length){body.appendChild($("p","empty","Aucune modification enregistrée pour le moment. L'historique démarre à partir de maintenant."));app.appendChild(box);return}
+  const tools=$("div","actions");const people=[...new Set(H.map(e=>e.by||""))];let sel="";
+  const list=$("ul","histlist");
+  const paint=()=>{list.textContent="";H.slice().sort((a,b)=>b.t-a.t).filter(e=>!sel||(e.by||"")===sel).forEach(e=>{const li=$("li");const tm=$("time",null,new Date(e.t).toLocaleString(LOC(),{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));tm.dateTime=new Date(e.t).toISOString();tm.title=new Date(e.t).toLocaleString(LOC());li.append(tm,$("b",null,who(e.by)||"Quelqu'un"),$("span",null,e.txt));list.appendChild(li)})};
+  if(people.length>1){const l=$("label","datef");l.append($("span",null,"Personne"));const s=$("select");const o0=$("option",null,"Tout le monde");o0.value="";s.appendChild(o0);people.forEach(p=>{const o=$("option",null,who(p)||"Quelqu'un");o.value=p;s.appendChild(o)});s.onchange=()=>{sel=s.value;paint()};l.appendChild(s);tools.appendChild(l)}
+  const cp=$("button","btn ghost","Copier l'historique");cp.type="button";cp.onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(histText(m));ok=true}catch(e){}cp.textContent=ok?"Copié ✓":"Copie impossible";setTimeout(()=>{cp.textContent="Copier l'historique"},2000)};
+  const dl=$("button","btn ghost","Télécharger (CSV)");dl.type="button";dl.onclick=()=>saveFile("Historique - "+String(m.baseTitle||m.title||id).replace(/[\\\/:*?"<>|]+/g," ").slice(0,80)+".csv",histCsv(m));
+  tools.append(cp,dl);body.append(tools,list);paint();app.appendChild(box);
+}
+/*HIST-END*/
 function persist(id,what){
-  const m=majs[id];syncDone(m);
+  const m=majs[id];syncDone(m);try{histRecord(id,what)}catch(e){}
   if(m){m.updatedAt=Date.now();if(!col)m._pending=true}
   try{localStorage.setItem(LS,JSON.stringify(majs))}catch(e){}
   if(!col){if(!spOn())slog("warn","Sauvegarde locale uniquement (non partagée)");spQueue();return}
@@ -1956,7 +2032,7 @@ function persist(id,what){
   if(what==='*')Object.keys(m.prog).forEach(k=>{m.prog[k].t=ts});else if(what&&what!=='new'&&m.prog[what])m.prog[what].t=ts;
   let data,full=false;
   if(what==="new"){data=JSON.parse(JSON.stringify(m));delete data._pending;full=true}
-  else if(what&&what!=="*"){data={updatedAt:ts,prepDoneAt:m.prepDoneAt||null,pausedAt:m.pausedAt||null,pausedMs:m.pausedMs||0,prog:{[what]:JSON.parse(JSON.stringify(m.prog[what]||{s:[false,false,false],note:""}))}}}
+  else if(what&&what!=="*"){data={updatedAt:ts,prepDoneAt:m.prepDoneAt||null,pausedAt:m.pausedAt||null,pausedMs:m.pausedMs||0,prog:{[what]:JSON.parse(JSON.stringify(m.prog[what]||{s:[false,false,false],note:""}))},hist:JSON.parse(JSON.stringify(m.hist||[]))}}
   else{
     const c=JSON.parse(JSON.stringify(m));delete c._pending;
     c.archivedAt=m.archivedAt||null;c.archivedBy=m.archivedBy||null;c.baseTitle=m.baseTitle||null;c.pausedAt=m.pausedAt||null;c.pausedMs=m.pausedMs||0;c.timeAdj=m.timeAdj||0;c.prepDoneAt=m.prepDoneAt||null;
@@ -3144,7 +3220,7 @@ function viewMaj(app,id){
   const body1=$("div","bloc-b");body1.hidden=!!blocClosed.files;bloc1.appendChild(body1);
   body1.appendChild(hero);
   app.appendChild(bloc1);
-  viewLiens(app,m,id);viewXmlLog(app,m);
+  viewLiens(app,m,id);viewXmlLog(app,m);viewHist(app,m,id);
   const tools=$("div","actions");
   const fa=$("button","chip","Tout");fa.setAttribute("aria-pressed",String(!onlyTodo));fa.onclick=()=>{onlyTodo=false;render()};
   const ft=$("button","chip","Reste à faire");ft.setAttribute("aria-pressed",String(onlyTodo));ft.onclick=()=>{onlyTodo=true;render()};
@@ -3246,7 +3322,7 @@ function viewMaj(app,id){
 function lockArchived(app){
   app.querySelectorAll(".tmedit,.gx,.regdel,.trash,.actbtn,.addrow,.datesave,.fixref .chip,.h1ok").forEach(e=>e.remove());
   app.querySelectorAll(".btn").forEach(b=>{if(/^Tout (cocher|décocher)/.test(b.textContent.trim()))b.remove()});
-  app.querySelectorAll("input,select,textarea").forEach(e=>{if(!e.readOnly)e.disabled=true});
+  app.querySelectorAll("input,select,textarea").forEach(e=>{if(!e.readOnly&&!e.closest(".histbox"))e.disabled=true});
   const keep=b=>b.classList.contains("keep")||b.classList.contains("bloc-h")||b.classList.contains("athb")||b.closest(".topbar")||/^(Télécharger|Copier|Copié|Ouvrir)/.test(b.textContent.trim())||(b.getAttribute("aria-pressed")!==null&&/^(Tout|Reste à faire)$/.test(b.textContent.trim()));
   app.querySelectorAll("button").forEach(b=>{if(keep(b))return;b.disabled=true;b.setAttribute("aria-disabled","true")});
   const t=app.querySelector(".timer");if(t){const p=t.querySelector(".chip");if(p)p.remove()}
@@ -5152,7 +5228,7 @@ function selfTests(){
   const dstr=n=>{const x=new Date();x.setDate(x.getDate()+n);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
   const gen=(ty,header,rows,p)=>{const s={header,rows,hdrRow:1},n=GENX.normalized(ty,s,{},{});const g=n.errs.length?{xml:null,errs:n.errs,warns:[]}:GENX.generate(ty,n.aoa,Object.assign({dltype:0,isddm:false,excCat:"",excVal:"true",moments:[],momTime:""},p||{}),GENX.nowFn(ty),0);return{n,g,errs:n.errs.concat(g.errs||[]),notes:n.notes.concat(g.warns||[])}};
   const mk=(title,o)=>Object.assign({title,baseTitle:title,group:String(title).split(" ")[0],created:Date.now()-5*864e5,createdBy:"n:Test",prog:{},mods:[{id:"m0",name:"Étiquettes produits",regions:[{key:"fr",label:"FR"},{key:"be",label:"BE FR"}]}],mails:{}},o||{});
-  const sandbox=(M,f)=>{const real=majs,dd=dateDraft,w=tdWin,b=tdBlk;majs=M;tdWin=7;tdBlk=5;try{return f()}finally{majs=real;dateDraft=dd;tdWin=w;tdBlk=b}};
+  const sandbox=(M,f)=>{const real=majs,dd=dateDraft,w=tdWin,b=tdBlk,hs=histSnap;majs=M;histSnap={};Object.keys(M).forEach(histAdopt);tdWin=7;tdBlk=5;try{return f()}finally{majs=real;dateDraft=dd;tdWin=w;tdBlk=b;histSnap=hs}};
   /* Générateur XML */
   t("Générateur XML","Étiquettes valides : XML généré",()=>{const r=gen("Stickers",["Id","Name","DateLimit"],[["111","Pain",3],["222","Lait",5]]);ok(r.g.xml,"pas de XML : "+r.errs.join(" | "));ok(/Pain/.test(r.g.xml)&&/Lait/.test(r.g.xml))});
   t("Générateur XML","Id en double : génération bloquée",()=>{const r=gen("Stickers",["Id","Name","DateLimit"],[["111","Pain",3],["111","Lait",5]]);ok(!r.g.xml);ok(r.errs.some(e=>/Id en double/.test(e)),r.errs.join("|"))});
@@ -5172,6 +5248,14 @@ function selfTests(){
   t("Suivi des MAJ","Statistiques : sans MAJ terminée, message vide",()=>sandbox({a:mk("A - Maj")},()=>{const d=document.createElement("div");viewStats(d);ok(/Aucune MAJ terminée/.test(d.textContent))}));
   t("Suivi des MAJ","Statistiques : calcul par personne",()=>sandbox({a:mk("A - Maj",{archived:true,archivedAt:Date.now(),timeAdj:2*3600e3,createdBy:"n:Marie"}),b:mk("B - Maj",{archived:true,archivedAt:Date.now(),timeAdj:4*3600e3,createdBy:"n:Marie"})},()=>{const d=document.createElement("div");viewStats(d);ok(/Marie/.test(d.textContent)&&/MAJ terminées/.test(d.textContent),"tableau personne absent")}));
   t("Suivi des MAJ","Statistiques : alerte au-delà de 2 × la médiane",()=>sandbox({a:mk("A - Maj",{archived:true,startedAt:Date.now()-36e5,archivedAt:Date.now()}),b:mk("B - Maj",{archived:true,startedAt:Date.now()-36e5,archivedAt:Date.now()}),c:mk("C - Maj",{archived:true,startedAt:Date.now()-36e5,archivedAt:Date.now()}),d:mk("LENTE - Maj",{archived:true,startedAt:Date.now()-20*36e5,archivedAt:Date.now()})},()=>{const f=stFac;stFac=2;try{const d=document.createElement("div");viewStats(d);const t=d.textContent;ok(/Alertes de durée/.test(t)&&/LENTE/.test(t.split("Alertes de durée")[1].split("Par personne")[0]),"MAJ lente non signalée")}finally{stFac=f}}));
+  /* Historique */
+  t("Historique","Titre recalculé automatiquement : pas journalisé comme renommage",()=>sandbox({x:mk("A - Maj")},()=>{const m=majs.x;m.baseTitle="A - Maj du 20/11/2026";histRecord("x");eq((m.hist||[]).length,0,"renommage fantôme");m.titleLocked=true;m.baseTitle="Mon titre";histRecord("x");ok(/renommé/.test(m.hist[0].txt))}));
+  t("Historique","Une case cochée est journalisée",()=>sandbox({x:mk("A - Maj")},()=>{const m=majs.x;m.prog["m0_fr"]={s:[true,false,false],note:""};histRecord("x");ok((m.hist||[]).length===1,"événements : "+(m.hist||[]).length);ok(/a coché/.test(m.hist[0].txt)&&/BE FR|FR/.test(m.hist[0].txt),m.hist[0].txt);histRecord("x");eq(m.hist.length,1,"doublon à la 2e passe")}));
+  t("Historique","Dates, archivage et blocage journalisés",()=>sandbox({x:mk("A - Maj")},()=>{const m=majs.x;m.dateSiege="2026-11-20";m.archived=true;m.blocked={at:1};histRecord("x");const tx=m.hist.map(e=>e.txt).join(" | ");ok(/date de MAJ siège/.test(tx)&&/archivé/.test(tx)&&/bloquée/.test(tx),tx)}));
+  t("Historique","Tout cocher : un seul événement groupé",()=>sandbox({x:mk("A - Maj")},()=>{const m=majs.x;m.mods[0].regions.push({key:"de",label:"DE"},{key:"it",label:"IT"});histRecord("x");const n0=m.hist.length;m.mods[0].regions.forEach(r=>{m.prog["m0_"+r.key]={s:[true,true,true],note:""}});histRecord("x");eq(m.hist.length-n0,1,"événements ajoutés");ok(/12 étapes d'un coup/.test(m.hist[m.hist.length-1].txt),m.hist[m.hist.length-1].txt)}));
+  t("Historique","Fusion entre postes : sans doublon ni perte",()=>{const a=[{id:"a",t:1,by:"n:A",txt:"x"},{id:"b",t:2,by:"n:A",txt:"y"}],b=[{id:"b",t:2,by:"n:A",txt:"y"},{id:"c",t:3,by:"n:B",txt:"z"}];const r=histMerge(a,b);eq(r.map(e=>e.id).join(""),"abc")});
+  t("Historique","Plafonné à "+HIST_MAX+" événements",()=>{const m={};histAdd(m,Array.from({length:HIST_MAX+50},(_,i)=>"e"+i));eq(m.hist.length,HIST_MAX);eq(m.hist[HIST_MAX-1].txt,"e"+(HIST_MAX+49))});
+  t("Historique","Bloc visible, lecture seule mais exportable sur une MAJ archivée",()=>{const d=detail(mk("ROAD - Maj",{archived:true,archivedAt:Date.now(),hist:[{id:"a",t:Date.now(),by:"n:Marie",txt:"a coché X"},{id:"b",t:Date.now(),by:"n:Paul",txt:"a coché Y"}]}));ok(/Historique des modifications/.test(d.textContent),"bloc absent");const b=d.querySelector(".histbox");ok(b&&[...b.querySelectorAll("button")].some(x=>/Copier/.test(x.textContent)&&!x.disabled),"copie désactivée");ok([...b.querySelectorAll("select")].every(x=>!x.disabled),"filtre verrouillé")});
   /* Verrou d'archivage */
   const detail=m=>sandbox({x:m},()=>{const d=document.createElement("div");viewMaj(d,"x");return d});
   t("Archivage","MAJ archivée : plus rien d'éditable",()=>{const d=detail(mk("ROAD - Maj",{archived:true,archivedAt:Date.now(),dateSiege:dstr(1),dateDeploiement:dstr(2),datesPerso:true}));
@@ -5858,7 +5942,7 @@ function spMerge(d){
   Object.assign(spTomb,d.deleted||{});
   Object.entries(d.majs||{}).forEach(([k,v])=>{
     if(spTomb[k]||!v||!Array.isArray(v.mods))return;
-    seen.add(k);majs[k]=mergeMaj(majs[k],v);upgradeMaj(majs[k]);
+    seen.add(k);majs[k]=mergeMaj(majs[k],v);upgradeMaj(majs[k]);histAdopt(k);
   });
   Object.keys(spTomb).forEach(k=>{delete majs[k]});
   Object.entries(d.groupes||{}).forEach(([k,n])=>{const nm=n&&typeof n==="object"?n.name:n;if(nm)gmap[k]=nm});
@@ -5902,7 +5986,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.20.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.21.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
@@ -5946,7 +6030,7 @@ render();
       Object.keys(remote).forEach(k=>{
         seen.add(k);
         majs[k]=mergeMaj(majs[k],remote[k]);
-        if(upgradeMaj(majs[k]))persist(k,"*");
+        if(upgradeMaj(majs[k])){histAdopt(k);persist(k,"*")}else histAdopt(k);
       });
       if(!snap.metadata.fromCache&&!snap.metadata.hasPendingWrites)Object.keys(majs).forEach(k=>{if(seen.has(k)&&!remote[k])delete majs[k]});
       if(cur&&!majs[cur])cur=null;

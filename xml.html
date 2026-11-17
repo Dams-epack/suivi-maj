@@ -326,6 +326,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsum{opacity:.8;margin:4px 0}
+.histlist{list-style:none;margin:8px 0 0;padding:0;max-height:380px;overflow:auto}.histlist li{display:flex;gap:8px;flex-wrap:wrap;padding:6px 2px;border-bottom:1px solid var(--line);font-size:.9rem}.histlist time{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}.histlist b{font-weight:600}
 .advcard .settop{align-items:center}.advsw{display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:600;margin-left:auto}.advcard .setrow2{margin-top:10px}.sftbody h3{margin:14px 0 6px;font-size:.95rem}.sftrow{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line)}.sftrow small{flex-basis:100%;color:var(--bad);padding-left:24px}.sftrow.ok .sfti{color:var(--ok)}.sftrow.ko .sfti{color:var(--bad)}.sfti{width:16px;font-weight:700}
 .atab td:last-child{color:inherit;font-weight:400}
 .rclact:focus-visible,.nrow:focus-visible,.addb:focus-visible,.modtog:focus-visible,.gsheet:focus-within{outline:2px solid var(--cta)!important;outline-offset:2px}
@@ -805,8 +806,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.20.1";
-const SUPPORT_BUILD="v1.4.3";
+const APP_VERSION="v2.21.1";
+const SUPPORT_BUILD="v1.4.4";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1003,6 +1004,10 @@ Voir les MAJ en cours ⇒ See updates in progress
 Prochaines échéances ⇒ Upcoming deadlines
 Les dates saisies dans les suivis en cours, de la plus proche à la plus lointaine. ⇒ Dates entered in the trackers in progress, from nearest to furthest.
 Tout voir → ⇒ See all →
+Historique des modifications ⇒ Change history
+Copier l'historique ⇒ Copy history
+Télécharger (CSV) ⇒ Download (CSV)
+Tout le monde ⇒ Everyone
 Alertes de durée ⇒ Duration alerts
 Seuil : plus de ⇒ Threshold: more than
 ← Statistiques ⇒ ← Statistics
