@@ -191,7 +191,7 @@ function helpPaint(){
 render();
 '''
 import datetime,zoneinfo
-SB='1.4.2'
+SB='1.4.3'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>

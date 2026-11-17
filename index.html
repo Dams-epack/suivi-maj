@@ -948,6 +948,9 @@ Voir les MAJ en cours ⇒ See updates in progress
 Prochaines échéances ⇒ Upcoming deadlines
 Les dates saisies dans les suivis en cours, de la plus proche à la plus lointaine. ⇒ Dates entered in the trackers in progress, from nearest to furthest.
 Tout voir → ⇒ See all →
+Alertes de durée ⇒ Duration alerts
+Seuil : plus de ⇒ Threshold: more than
+← Statistiques ⇒ ← Statistics
 Statistiques de temps ⇒ Time statistics
 Voir les statistiques → ⇒ See statistics →
 Rien à traiter pour le moment : aucune échéance en attente. ⇒ Nothing to process for now: no pending deadline.
@@ -1825,7 +1828,7 @@ function fileCsm(g){
   const cs=new Set(FILE_CSM.filter(e=>e[0].startsWith(k)||(e[0].length>=5&&k.startsWith(e[0]))).map(e=>e[1]));
   return cs.size===1?[...cs][0]:"";
 }
-const QM_MAIL={"Marion LE STANG":"m.lestang@epack-hygiene.fr","Nathan LAFFEZ":"n.laffez@epack-hygiene.fr","Sylvain HAMELIN":"s.hamelin@epack-hygiene.fr"};
+const QM_MAIL={"Marion LE STANG":"m.lestang@epackpro.com","Nathan LAFFEZ":"n.laffez@epackpro.com","Sylvain HAMELIN":"s.hamelin@epackpro.com"};
 const GT_SET=new Set(GROUPES_GT.map(akey));
 function csmOf(m){const g=groupOf(m)||m.group||"";const c=CSM_OF[akey(g)]||fileCsm(g);return c?{csm:c,qm:GT_SET.has(akey(g))?CSM_QM["Guillaume TAVERNIERS"]:(CSM_QM[c]||"")}:null}
 function renameMaj(id,t){
@@ -2981,7 +2984,7 @@ function viewMaj(app,id){
   syncDone(m);
   const top=$("div","topbar");
   if(!backTo)backTo="hub";
-  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="today"?"← À traiter aujourd'hui":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(leaveBlocked(null))return;if(backTo){page=backTo;backTo=null}setCur(null)};
+  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="today"?"← À traiter aujourd'hui":backTo==="stats"?"← Statistiques":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(leaveBlocked(null))return;if(backTo){page=backTo;backTo=null}setCur(null)};
   top.append(back);app.appendChild(top);
   const hrow=$("div","hrow"),acts=[],quick=[];if(renaming===id){const ri=$("input","h1edit");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");
     const go=()=>{if(ri.value.trim()){renameMaj(id,ri.value);renaming=null;render()}};
@@ -5082,6 +5085,7 @@ function viewToday(app){
 
 /*STATS-START*/
 /* Statistiques de temps de préparation : par personne, par type de MAJ et par module, pour estimer la charge */
+let stFac=2;try{const f=+localStorage.getItem("suivi-maj-stfac");if([1.5,2,3].includes(f))stFac=f}catch(e){}
 let stPer=6;try{const v=localStorage.getItem("suivi-maj-stper");if(v!==null&&["3","6","12","0"].includes(v))stPer=+v}catch(e){}
 function openStats(){page="stats";backTo=null;render()}
 function viewStats(app){
@@ -5098,6 +5102,23 @@ function viewStats(app){
   const tiles=$("div","kpis");
   [["MAJ terminées",L.length,"sur la période"],["Durée moyenne",fmtDur(avg(L.map(x=>x.d))),"par MAJ"],["Durée médiane",fmtDur(med(L.map(x=>x.d))),"la moitié des MAJ est plus rapide"],["Par ligne",perLine?fmtDur(perLine):"-","moyenne par ligne (région × module)"]].forEach(([a,v,c])=>{const t=$("div","kpi");t.append($("small",null,a),$("b",null,String(v)),$("span",null,c));tiles.appendChild(t)});
   app.appendChild(tiles);
+  /* Alertes : MAJ nettement plus longues que la médiane de leur type (déploiement ou correctif) */
+  {const typ=m=>m.type==="correctif"?"correctif":"déploiement",byT={};L.forEach(x=>(byT[typ(x.m)]=byT[typ(x.m)]||[]).push(x.d));
+   const meds={};Object.keys(byT).forEach(k=>{if(byT[k].length>=3)meds[k]=med(byT[k])});
+   const al=[];
+   L.forEach(x=>{const k=typ(x.m);if(meds[k]&&x.d>stFac*meds[k])al.push({id:Object.keys(majs).find(i=>majs[i]===x.m),m:x.m,d:x.d,med:meds[k],k,live:false})});
+   Object.keys(majs).forEach(id=>{const m=majs[id];if(!m||!m.mods||m.archived||m.prepDoneAt||m.blocked)return;const k=typ(m),d=durOf(m);if(meds[k]&&d>stFac*meds[k])al.push({id,m,d,med:meds[k],k,live:true})});
+   al.sort((a,b)=>b.d/b.med-a.d/a.med);
+   const sec=$("section","panel acc"+(al.length?" late":""));const hd=$("div","hubtop");hd.append($("h2",null,"Alertes de durée"),$("span","badge "+(al.length?"late":"done"),String(al.length)));sec.appendChild(hd);
+   const fl=$("label","datef");fl.append($("span",null,"Seuil : plus de"));const fs=$("select");[1.5,2,3].forEach(v=>{const o=$("option",null,"× "+String(v).replace(".",",")+" la médiane");o.value=v;if(v===stFac)o.selected=true;fs.appendChild(o)});
+   fs.onchange=()=>{stFac=+fs.value;try{localStorage.setItem("suivi-maj-stfac",stFac)}catch(e){}render()};fl.appendChild(fs);sec.appendChild(fl);
+   sec.appendChild($("p","sub","MAJ terminées sur la période et MAJ en cours dont la durée dépasse le seuil, par rapport à la médiane de leur type (déploiement ou correctif). Il faut au moins 3 MAJ terminées du même type."));
+   if(!Object.keys(meds).length)sec.appendChild($("p","empty","Pas assez de MAJ terminées pour calculer une médiane (3 minimum par type)."));
+   else if(!al.length)sec.appendChild($("p","empty","Aucune MAJ ne dépasse le seuil."));
+   else{const ul=$("div","nextlist");al.slice(0,10).forEach(a=>{const b=$("button","nrow"+(a.live?"":" wait"));b.type="button";const mid=$("span","nmid");
+     mid.append($("strong",null,a.m.title),$("small",null,fmtDur(a.d)+" pour une médiane de "+fmtDur(a.med)+" ("+a.k+") : "+String(Math.round(10*a.d/a.med)/10).replace(".",",")+" ×"));
+     b.append(mid,$("span","badge "+(a.live?"late":"live"),a.live?"En cours":"Terminée"));b.onclick=()=>{backTo="stats";setCur(a.id)};ul.appendChild(b)});sec.appendChild(ul)}
+   app.appendChild(sec)}
   const table=(title,sub,head,rows)=>{
     const sec=$("section","panel acc");sec.appendChild($("h2",null,title));if(sub)sec.appendChild($("p","sub",sub));
     const w=$("div","atabw"),t=$("table","atab"),th=$("thead"),hr=$("tr");
@@ -5150,6 +5171,7 @@ function selfTests(){
   t("Suivi des MAJ","À traiter : mail, bloquée, prête, retard",()=>sandbox({a:mk("ALPHA - Maj",{dateSiege:dstr(1),dateDeploiement:dstr(3),datesPerso:true}),b:mk("BRAVO - Maj",{blocked:{at:Date.now()-8*864e5}}),c:mk("CHARLIE - Maj",{mails:{prise:1,siege:1,debut:1,fin:1},dateDeploiement:dstr(-1),dateSiege:dstr(-3),datesPerso:true}),d:mk("DELTA - Maj",{blocked:{at:Date.now()-1*864e5}})},()=>{const T=todayItems();ok(T.mail.some(x=>x.id==="a"),"mail prise absent");ok(T.blocked.some(x=>x.id==="b"),"bloquée absente");ok(!T.blocked.some(x=>x.id==="d"),"bloquée depuis 1 jour listée à tort");ok(T.ready.some(x=>x.id==="c"),"prête absente")}));
   t("Suivi des MAJ","Statistiques : sans MAJ terminée, message vide",()=>sandbox({a:mk("A - Maj")},()=>{const d=document.createElement("div");viewStats(d);ok(/Aucune MAJ terminée/.test(d.textContent))}));
   t("Suivi des MAJ","Statistiques : calcul par personne",()=>sandbox({a:mk("A - Maj",{archived:true,archivedAt:Date.now(),timeAdj:2*3600e3,createdBy:"n:Marie"}),b:mk("B - Maj",{archived:true,archivedAt:Date.now(),timeAdj:4*3600e3,createdBy:"n:Marie"})},()=>{const d=document.createElement("div");viewStats(d);ok(/Marie/.test(d.textContent)&&/MAJ terminées/.test(d.textContent),"tableau personne absent")}));
+  t("Suivi des MAJ","Statistiques : alerte au-delà de 2 × la médiane",()=>sandbox({a:mk("A - Maj",{archived:true,startedAt:Date.now()-36e5,archivedAt:Date.now()}),b:mk("B - Maj",{archived:true,startedAt:Date.now()-36e5,archivedAt:Date.now()}),c:mk("C - Maj",{archived:true,startedAt:Date.now()-36e5,archivedAt:Date.now()}),d:mk("LENTE - Maj",{archived:true,startedAt:Date.now()-20*36e5,archivedAt:Date.now()})},()=>{const f=stFac;stFac=2;try{const d=document.createElement("div");viewStats(d);const t=d.textContent;ok(/Alertes de durée/.test(t)&&/LENTE/.test(t.split("Alertes de durée")[1].split("Par personne")[0]),"MAJ lente non signalée")}finally{stFac=f}}));
   /* Verrou d'archivage */
   const detail=m=>sandbox({x:m},()=>{const d=document.createElement("div");viewMaj(d,"x");return d});
   t("Archivage","MAJ archivée : plus rien d'éditable",()=>{const d=detail(mk("ROAD - Maj",{archived:true,archivedAt:Date.now(),dateSiege:dstr(1),dateDeploiement:dstr(2),datesPerso:true}));
@@ -5880,7 +5902,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.20.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.20.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
