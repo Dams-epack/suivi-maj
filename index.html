@@ -242,7 +242,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .adqhd h2{margin:0 0 2px;font-size:1.15rem}
 .adqic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--cta) 18%,transparent);color:var(--cta);font-size:1.1rem}
 .adqsub{margin:0;color:var(--muted);font-size:.85rem;line-height:1.35}
-.adqx{margin-left:auto;flex:none;border:0;background:transparent;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer;padding:2px 8px;border-radius:8px}
+.adqx{margin-left:auto;flex:none;min-width:44px;min-height:44px;border:0;background:transparent;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer;padding:2px 8px;border-radius:8px}
 .adqx:hover{background:color-mix(in srgb,var(--fg) 10%,transparent);color:var(--fg)}
 .adqcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:color-mix(in srgb,var(--fg) 3%,transparent)}
 .adqcard h3{margin:0 0 10px;font-size:.95rem}
@@ -250,11 +250,12 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .adqf{display:block}
 .adql{display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px;font-weight:600}
 .adqin{position:relative}
-.adqin input{padding-right:46px!important}
+.adqin input{padding-right:72px!important}
 .adqin input::placeholder{color:var(--muted);opacity:.55;font-style:italic}
 .adqin input:focus{outline:2px solid var(--cta);outline-offset:0}
 .adqu{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--muted);pointer-events:none}
-.adqact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.adqact{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+@media(max-width:480px){.adqgrid{grid-template-columns:1fr}.adqact .btn{flex:1 1 140px;min-height:44px}.modal.xml.adq{padding:16px}}
 
 .dates{display:flex;flex-wrap:wrap;gap:12px 24px}
 .mailbody{font:inherit;font-weight:400;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%;resize:vertical;line-height:1.45}
@@ -325,6 +326,11 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsum{opacity:.8;margin:4px 0}
+.atab td:last-child{color:inherit;font-weight:400}
+.rclact:focus-visible,.nrow:focus-visible,.addb:focus-visible,.modtog:focus-visible,.gsheet:focus-within{outline:2px solid var(--cta)!important;outline-offset:2px}
+@media(max-width:600px){.chip,.btn{min-height:40px}.tdopts{flex-direction:column;gap:8px}}
+.badge.done{color:var(--ok);border-color:var(--ok)}
+.tdopts{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 16px}.tdchips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.tdchip{cursor:pointer}
 .locked .step:disabled,.locked .modtog{opacity:1;cursor:default}.locked .step:disabled{pointer-events:none}.locked .lockmsg{color:var(--muted)}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
 .gsheet span{color:var(--muted);font-size:.85rem}
@@ -977,6 +983,42 @@ mail envoyé ⇒ email sent
 ← Toutes les MAJ ⇒ ← All updates
 + Suivi personnalisé ⇒ + Custom tracker
 Désarchiver ⇒ Unarchive
+À traiter aujourd'hui ⇒ To do today
+Retards et validations en attente ⇒ Overdue items and pending validations
+Mails à envoyer ⇒ Emails to send
+MAJ bloquées ⇒ Blocked updates
+Prêtes à archiver ⇒ Ready to archive
+Aucun retard. ⇒ Nothing overdue.
+Aucun mail en attente. ⇒ No email pending.
+Aucune MAJ à archiver. ⇒ No update to archive.
+Mails : échéance dans moins de ⇒ Emails: due within
+MAJ bloquées depuis plus de ⇒ Updates blocked for more than
+Tout voir → ⇒ See all →
+Statistiques détaillées → ⇒ Detailed statistics →
+Temps de préparation ⇒ Preparation time
+Période ⇒ Period
+3 derniers mois ⇒ Last 3 months
+6 derniers mois ⇒ Last 6 months
+12 derniers mois ⇒ Last 12 months
+Tout ⇒ All
+MAJ terminées ⇒ Completed updates
+Durée moyenne ⇒ Average duration
+Durée médiane ⇒ Median duration
+Par ligne ⇒ Per line
+Par personne ⇒ By person
+Par type de MAJ ⇒ By update type
+Par module ⇒ By module
+Moyenne ⇒ Average
+Médiane ⇒ Median
+Min – max ⇒ Min – max
+Personne ⇒ Person
+Déploiement ⇒ Deployment
+Correctif ⇒ Fix
+Estimer une charge ⇒ Estimate a workload
+Lignes à préparer ⇒ Lines to prepare
+Réduire ⇒ Collapse
+Développer ⇒ Expand
+🔒 MAJ archivée : lecture seule. Clique sur « Désarchiver » pour la modifier. ⇒ 🔒 Archived update: read-only. Click « Unarchive » to edit it.
 =Archivée ⇒ Archived
 Prête à archiver ⇒ Ready to archive
 Prêtes à archiver ⇒ Ready to archive
@@ -2936,7 +2978,7 @@ function viewMaj(app,id){
   syncDone(m);
   const top=$("div","topbar");
   if(!backTo)backTo="hub";
-  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(leaveBlocked(null))return;if(backTo){page=backTo;backTo=null}setCur(null)};
+  const back=$("button","btn ghost",backTo==="live"?"← MAJ en cours":backTo==="archived"?"← MAJ archivées":backTo==="upcoming"?"← MAJ à venir":backTo==="today"?"← À traiter aujourd'hui":backTo==="hub"?"← Accueil":backTo?"← Résultats de recherche":"← Toutes les MAJ");back.onclick=()=>{flushDates(id);if(leaveBlocked(null))return;if(backTo){page=backTo;backTo=null}setCur(null)};
   top.append(back);app.appendChild(top);
   const hrow=$("div","hrow"),acts=[],quick=[];if(renaming===id){const ri=$("input","h1edit");ri.type="text";ri.id="rg";ri.value=m.baseTitle||m.title;ri.placeholder="Nom de la MAJ";ri.maxLength=120;ri.setAttribute("aria-label","Nom de la MAJ");
     const go=()=>{if(ri.value.trim()){renameMaj(id,ri.value);renaming=null;render()}};
@@ -3744,7 +3786,7 @@ function readRows(name,aoa,off){
 }
 function finalize(name,rows,errs,warns,now){
   const used=new Set();let gen=0;
-  rows.forEach(r=>{if(r.Id){if(used.has(r.Id))errs.push(`L${r._row} : Id en double ${r.Id}`);used.add(r.Id)}});
+  const firstId={};rows.forEach(r=>{if(r.Id){if(used.has(r.Id))errs.push(`L${r._row} : Id en double ${r.Id} (déjà utilisé ligne ${firstId[r.Id]})`);else firstId[r.Id]=r._row;used.add(r.Id)}});
   rows.forEach((r,i)=>{
     if(!r.Id){let x;do{x=randId(MODS[name].idLen)}while(used.has(x));used.add(x);r.Id=x;gen++}
     if(!r.TS)r.TS=now(i);
@@ -3871,6 +3913,7 @@ function resolve(t,s,mp){
   return idx;
 }
 const isDef=(t,x)=>!MODS[t].noDef&&MODS[t].req.includes(x)&&['int','num'].includes(MODS[t].cols.find(c=>c[0]===x)[1]);
+const BADCH=/[\u0000-\u0008\u000B\u000C\u000E-\u001B\uFFFE\uFFFF]/,BADCH_G=new RegExp(BADCH.source,'g');
 function normalized(t,s,mp,defs){
   const m=MODS[t],idx=resolve(t,s,mp),has=x=>idx[x]>=0;
   defs=defs||{};const hasD=x=>defs[x]!==undefined&&String(defs[x]).trim()!=='',gD=x=>String(defs[x]).trim().replace(',','.');
@@ -3885,7 +3928,7 @@ function normalized(t,s,mp,defs){
   m.req.filter(x=>!isDef(t,x)&&!has(x)&&!hasD(x)).forEach(x=>errs.push(`Colonne ${x} introuvable dans cet onglet (en-têtes lues : ${s.header.filter(Boolean).join(', ')||'aucune'})`));
   const CD=t==='ControleDivers',unitRe=/^\s*-?\d+(?:[.,]\d+)?\s*([^\d\s.,\-][^\d]*)$/,numRe=/^\s*(-?\d+(?:[.,]\d+)?)\s*[^\d\s.,\-][^\d]*$/;
   const unitFrom=r=>{for(const x of ['MesureMin','MesureMax']){if(!has(x))continue;const v=r[idx[x]];if(typeof v==='string'){const mm=unitRe.exec(v);if(mm)return mm[1].trim().toUpperCase()}}return ''};
-  let nUnit=0;
+  let nUnit=0,nBad=0,nRepl=0;const badEx=[],replEx=[];
   if(CD&&!has('MesureUnit')){tags.push('MesureUnit');if(s.rows.some(r=>unitFrom(r)))notes.push('MesureUnit : unité lue dans les poids (ex. « 240 GR » devient 240 + GR)');else notes.push('MesureUnit : aucune unité trouvée dans les poids, laissée vide')}
   const aoa=[tags];
   s.rows.forEach((r,i)=>{
@@ -3894,6 +3937,10 @@ function normalized(t,s,mp,defs){
     const ru=CD?unitFrom(r):'';
     aoa.push(tags.map(x=>{
       let v=has(x)?r[idx[x]]:(hasD(x)?gD(x):null);
+      if(typeof v==='string'){
+        if(BADCH.test(v)){v=v.replace(BADCH_G,'');nBad++;if(badEx.length<3)badEx.push('L'+(i+s.hdrRow+1)+' '+x)}
+        if(v.indexOf('\uFFFD')>=0){nRepl++;if(replEx.length<3)replEx.push('L'+(i+s.hdrRow+1)+' '+x)}
+      }
       if(CD){if(x==='MesureUnit'&&!has(x))return ru||null;if((x==='MesureMin'||x==='MesureMax')&&typeof v==='string'){const mm=numRe.exec(v);if(mm)v=mm[1].replace(',','.')}}
       if(isDef(t,x)&&(v==null||String(v).trim()==='')&&hasD(x)){v=gD(x);filledD[x]=(filledD[x]||0)+1}
       else if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x)){if(x==='DateLimit'||x==='Dlc')missing.push({tag:x,row:i+s.hdrRow+1,name:cellS(r,'Name'),cat:cellS(r,'Category')});else filled[x]=(filled[x]||0)+1}}
@@ -3901,6 +3948,24 @@ function normalized(t,s,mp,defs){
       return v;
     }));
   });
+  /* Contrôles de cohérence avant génération */
+  {const ci=x=>aoa[0].indexOf(x),num=v=>{const q=String(v==null?'':v).trim().replace(',','.');return /^-?\d+(\.\d+)?$/.test(q)?parseFloat(q):null};
+   const rowN=k=>'L'+(k-1+s.hdrRow+1);
+   const DURS=['DateLimit','Dlc','Ddm','Du','Conservation'].filter(x=>ci(x)>=0),TEMPS=['TempMin','TempMax','TempLimit'].filter(x=>ci(x)>=0);
+   const neg={},big={},odd={},swap=[];
+   for(let k=1;k<aoa.length;k++){const r=aoa[k];if(r.every(v=>v==null))continue;
+     DURS.forEach(x=>{const v=num(r[ci(x)]);if(v===null)return;const lim=x==='Conservation'?0:-1;if(v<lim)(neg[x]=neg[x]||[]).push(rowN(k)+' ('+v+')');else if(v>3650)(big[x]=big[x]||[]).push(rowN(k)+' ('+v+')')});
+     TEMPS.forEach(x=>{const v=num(r[ci(x)]);if(v!==null&&(v<-60||v>150))(odd[x]=odd[x]||[]).push(rowN(k)+' ('+v+')')});
+     if(ci('TempMin')>=0&&ci('TempMax')>=0){const a=num(r[ci('TempMin')]),b=num(r[ci('TempMax')]);if(a!==null&&b!==null&&a>b)swap.push(rowN(k)+' (min '+a+' > max '+b+')')}
+     if(ci('MesureMin')>=0&&ci('MesureMax')>=0){const a=num(r[ci('MesureMin')]),b=num(r[ci('MesureMax')]);if(a!==null&&b!==null&&a>b)swap.push(rowN(k)+' (MesureMin '+a+' > MesureMax '+b+')')}}
+   const ex=a=>a.slice(0,4).join(', ')+(a.length>4?' … (+'+(a.length-4)+')':'');
+   Object.keys(neg).forEach(x=>errs.push(`${x} négative sur ${neg[x].length} ligne(s) : ${ex(neg[x])}. ${x==='Conservation'?'La conservation ne peut pas être négative.':'Seul -1 est accepté (= pas de durée).'}`));
+   if(swap.length)errs.push(`Minimum supérieur au maximum sur ${swap.length} ligne(s) : ${ex(swap)}. Colonnes inversées ou faute de frappe ?`);
+   Object.keys(big).forEach(x=>notes.push(`À vérifier : ${x} supérieure à 3650 sur ${big[x].length} ligne(s) : ${ex(big[x])}`));
+   Object.keys(odd).forEach(x=>notes.push(`À vérifier : ${x} hors de -60 à 150 °C sur ${odd[x].length} ligne(s) : ${ex(odd[x])}`));
+   if(nBad)notes.push(`${nBad} cellule(s) contenaient un caractère de contrôle interdit en XML, supprimé (ex. ${badEx.join(', ')})`);
+   if(nRepl)notes.push(`À vérifier : ${nRepl} cellule(s) contiennent le caractère « \uFFFD » (ex. ${replEx.join(', ')}) : l'accent a probablement été perdu dans l'Excel`);
+  }
   if(nClean)notes.push(`${nClean} valeur(s) nettoyée(s) pour ne garder que le nombre de jours (ex. « ${cleanEx.join(' », « ')} »)`);
   Object.keys(filled).forEach(x=>notes.push(`${x} : ${filled[x]} cellule(s) vide(s) remplacée(s) par -1`));
   Object.keys(filledD).forEach(x=>notes.push(`${x} : ${filledD[x]} cellule(s) vide(s) remplacée(s) par ${gD(x)}`));
@@ -4025,11 +4090,14 @@ function openGen(m,k,id,M,r){
   function askDefs(blocks,go,label){
     const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.style.zIndex=10001;
     const md=$("div","modal xml adq");bg.appendChild(md);document.body.appendChild(bg);
-    const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true)};
-    const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}};document.addEventListener("keydown",kd,true);
+    const opener=document.activeElement;bg.setAttribute("aria-labelledby","adqt");bg.setAttribute("aria-describedby","adqs");
+    const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true);if(opener&&opener.isConnected&&opener.focus)try{opener.focus()}catch(e){}};
+    const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}
+      else if(e.key==="Tab"){const f=[...md.querySelectorAll("button,input,select,textarea,[tabindex]:not([tabindex='-1'])")].filter(x=>!x.disabled&&x.offsetParent!==null);if(!f.length)return;const a=f[0],z=f[f.length-1];
+        if(!md.contains(document.activeElement)){e.preventDefault();a.focus()}else if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}};document.addEventListener("keydown",kd,true);
     bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
     const hd=$("div","adqhd");const ic=$("span","adqic","✎");ic.setAttribute("aria-hidden","true");
-    const ht=$("div",null);ht.append($("h2",null,"Informations manquantes"),$("p","adqsub","Absentes de l'Excel du client. La valeur saisie s'applique à toutes les lignes du type concerné."));
+    const ht=$("div",null);const h2=$("h2",null,"Informations manquantes");h2.id="adqt";const sb=$("p","adqsub","Absentes de l'Excel du client. La valeur saisie s'applique à toutes les lignes du type concerné.");sb.id="adqs";ht.append(h2,sb);
     const xb=$("button","adqx","×");xb.type="button";xb.setAttribute("aria-label","Fermer");xb.onclick=close;hd.append(ic,ht,xb);md.appendChild(hd);
     const UNIT0={TempMin:"°C",TempMax:"°C",TempLimit:"°C",MesureMin:"",MesureMax:"",DateLimit:"jours",Conservation:"jours"};
     const DLU={"-1":"","0":"jours","1":"services","2":"heures","3":"minutes"};
@@ -4042,13 +4110,13 @@ function openGen(m,k,id,M,r){
       miss.forEach(x=>{const l=$("label","adqf");l.appendChild($("span","adql",DEFLAB[x]||x));
         const w=$("div","adqin");const i=$("input");i.type="text";i.inputMode="decimal";
         i.placeholder=GENX.isDef(ty,x)?"vide = -1":"requis";const cur=(st.defs[ty]||{})[x];if(cur===undefined&&TDEF[x]!==undefined){st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=TDEF[x]}
-        i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
+        i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x)+(unitOf(ty,x)?" ("+unitOf(ty,x)+")":"")+(GENX.isDef(ty,x)?", facultatif, vide = -1":", obligatoire"));i.autocomplete="off";if(!GENX.isDef(ty,x))i.required=true;
         i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;err.textContent=""};
         i.onkeydown=e=>{if(e.key==="Enter")ok.click()};
         w.appendChild(i);{const un=unitOf(ty,x);if(un)w.appendChild($("span","adqu",un))}l.appendChild(w);gr.appendChild(l);first.push(i)});
       card.appendChild(gr);md.appendChild(card);
     });
-    const err=$("p","msg err");md.appendChild(err);
+    const err=$("p","msg err");err.setAttribute("role","alert");md.appendChild(err);
     const ac=$("div","adqact");
     const cn=$("button","btn ghost","Annuler");cn.type="button";cn.onclick=close;
     const ok=$("button","btn",label||"Valider et générer");ok.type="button";
@@ -4839,7 +4907,7 @@ function viewHub(app){
     tiles.appendChild(t);
   });
   app.appendChild(tiles);
-  viewReminders(app);
+  viewTodayPanel(app);
   viewHubNext(app);
   // outils
   app.appendChild($("h2",null,"Outils"));
@@ -4908,7 +4976,8 @@ app.appendChild(tl);
   // durees
   const ad=arch.slice().sort((a,b)=>(b.m.archivedAt||b.m.created)-(a.m.archivedAt||a.m.created)).slice(0,8);
   const dmax=Math.max(1,...ad.map(x=>durOf(x.m)));
-  grid.appendChild(card("Temps de préparation","Du lancement du suivi à la validation, les 8 dernières MAJ archivées.",ad.length?barList(ad.map(x=>({label:x.m.title,v:durOf(x.m),text:fmtDur(durOf(x.m))})),{max:dmax}):empty("Aucune MAJ archivée pour le moment.")));
+  {const tc=card("Temps de préparation","Du lancement du suivi à la validation, les 8 dernières MAJ archivées.",ad.length?barList(ad.map(x=>({label:x.m.title,v:durOf(x.m),text:fmtDur(durOf(x.m))})),{max:dmax}):empty("Aucune MAJ archivée pour le moment."));
+   const sb=$("button","chip","Statistiques détaillées →");sb.type="button";sb.title="Temps moyen par personne, par type de MAJ et par module";sb.onclick=openStats;tc.appendChild(sb);grid.appendChild(tc)}
   // 3 mois
   const now=new Date(),months=[];
   for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({y:d.getFullYear(),m:d.getMonth(),n:0})}
@@ -4929,6 +4998,120 @@ app.appendChild(tl);
   app.querySelectorAll(".kpi,.card").forEach(e=>e.classList.add("acc"));
 }
 /*HUB-END*/
+
+/*TODAY-START*/
+/* Vue « À traiter aujourd'hui » : tout ce qui demande une action, regroupé (mails à envoyer, MAJ bloquées, MAJ à archiver, retards) */
+const TD_WIN=[3,7,14],TD_BLK=[3,5,7,14];
+let tdWin=7,tdBlk=5;try{const a=+localStorage.getItem("suivi-maj-tdwin"),b=+localStorage.getItem("suivi-maj-tdblk");if(TD_WIN.includes(a))tdWin=a;if(TD_BLK.includes(b))tdBlk=b}catch(e){}
+function openToday(){page="today";backTo=null;render()}
+function todayItems(){
+  const t0=startOfToday(),now=Date.now(),DAY=86400000,out={mail:[],blocked:[],ready:[],late:[]};
+  const rel=n=>n===0?"aujourd'hui":n===1?"demain":n>1?"dans "+n+" jours":n===-1?"hier":"il y a "+(-n)+" jours";
+  const lbl=k=>(MAIL_TRACK.find(z=>z[0]===k)||[k,k])[1].replace(/^\d+[a-z]? · /,"");
+  Object.keys(majs).forEach(id=>{const m=majs[id];if(!m||m.archived)return;
+    if(m.blocked){const at=m.blocked.at||m.created,d=Math.floor((now-at)/DAY);if(d>=tdBlk)out.blocked.push({id,m,sev:d,txt:"Bloquée depuis "+d+" jours"+(m.blocked.by?" (par "+who(m.blocked.by)+")":"")+" : relancer le client"});return}
+    if(canArchive(m)){out.ready.push({id,m,sev:0,txt:"Fin de déploiement envoyée : tu peux valider et archiver"});}
+    const k=m.mails||{};
+    if(m.type!=="correctif"){
+      const D=parseD(m.dateDeploiement),S=parseD(m.dateSiege),dD=D?Math.round((D-t0)/DAY):null,dS=S?Math.round((S-t0)/DAY):null;
+      let r=null;
+      if(!k.prise&&D&&dD>=0&&dD<=tdWin)r=["prise","déploiement "+rel(dD),dD];
+      else if(!k.siege&&S&&dS<=tdWin&&dS>=-30)r=["siege","mise à jour siège "+rel(dS),dS];
+      else if(!k.debut&&D&&dD<=0&&dD>=-30)r=["debut","déploiement "+rel(dD),dD];
+      else if(k.debut&&!k.fin&&!k.pass2&&D&&dD<0&&dD>=-30)r=["fin","déploiement "+rel(dD),dD];
+      if(r)out.mail.push({id,m,sev:-r[2],txt:"Mail « "+lbl(r[0])+" » pas encore envoyé : "+r[1]});
+    }
+  });
+  reminders().filter(r=>r.sev>1).forEach(r=>{if(!out.blocked.some(x=>x.id===r.id))out.late.push({id:r.id,m:r.m,sev:r.sev,txt:r.txt})});
+  Object.values(out).forEach(a=>a.sort((x,y)=>y.sev-x.sev));
+  return out;
+}
+const todayCount=T=>T.mail.length+T.blocked.length+T.ready.length+T.late.length;
+function todayRow(r,badge,cls){
+  const b=$("button","nrow"+(cls==="late"?"":" wait"));b.type="button";
+  const mid=$("span","nmid");mid.append($("strong",null,r.m.title),$("small",null,r.txt));
+  b.append(mid,$("span","badge "+cls,badge));b.onclick=()=>{backTo="today";setCur(r.id)};return b;
+}
+/* Panneau de l'accueil : un compteur par catégorie + lien vers la vue complète */
+function viewTodayPanel(app){
+  const T=todayItems(),n=todayCount(T);
+  const sec=$("section","panel acc rem"+(T.late.length||T.mail.length?" late":""));
+  const hd=$("div","hubtop");hd.append($("h2",null,"À traiter aujourd'hui"),$("span","badge "+(n?"late":"done"),String(n)));
+  const all=$("button","chip","Tout voir →");all.type="button";all.onclick=openToday;hd.appendChild(all);sec.appendChild(hd);
+  if(!n){sec.appendChild($("p","empty","Rien à traiter : aucun mail en attente, aucune MAJ bloquée ni à archiver."));app.appendChild(sec);return}
+  const ch=$("div","tdchips");
+  [["mail","mail à envoyer","mails à envoyer"],["late","en retard","en retard"],["blocked","bloquée","bloquées"],["ready","à archiver","à archiver"]].forEach(([k,a,b])=>{const c=T[k].length;if(!c)return;
+    const x=$("button","chip tdchip "+k,c+" "+(c>1?b:a));x.type="button";x.onclick=openToday;ch.appendChild(x)});
+  sec.appendChild(ch);
+  const ul=$("div","nextlist");
+  [...T.late.map(r=>[r,"À relancer","late"]),...T.mail.map(r=>[r,"À envoyer","live"])].slice(0,4).forEach(([r,bd,c])=>ul.appendChild(todayRow(r,bd,c)));
+  if(ul.children.length)sec.appendChild(ul);
+  app.appendChild(sec);
+}
+function viewToday(app){
+  const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
+  app.appendChild($("h1",null,"À traiter aujourd'hui"));
+  const T=todayItems(),n=todayCount(T);
+  app.appendChild($("p","sub",n?n+" élément"+(n>1?"s":"")+" demandent une action. Clique sur une ligne pour ouvrir la fiche.":"Rien à traiter pour le moment."));
+  const opt=$("div","tdopts");
+  const sel=(lab,vals,cur0,unit,set)=>{const l=$("label","datef");l.append($("span",null,lab));const s=$("select");vals.forEach(v=>{const o=$("option",null,v+" "+unit);o.value=v;if(v===cur0)o.selected=true;s.appendChild(o)});s.onchange=()=>{set(+s.value);render()};l.appendChild(s);return l};
+  opt.append(sel("Mails : échéance dans moins de",TD_WIN,tdWin,"jours",v=>{tdWin=v;try{localStorage.setItem("suivi-maj-tdwin",v)}catch(e){}}),
+             sel("MAJ bloquées depuis plus de",TD_BLK,tdBlk,"jours",v=>{tdBlk=v;try{localStorage.setItem("suivi-maj-tdblk",v)}catch(e){}}));
+  app.appendChild(opt);
+  const part=(title,sub,L,badge,cls,none)=>{
+    const sec=$("section","panel acc"+(cls==="late"&&L.length?" late":""));const hd=$("div","hubtop");hd.append($("h2",null,title),$("span","badge "+(L.length?cls:"done"),String(L.length)));sec.appendChild(hd);
+    if(sub)sec.appendChild($("p","sub",sub));
+    if(!L.length){sec.appendChild($("p","empty",none));app.appendChild(sec);return}
+    const ul=$("div","nextlist");L.forEach(r=>ul.appendChild(todayRow(r,badge,cls)));sec.appendChild(ul);app.appendChild(sec)};
+  part("Retards et validations en attente","Déploiement dépassé avec une étape non terminée, ou validation siège sans réponse.",T.late,"À relancer","late","Aucun retard.");
+  part("Mails à envoyer","Échéance proche (ou passée) et mail correspondant pas encore envoyé.",T.mail,"À envoyer","live","Aucun mail en attente.");
+  part("MAJ bloquées","Bloquées en attente du client depuis plus de "+tdBlk+" jours.",T.blocked,"Bloquée","block","Aucune MAJ bloquée depuis plus de "+tdBlk+" jours.");
+  part("Prêtes à archiver","Fin de déploiement envoyée : il reste à valider.",T.ready,"Prête","ready","Aucune MAJ à archiver.");
+}
+/*TODAY-END*/
+
+/*STATS-START*/
+/* Statistiques de temps de préparation : par personne, par type de MAJ et par module, pour estimer la charge */
+let stPer=6;try{const v=localStorage.getItem("suivi-maj-stper");if(v!==null&&["3","6","12","0"].includes(v))stPer=+v}catch(e){}
+function openStats(){page="stats";backTo=null;render()}
+function viewStats(app){
+  const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb);
+  app.appendChild($("h1",null,"Temps de préparation"));
+  app.appendChild($("p","sub","MAJ terminées (archivées ou préparation finie). Durée = chrono de préparation, pauses déduites."));
+  const lim=stPer?Date.now()-stPer*30.4*86400000:0;
+  const L=Object.keys(majs).map(id=>majs[id]).filter(m=>m&&m.mods&&(m.archived||m.prepDoneAt)&&(m.archivedAt||m.prepDoneAt||m.created)>=lim).map(m=>{const s=stats(m);return{m,d:durOf(m),rows:s.rows||0}}).filter(x=>x.d>0);
+  const opt=$("div","tdopts");{const l=$("label","datef");l.append($("span",null,"Période"));const s=$("select");[[3,"3 derniers mois"],[6,"6 derniers mois"],[12,"12 derniers mois"],[0,"Tout"]].forEach(([v,t])=>{const o=$("option",null,t);o.value=v;if(v===stPer)o.selected=true;s.appendChild(o)});s.onchange=()=>{stPer=+s.value;try{localStorage.setItem("suivi-maj-stper",stPer)}catch(e){}render()};l.appendChild(s);opt.appendChild(l)}
+  app.appendChild(opt);
+  if(!L.length){app.appendChild($("p","empty","Aucune MAJ terminée sur cette période."));return}
+  const sum=a=>a.reduce((x,y)=>x+y,0),avg=a=>a.length?sum(a)/a.length:0,med=a=>{const b=a.slice().sort((x,y)=>x-y),n=b.length;return n?(n%2?b[(n-1)/2]:(b[n/2-1]+b[n/2])/2):0};
+  const rowsT=sum(L.map(x=>x.rows)),perLine=rowsT?sum(L.map(x=>x.d))/rowsT:0;
+  const tiles=$("div","kpis");
+  [["MAJ terminées",L.length,"sur la période"],["Durée moyenne",fmtDur(avg(L.map(x=>x.d))),"par MAJ"],["Durée médiane",fmtDur(med(L.map(x=>x.d))),"la moitié des MAJ est plus rapide"],["Par ligne",perLine?fmtDur(perLine):"-","moyenne par ligne (région × module)"]].forEach(([a,v,c])=>{const t=$("div","kpi");t.append($("small",null,a),$("b",null,String(v)),$("span",null,c));tiles.appendChild(t)});
+  app.appendChild(tiles);
+  const table=(title,sub,head,rows)=>{
+    const sec=$("section","panel acc");sec.appendChild($("h2",null,title));if(sub)sec.appendChild($("p","sub",sub));
+    const w=$("div","atabw"),t=$("table","atab"),th=$("thead"),hr=$("tr");
+    head.forEach(h=>{const c=$("th",null,h);c.scope="col";hr.appendChild(c)});th.appendChild(hr);t.appendChild(th);
+    const tb=$("tbody");rows.forEach(r=>{const tr=$("tr");r.forEach(x=>tr.appendChild($("td",null,String(x))));tb.appendChild(tr)});t.appendChild(tb);
+    w.appendChild(t);sec.appendChild(w);app.appendChild(sec)};
+  const agg=g=>{const ds=g.map(x=>x.d),rw=sum(g.map(x=>x.rows));return[g.length,fmtDur(avg(ds)),fmtDur(med(ds)),fmtDur(Math.min(...ds))+" – "+fmtDur(Math.max(...ds)),rw?fmtDur(sum(ds)/rw):"-"]};
+  const H=["MAJ","Moyenne","Médiane","Min – max","Par ligne"];
+  const byP={};L.forEach(x=>{const k=x.m.createdBy||x.m.archivedBy||"?";(byP[k]=byP[k]||[]).push(x)});
+  table("Par personne","Personne qui a créé le suivi (à défaut, celle qui l'a archivé).",["Personne",...H],Object.entries(byP).sort((a,b)=>b[1].length-a[1].length).map(([k,g])=>[k==="?"?"Non renseigné":(who(k)||"Un collègue"),...agg(g)]));
+  const dep=L.filter(x=>x.m.type!=="correctif"),cor=L.filter(x=>x.m.type==="correctif");
+  table("Par type de MAJ",null,["Type",...H],[["Déploiement",dep],["Correctif",cor]].filter(z=>z[1].length).map(([k,g])=>[k,...agg(g)]));
+  const byM={};L.forEach(x=>{const ns=new Set((x.m.mods||[]).map(M=>M.name).filter(n=>n&&n!==MOD_TBD));ns.forEach(n=>(byM[n]=byM[n]||[]).push(x))});
+  table("Par module","MAJ qui contiennent le module (une MAJ à plusieurs modules compte dans chacun) : à lire comme un ordre de grandeur.",["Module",...H],Object.entries(byM).sort((a,b)=>b[1].length-a[1].length).map(([k,g])=>[k,...agg(g)]));
+  if(perLine){
+    const sec=$("section","panel acc");sec.appendChild($("h2",null,"Estimer une charge"));
+    sec.appendChild($("p","sub","Nombre de lignes à préparer (région × module) × moyenne par ligne observée sur la période."));
+    const r=$("div","tdopts"),l=$("label","datef");l.append($("span",null,"Lignes à préparer"));
+    const i=$("input");i.type="number";i.min="1";i.value="10";i.setAttribute("aria-label","Nombre de lignes à préparer");l.appendChild(i);
+    const out=$("p","sub");out.setAttribute("aria-live","polite");
+    const upd=()=>{const n=Math.max(0,+i.value||0);out.textContent=n?"≈ "+fmtDur(n*perLine)+" de préparation pour "+n+" ligne"+(n>1?"s":""):""};
+    i.oninput=upd;upd();r.append(l,out);sec.appendChild(r);app.appendChild(sec)}
+}
+/*STATS-END*/
 
 /*SEARCH-START*/
 const SF0={q:"",status:"",group:"",mod:"",reg:"",who:"",csm:"",qm:"",dfield:"created",from:"",to:"",prog:"",dur:"",sort:"recent"};
@@ -5621,7 +5804,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.18.7",APP_DATE="13/11/2026";
+const APP_VERSION="v2.19.4",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
@@ -5633,7 +5816,7 @@ function render(){
   app.classList.toggle("wide",!(cur&&majs[cur])&&page==="archived");app.classList.toggle("hubw",!(cur&&majs[cur])&&page==="hub");
   const keepY=window.scrollY;
   app.textContent="";
-  if(cur&&majs[cur])viewMaj(app,cur);else if(page==='hub')viewHub(app);else if(page==='search')viewSearch(app);else if(page==='live')viewLive(app,false);else if(page==='archived')viewLive(app,true);else if(page==='upcoming')viewUpcoming(app);else viewHome(app);
+  if(cur&&majs[cur])viewMaj(app,cur);else if(page==='hub')viewHub(app);else if(page==='search')viewSearch(app);else if(page==='live')viewLive(app,false);else if(page==='archived')viewLive(app,true);else if(page==='upcoming')viewUpcoming(app);else if(page==='today')viewToday(app);else if(page==='stats')viewStats(app);else viewHome(app);
   window.scrollTo(0,keepY);
 }
 /* Logo et libellé de la barre : retour à l'accueil */

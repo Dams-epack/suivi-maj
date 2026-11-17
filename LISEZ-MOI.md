@@ -1,75 +1,31 @@
-# Suivi MAJ – version autonome (GitHub Pages + fichier SharePoint)
+# Suivi MAJ : guide rapide
 
-Cette version n'a plus besoin de Claude. La page est hébergée sur GitHub Pages et les données partagées
-sont dans **un seul fichier JSON** placé dans un dossier SharePoint synchronisé avec OneDrive.
+Deux outils mono-fichier, sans installation :
 
-Deux dossiers :
-- `site-github/` : contient `index.html`, la page. **C'est la seule chose à mettre sur GitHub.**
-- `donnees/` : contient `suivi-maj-donnees.json`, les données de départ (2 MAJ archivées + 135 groupes).
-  **Ne jamais le mettre sur GitHub** : il va dans SharePoint.
+- **Suivi de préparation des MAJ (SGC)** : `index.html`, publié comme page claude.ai.
+- **Outils XML ePack (Support)** : `xml.html`, mêmes briques, réservé au Support (Excel → XML, Compléter un XML, XML → Excel). Un Mode d'emploi avec vidéos est intégré (bouton livre).
 
-## 1. Publier la page sur GitHub Pages (une seule fois)
+Les détails techniques et la liste complète des fonctions sont dans `README.md`.
 
-1. Sur github.com, crée un dépôt, par exemple `suivi-maj` (onglet « New repository »).
-   - GitHub Pages gratuit exige un dépôt **public**. La page ne contient aucune donnée client (seulement le catalogue
-     des modules et les régions), mais n'importe qui avec le lien peut l'ouvrir : elle apparaît vide sans le fichier de données.
-2. « Add file » > « Upload files » : dépose `index.html` (celui du dossier `site-github`) > « Commit changes ».
-3. « Settings » > « Pages » > Source : « Deploy from a branch », branche `main`, dossier `/ (root)` > « Save ».
-4. Après 1 à 2 minutes, l'adresse est : `https://TON-COMPTE.github.io/suivi-maj/`. C'est le lien à donner aux collègues.
+## Suivi des MAJ
 
-Pour mettre à jour la page plus tard : remplace `index.html` dans le dépôt (« Upload files », même nom).
+1. **Créer** : colle le mail du client ; l'outil propose groupement, modules, régions et dates (délai J-7, J-5 ou dates personnalisées).
+2. **Préparer** : une ligne par module et par région ; coche « Fichier d'import », « Configurateur (XML) » et « Moulinette ». Le chrono s'arrête quand tout est coché.
+3. **Excel → XML** : bouton sur chaque ligne ; l'outil lit l'Excel du client et génère l'XML.
+4. **Mails** : les boutons de « MAJ à venir » ouvrent les mails types (prise en charge, MAJ siège, début, fin, seconde passe).
+5. **Suivre** : l'accueil affiche « À traiter aujourd'hui » (retards, mails à envoyer, MAJ bloquées, MAJ à archiver).
+6. **Archiver** : une fois la fin de déploiement envoyée, « Valider ». Une MAJ archivée est en **lecture seule** ; « Désarchiver » la rend modifiable.
+7. **Statistiques** : « Statistiques détaillées » (carte « Temps de préparation » de l'accueil) donne les temps moyens par personne, par type et par module.
 
-## 2. Mettre le fichier de données dans SharePoint
+## Outils XML (Support)
 
-1. Dépose `suivi-maj-donnees.json` dans un dossier SharePoint de l'équipe (par exemple
-   `SGC > 04 RESSOURCES INTERNES > 00. Skills Claude AI > Suivi des majs`).
-2. Chaque collègue synchronise ce dossier avec OneDrive (bouton « Synchroniser » dans SharePoint), puis clic droit
-   sur le dossier > « Toujours conserver sur cet appareil » (le fichier doit être réellement présent sur le poste).
+- **Excel → XML** : dépose le fichier, choisis le ou les types, vérifie les colonnes (« Ajuster les colonnes »), complète les valeurs manquantes puis génère. Les erreurs bloquantes (Id en double, durée négative, minimum supérieur au maximum) sont expliquées ligne par ligne.
+- **Compléter un XML** et **XML → Excel** : voir le Mode d'emploi et les vidéos.
+- Tout reste dans le navigateur : rien n'est envoyé.
 
-## 3. Se connecter au fichier (chaque collègue, une fois)
+## Mettre à jour (mainteneur)
 
-1. Ouvrir la page **avec Microsoft Edge ou Google Chrome** (Firefox et Safari ne conviennent pas).
-2. Dans la barre du haut : « Ouvrir le fichier de données » > choisir `suivi-maj-donnees.json` dans le dossier synchronisé.
-3. Facultatif : saisir son prénom dans la barre (il apparaît comme « préparé par »).
-
-Le navigateur retient le fichier. À une prochaine visite, il peut demander de confirmer l'autorisation :
-cliquer sur « Reconnecter » dans la barre (dans Chrome, choisir « Autoriser à chaque visite » évite de le refaire).
-
-## À savoir
-
-- **Synchronisation** : la page relit le fichier toutes les 4 secondes. Mais OneDrive met quelques secondes à quelques
-  minutes à propager le fichier entre les postes, donc ce n'est pas du temps réel.
-- **Écritures simultanées** : chaque enregistrement relit le fichier avant d'écrire. Si deux personnes enregistrent au même instant,
-  OneDrive peut créer une copie « conflit » du fichier : à ce moment-là, garder la plus récente et supprimer l'autre.
-  Si deux personnes cochent des étapes de la **même ligne** en même temps, la dernière écriture gagne.
-- **Sauvegarde** : le bouton « Sauvegarder (JSON) » de la page d'accueil reste disponible. SharePoint garde aussi l'historique
-  des versions du fichier (« Historique des versions »), ce qui permet de revenir en arrière.
-- **Téléchargement du XML** : le fichier XML est téléchargé directement (plus de zip).
-- **Lecture du mail** : sans Claude, l'analyse du mail est locale (moins souple). Le « Suivi personnalisé » reste le plus fiable.
-- **Données** : le fichier JSON contient tes MAJ et les groupes. Il reste dans ton SharePoint, jamais sur GitHub.
-
-## Guide rapide des fonctions (à jour v2.0.0)
-
-**Accueil**
-- *Rappels* : MAJ dont la validation siège attend depuis 3 jours ou plus, et déploiements dans les 7 jours dont le rétroplanning n'est pas envoyé. Une MAJ « bloquée » n'apparaît pas dans les rappels.
-- *MAJ à venir* : cartes réductibles (bouton ▾, « Tout réduire / Tout développer »), cases de mails à cocher directement.
-
-**Statuts d'une MAJ** (une seule règle partout : badges, filtres, export CSV)
-- *En cours* → *Prête à archiver* (fin de déploiement faite, et seconde passe faite si elle est prévue) → *Archivée*.
-- *Bloquée · attente client* : bouton dans la fiche, pour mettre une MAJ en pause en attendant le client. Se retire d'un clic.
-
-**Recherche**
-- Filtres : statut (dont *Bloquées*), groupement, module, région, **CSM**, **QM**, préparée par (avec **Mes MAJ**), avancement, durée, dates.
-
-**Création depuis un mail**
-- Le lecteur local signale ce qu'il a deviné au lieu de le cacher : région absente (FR supposé), lignes non comprises, plusieurs groupements cités. Chaque alerte propose une question prête à renvoyer au client.
-
-**Synchronisation**
-- La pastille du bandeau (verte / orange / rouge) ouvre le *Journal de synchronisation* : mode de stockage, dernière sauvegarde réussie, 40 derniers événements, boutons *Réessayer* et *Recharger*.
-- En cas d'échec, les modifications restent dans le navigateur ; *Réessayer* les renvoie.
-
-**XML**
-- Chaque génération est notée dans la fiche (date, région, module, fichier, personne).
-- Page Support (`xml.html`) : Excel → XML, Compléter un XML, XML → Excel (en test).
-
-**Langue** : bouton FR / EN dans le bandeau ; les textes dynamiques sont traduits au fil de l'eau.
+```
+python3 build_support.py index.html xml.html
+```
+puis publier `index.html` et `xml.html`, et commit. Penser à incrémenter `APP_VERSION` (et `SB`).

@@ -3,7 +3,11 @@
 Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation des mises à jour de modules clients ePackPro.
 
 ## Contenu
-- `index.html` : toute l'application (suivi, MAJ à venir, recherche, générateur XML, modèles de mails).
+- `index.html` : toute l'application (suivi, À traiter aujourd'hui, MAJ à venir, statistiques, recherche, générateur XML, modèles de mails).
+- `xml.html` : outil Support (Excel → XML, Compléter un XML, XML → Excel). **Généré** : ne pas l'éditer à la main.
+- `build_support.py` : génère `xml.html` à partir d'`index.html` (`python3 build_support.py index.html xml.html`) et contient le Mode d'emploi du Support (FR/EN). Il porte son propre numéro de version (`SB`).
+- `x2e.js` : conversion XML → Excel. `videos/` : vidéos commentées intégrées au Mode d'emploi. `favicon.svg`.
+- Numéro de version de l'outil SGC : `APP_VERSION` dans `index.html`. À chaque changement : mettre à jour `APP_VERSION` (et `SB` si le Support change), régénérer `xml.html`, publier, commit.
 
 ## Fonctions
 - **Créer un suivi de MAJ** : une ligne par module et par région, avec 2 étapes (fichier d'import, dépôt dans le SharePoint) et un chronomètre qui s'arrête quand tout est coché.
@@ -22,6 +26,13 @@ Outil mono-fichier (HTML + JavaScript, sans build) pour suivre la préparation d
 - **Calendrier Outlook** : le bouton « Enregistrer et envoyer dans Outlook » à côté des dates demande confirmation puis envoie deux événements en journée entière (MAJ siège, Déploiement MAJ Nationale ou Internationale, avec codes pays) à un second flux Power Automate. L'URL se saisit dans la roue crantée (Paramètres), jamais dans le dépôt. Un avertissement rappelle de supprimer à la main les événements précédents (risque de doublons).
 - **Groupements** : recherche intelligente (tolérance aux fautes) et codes pays ajoutés au nom de la MAJ si plusieurs régions.
 - **Enregistrer** (bas de la page de la MAJ) : enregistre la fiche dans la base commune et revient à « MAJ à venir ». Il n'envoie rien vers Outlook.
+
+- **À traiter aujourd'hui** : vue qui regroupe retards et validations siège en attente, mails à envoyer (échéance dans 3, 7 ou 14 jours), MAJ bloquées depuis plus de 3, 5, 7 ou 14 jours, et MAJ prêtes à archiver. Un résumé est affiché sur l'accueil.
+- **Statistiques de temps** : temps de préparation moyen, médian, min–max et par ligne, par personne, par type (déploiement ou correctif) et par module, sur 3, 6, 12 mois ou tout, avec un estimateur de charge.
+- **MAJ archivée = lecture seule** : plus aucune modification possible (dates, cases, chrono, modules, liens, suppression). Seuls la navigation, les filtres, les téléchargements et « Désarchiver » restent actifs.
+- **Contrôles avant génération XML** : bloquent les Id en double, les durées négatives autres que -1 et les minimums supérieurs aux maximums ; alertent sur les durées supérieures à 3650, les températures hors de -60 à 150 °C et le caractère « � ». Les caractères de contrôle interdits en XML sont supprimés.
+- **Ajuster les colonnes** : colonnes regroupées (communes puis propres au module), pastilles « requis » / « à remplir », bouton ⓘ qui explique chaque choix, lignes d'erreur cliquables qui ouvrent la fenêtre de saisie du module. DLC, DDM et DU prennent l'unité du « Type de DLC ».
+- **Accessibilité** : fenêtre « Informations manquantes » avec focus piégé, retour du focus et annonces d'erreur ; mise en page testée à 375 px de large.
 
 ## Utilisation
 Conçu pour tourner comme Artifact claude.ai (analyse du mail par l'IA, stockage partagé via la base de l'Artifact, téléchargement des ZIP). Ouvert hors de claude.ai, il retombe sur le stockage local du navigateur (`localStorage`), donc les données ne sont pas partagées entre postes.

@@ -242,7 +242,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .adqhd h2{margin:0 0 2px;font-size:1.15rem}
 .adqic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--cta) 18%,transparent);color:var(--cta);font-size:1.1rem}
 .adqsub{margin:0;color:var(--muted);font-size:.85rem;line-height:1.35}
-.adqx{margin-left:auto;flex:none;border:0;background:transparent;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer;padding:2px 8px;border-radius:8px}
+.adqx{margin-left:auto;flex:none;min-width:44px;min-height:44px;border:0;background:transparent;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer;padding:2px 8px;border-radius:8px}
 .adqx:hover{background:color-mix(in srgb,var(--fg) 10%,transparent);color:var(--fg)}
 .adqcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:color-mix(in srgb,var(--fg) 3%,transparent)}
 .adqcard h3{margin:0 0 10px;font-size:.95rem}
@@ -250,11 +250,12 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .adqf{display:block}
 .adql{display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px;font-weight:600}
 .adqin{position:relative}
-.adqin input{padding-right:46px!important}
+.adqin input{padding-right:72px!important}
 .adqin input::placeholder{color:var(--muted);opacity:.55;font-style:italic}
 .adqin input:focus{outline:2px solid var(--cta);outline-offset:0}
 .adqu{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--muted);pointer-events:none}
-.adqact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.adqact{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+@media(max-width:480px){.adqgrid{grid-template-columns:1fr}.adqact .btn{flex:1 1 140px;min-height:44px}.modal.xml.adq{padding:16px}}
 
 .dates{display:flex;flex-wrap:wrap;gap:12px 24px}
 .mailbody{font:inherit;font-weight:400;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;width:100%;resize:vertical;line-height:1.45}
@@ -325,6 +326,11 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .chip.gx{align-self:center;font-size:.8rem;padding:3px 10px;border-color:var(--cta)}
 .gsheets{display:flex;flex-direction:column;gap:6px}
 .gsum{opacity:.8;margin:4px 0}
+.atab td:last-child{color:inherit;font-weight:400}
+.rclact:focus-visible,.nrow:focus-visible,.addb:focus-visible,.modtog:focus-visible,.gsheet:focus-within{outline:2px solid var(--cta)!important;outline-offset:2px}
+@media(max-width:600px){.chip,.btn{min-height:40px}.tdopts{flex-direction:column;gap:8px}}
+.badge.done{color:var(--ok);border-color:var(--ok)}
+.tdopts{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 16px}.tdchips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.tdchip{cursor:pointer}
 .locked .step:disabled,.locked .modtog{opacity:1;cursor:default}.locked .step:disabled{pointer-events:none}.locked .lockmsg{color:var(--muted)}
 .gsheet{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;font-weight:400}
 .gsheet span{color:var(--muted);font-size:.85rem}
@@ -798,8 +804,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.18.7";
-const SUPPORT_BUILD="v1.3.7";
+const APP_VERSION="v2.19.4";
+const SUPPORT_BUILD="v1.4.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1032,6 +1038,42 @@ mail envoyé ⇒ email sent
 ← Toutes les MAJ ⇒ ← All updates
 + Suivi personnalisé ⇒ + Custom tracker
 Désarchiver ⇒ Unarchive
+À traiter aujourd'hui ⇒ To do today
+Retards et validations en attente ⇒ Overdue items and pending validations
+Mails à envoyer ⇒ Emails to send
+MAJ bloquées ⇒ Blocked updates
+Prêtes à archiver ⇒ Ready to archive
+Aucun retard. ⇒ Nothing overdue.
+Aucun mail en attente. ⇒ No email pending.
+Aucune MAJ à archiver. ⇒ No update to archive.
+Mails : échéance dans moins de ⇒ Emails: due within
+MAJ bloquées depuis plus de ⇒ Updates blocked for more than
+Tout voir → ⇒ See all →
+Statistiques détaillées → ⇒ Detailed statistics →
+Temps de préparation ⇒ Preparation time
+Période ⇒ Period
+3 derniers mois ⇒ Last 3 months
+6 derniers mois ⇒ Last 6 months
+12 derniers mois ⇒ Last 12 months
+Tout ⇒ All
+MAJ terminées ⇒ Completed updates
+Durée moyenne ⇒ Average duration
+Durée médiane ⇒ Median duration
+Par ligne ⇒ Per line
+Par personne ⇒ By person
+Par type de MAJ ⇒ By update type
+Par module ⇒ By module
+Moyenne ⇒ Average
+Médiane ⇒ Median
+Min – max ⇒ Min – max
+Personne ⇒ Person
+Déploiement ⇒ Deployment
+Correctif ⇒ Fix
+Estimer une charge ⇒ Estimate a workload
+Lignes à préparer ⇒ Lines to prepare
+Réduire ⇒ Collapse
+Développer ⇒ Expand
+🔒 MAJ archivée : lecture seule. Clique sur « Désarchiver » pour la modifier. ⇒ 🔒 Archived update: read-only. Click « Unarchive » to edit it.
 =Archivée ⇒ Archived
 Prête à archiver ⇒ Ready to archive
 Prêtes à archiver ⇒ Ready to archive
@@ -2252,7 +2294,7 @@ function readRows(name,aoa,off){
 }
 function finalize(name,rows,errs,warns,now){
   const used=new Set();let gen=0;
-  rows.forEach(r=>{if(r.Id){if(used.has(r.Id))errs.push(`L${r._row} : Id en double ${r.Id}`);used.add(r.Id)}});
+  const firstId={};rows.forEach(r=>{if(r.Id){if(used.has(r.Id))errs.push(`L${r._row} : Id en double ${r.Id} (déjà utilisé ligne ${firstId[r.Id]})`);else firstId[r.Id]=r._row;used.add(r.Id)}});
   rows.forEach((r,i)=>{
     if(!r.Id){let x;do{x=randId(MODS[name].idLen)}while(used.has(x));used.add(x);r.Id=x;gen++}
     if(!r.TS)r.TS=now(i);
@@ -2379,6 +2421,7 @@ function resolve(t,s,mp){
   return idx;
 }
 const isDef=(t,x)=>!MODS[t].noDef&&MODS[t].req.includes(x)&&['int','num'].includes(MODS[t].cols.find(c=>c[0]===x)[1]);
+const BADCH=/[\u0000-\u0008\u000B\u000C\u000E-\u001B\uFFFE\uFFFF]/,BADCH_G=new RegExp(BADCH.source,'g');
 function normalized(t,s,mp,defs){
   const m=MODS[t],idx=resolve(t,s,mp),has=x=>idx[x]>=0;
   defs=defs||{};const hasD=x=>defs[x]!==undefined&&String(defs[x]).trim()!=='',gD=x=>String(defs[x]).trim().replace(',','.');
@@ -2393,7 +2436,7 @@ function normalized(t,s,mp,defs){
   m.req.filter(x=>!isDef(t,x)&&!has(x)&&!hasD(x)).forEach(x=>errs.push(`Colonne ${x} introuvable dans cet onglet (en-têtes lues : ${s.header.filter(Boolean).join(', ')||'aucune'})`));
   const CD=t==='ControleDivers',unitRe=/^\s*-?\d+(?:[.,]\d+)?\s*([^\d\s.,\-][^\d]*)$/,numRe=/^\s*(-?\d+(?:[.,]\d+)?)\s*[^\d\s.,\-][^\d]*$/;
   const unitFrom=r=>{for(const x of ['MesureMin','MesureMax']){if(!has(x))continue;const v=r[idx[x]];if(typeof v==='string'){const mm=unitRe.exec(v);if(mm)return mm[1].trim().toUpperCase()}}return ''};
-  let nUnit=0;
+  let nUnit=0,nBad=0,nRepl=0;const badEx=[],replEx=[];
   if(CD&&!has('MesureUnit')){tags.push('MesureUnit');if(s.rows.some(r=>unitFrom(r)))notes.push('MesureUnit : unité lue dans les poids (ex. « 240 GR » devient 240 + GR)');else notes.push('MesureUnit : aucune unité trouvée dans les poids, laissée vide')}
   const aoa=[tags];
   s.rows.forEach((r,i)=>{
@@ -2402,6 +2445,10 @@ function normalized(t,s,mp,defs){
     const ru=CD?unitFrom(r):'';
     aoa.push(tags.map(x=>{
       let v=has(x)?r[idx[x]]:(hasD(x)?gD(x):null);
+      if(typeof v==='string'){
+        if(BADCH.test(v)){v=v.replace(BADCH_G,'');nBad++;if(badEx.length<3)badEx.push('L'+(i+s.hdrRow+1)+' '+x)}
+        if(v.indexOf('\uFFFD')>=0){nRepl++;if(replEx.length<3)replEx.push('L'+(i+s.hdrRow+1)+' '+x)}
+      }
       if(CD){if(x==='MesureUnit'&&!has(x))return ru||null;if((x==='MesureMin'||x==='MesureMax')&&typeof v==='string'){const mm=numRe.exec(v);if(mm)v=mm[1].replace(',','.')}}
       if(isDef(t,x)&&(v==null||String(v).trim()==='')&&hasD(x)){v=gD(x);filledD[x]=(filledD[x]||0)+1}
       else if(isDef(t,x)&&(v==null||String(v).trim()==='')){v='-1';if(has(x)){if(x==='DateLimit'||x==='Dlc')missing.push({tag:x,row:i+s.hdrRow+1,name:cellS(r,'Name'),cat:cellS(r,'Category')});else filled[x]=(filled[x]||0)+1}}
@@ -2409,6 +2456,24 @@ function normalized(t,s,mp,defs){
       return v;
     }));
   });
+  /* Contrôles de cohérence avant génération */
+  {const ci=x=>aoa[0].indexOf(x),num=v=>{const q=String(v==null?'':v).trim().replace(',','.');return /^-?\d+(\.\d+)?$/.test(q)?parseFloat(q):null};
+   const rowN=k=>'L'+(k-1+s.hdrRow+1);
+   const DURS=['DateLimit','Dlc','Ddm','Du','Conservation'].filter(x=>ci(x)>=0),TEMPS=['TempMin','TempMax','TempLimit'].filter(x=>ci(x)>=0);
+   const neg={},big={},odd={},swap=[];
+   for(let k=1;k<aoa.length;k++){const r=aoa[k];if(r.every(v=>v==null))continue;
+     DURS.forEach(x=>{const v=num(r[ci(x)]);if(v===null)return;const lim=x==='Conservation'?0:-1;if(v<lim)(neg[x]=neg[x]||[]).push(rowN(k)+' ('+v+')');else if(v>3650)(big[x]=big[x]||[]).push(rowN(k)+' ('+v+')')});
+     TEMPS.forEach(x=>{const v=num(r[ci(x)]);if(v!==null&&(v<-60||v>150))(odd[x]=odd[x]||[]).push(rowN(k)+' ('+v+')')});
+     if(ci('TempMin')>=0&&ci('TempMax')>=0){const a=num(r[ci('TempMin')]),b=num(r[ci('TempMax')]);if(a!==null&&b!==null&&a>b)swap.push(rowN(k)+' (min '+a+' > max '+b+')')}
+     if(ci('MesureMin')>=0&&ci('MesureMax')>=0){const a=num(r[ci('MesureMin')]),b=num(r[ci('MesureMax')]);if(a!==null&&b!==null&&a>b)swap.push(rowN(k)+' (MesureMin '+a+' > MesureMax '+b+')')}}
+   const ex=a=>a.slice(0,4).join(', ')+(a.length>4?' … (+'+(a.length-4)+')':'');
+   Object.keys(neg).forEach(x=>errs.push(`${x} négative sur ${neg[x].length} ligne(s) : ${ex(neg[x])}. ${x==='Conservation'?'La conservation ne peut pas être négative.':'Seul -1 est accepté (= pas de durée).'}`));
+   if(swap.length)errs.push(`Minimum supérieur au maximum sur ${swap.length} ligne(s) : ${ex(swap)}. Colonnes inversées ou faute de frappe ?`);
+   Object.keys(big).forEach(x=>notes.push(`À vérifier : ${x} supérieure à 3650 sur ${big[x].length} ligne(s) : ${ex(big[x])}`));
+   Object.keys(odd).forEach(x=>notes.push(`À vérifier : ${x} hors de -60 à 150 °C sur ${odd[x].length} ligne(s) : ${ex(odd[x])}`));
+   if(nBad)notes.push(`${nBad} cellule(s) contenaient un caractère de contrôle interdit en XML, supprimé (ex. ${badEx.join(', ')})`);
+   if(nRepl)notes.push(`À vérifier : ${nRepl} cellule(s) contiennent le caractère « \uFFFD » (ex. ${replEx.join(', ')}) : l'accent a probablement été perdu dans l'Excel`);
+  }
   if(nClean)notes.push(`${nClean} valeur(s) nettoyée(s) pour ne garder que le nombre de jours (ex. « ${cleanEx.join(' », « ')} »)`);
   Object.keys(filled).forEach(x=>notes.push(`${x} : ${filled[x]} cellule(s) vide(s) remplacée(s) par -1`));
   Object.keys(filledD).forEach(x=>notes.push(`${x} : ${filledD[x]} cellule(s) vide(s) remplacée(s) par ${gD(x)}`));
@@ -2533,11 +2598,14 @@ function openGen(m,k,id,M,r){
   function askDefs(blocks,go,label){
     const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.style.zIndex=10001;
     const md=$("div","modal xml adq");bg.appendChild(md);document.body.appendChild(bg);
-    const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true)};
-    const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}};document.addEventListener("keydown",kd,true);
+    const opener=document.activeElement;bg.setAttribute("aria-labelledby","adqt");bg.setAttribute("aria-describedby","adqs");
+    const close=()=>{bg.remove();document.removeEventListener("keydown",kd,true);if(opener&&opener.isConnected&&opener.focus)try{opener.focus()}catch(e){}};
+    const kd=e=>{if(e.key==="Escape"){e.stopPropagation();close()}
+      else if(e.key==="Tab"){const f=[...md.querySelectorAll("button,input,select,textarea,[tabindex]:not([tabindex='-1'])")].filter(x=>!x.disabled&&x.offsetParent!==null);if(!f.length)return;const a=f[0],z=f[f.length-1];
+        if(!md.contains(document.activeElement)){e.preventDefault();a.focus()}else if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}};document.addEventListener("keydown",kd,true);
     bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
     const hd=$("div","adqhd");const ic=$("span","adqic","✎");ic.setAttribute("aria-hidden","true");
-    const ht=$("div",null);ht.append($("h2",null,"Informations manquantes"),$("p","adqsub","Absentes de l'Excel du client. La valeur saisie s'applique à toutes les lignes du type concerné."));
+    const ht=$("div",null);const h2=$("h2",null,"Informations manquantes");h2.id="adqt";const sb=$("p","adqsub","Absentes de l'Excel du client. La valeur saisie s'applique à toutes les lignes du type concerné.");sb.id="adqs";ht.append(h2,sb);
     const xb=$("button","adqx","×");xb.type="button";xb.setAttribute("aria-label","Fermer");xb.onclick=close;hd.append(ic,ht,xb);md.appendChild(hd);
     const UNIT0={TempMin:"°C",TempMax:"°C",TempLimit:"°C",MesureMin:"",MesureMax:"",DateLimit:"jours",Conservation:"jours"};
     const DLU={"-1":"","0":"jours","1":"services","2":"heures","3":"minutes"};
@@ -2550,13 +2618,13 @@ function openGen(m,k,id,M,r){
       miss.forEach(x=>{const l=$("label","adqf");l.appendChild($("span","adql",DEFLAB[x]||x));
         const w=$("div","adqin");const i=$("input");i.type="text";i.inputMode="decimal";
         i.placeholder=GENX.isDef(ty,x)?"vide = -1":"requis";const cur=(st.defs[ty]||{})[x];if(cur===undefined&&TDEF[x]!==undefined){st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=TDEF[x]}
-        i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x));
+        i.value=(st.defs[ty]||{})[x]||"";i.setAttribute("aria-label",(GEN_LABEL[ty]||ty)+" : "+(DEFLAB[x]||x)+(unitOf(ty,x)?" ("+unitOf(ty,x)+")":"")+(GENX.isDef(ty,x)?", facultatif, vide = -1":", obligatoire"));i.autocomplete="off";if(!GENX.isDef(ty,x))i.required=true;
         i.oninput=()=>{st.defs[ty]=st.defs[ty]||{};st.defs[ty][x]=i.value;err.textContent=""};
         i.onkeydown=e=>{if(e.key==="Enter")ok.click()};
         w.appendChild(i);{const un=unitOf(ty,x);if(un)w.appendChild($("span","adqu",un))}l.appendChild(w);gr.appendChild(l);first.push(i)});
       card.appendChild(gr);md.appendChild(card);
     });
-    const err=$("p","msg err");md.appendChild(err);
+    const err=$("p","msg err");err.setAttribute("role","alert");md.appendChild(err);
     const ac=$("div","adqact");
     const cn=$("button","btn ghost","Annuler");cn.type="button";cn.onclick=close;
     const ok=$("button","btn",label||"Valider et générer");ok.type="button";
@@ -3708,12 +3776,12 @@ function helpSeen(){try{return localStorage.getItem("xml-help-seen")==="1"}catch
 function helpData(){
   const en=LANG==="en";
   return en?[
-   {t:"Excel → XML",v:"videos/excel-xml.mp4",x:["Adjust columns, in detail",[["Where","« Adjust columns » panel, under the recognised columns: common data first, then data specific to each module."],["Automatic","The tool looks for the column by its name (accents, case and spaces ignored, synonyms accepted)."],["Ignore","No column is read for this tag: it is written empty (or -1 / the value you enter for a required number). On Id, new Ids are generated."],["Fixed value","The same value is written for every product, without reading the Excel."],["Column name","Forces this column when its name is not recognised."],["Good to know","A setting applies to all ticked tabs. Ignoring Name blocks generation. So does an empty DLC: enter -1 if the product has none."]]],lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
-    ["Drop the file","Drop the client's .xlsx or .csv (or click the box). One sheet = one XML."],
+   {t:"Excel → XML",v:"videos/excel-xml.mp4",x:["Adjust columns, in detail",[["Where","« Adjust columns » panel, under the recognised columns: common data first, then data specific to each module."],["Automatic","The tool looks for the column by its name (accents, case and spaces ignored, synonyms accepted)."],["Ignore","No column is read for this tag: it is written empty (or -1 / the value you enter for a required number). On Id, new Ids are generated."],["Fixed value","The same value is written for every product, without reading the Excel."],["Column name","Forces this column when its name is not recognised."],["Good to know","A setting applies to all ticked tabs. Ignoring Name blocks generation. So does an empty DLC: enter -1 if the product has none."],["« required » and « to fill » badges","« required »: the tag is mandatory for the module. « to fill » (orange): mandatory and not found in the Excel. The ⓘ button next to each tag explains the choices."],["Clickable rows","In the per-module summary, a row in error or to complete is clickable: it opens the module's input window."],["DLC, DDM and DU","For freezing, these are three durations. They all use the unit of « DLC type » (days, services, hours, minutes) when it is offered."],["Checks before generation","Blocking: duplicate Id, negative duration other than -1, minimum above maximum. Warnings: duration above 3650, temperature outside -60 to 150 °C, « \uFFFD » character (lost accent). Control characters forbidden in XML are removed."]]],lead:"Turn the client's Excel or CSV file into ready-to-import XML files.",steps:[
+    ["Drop the file","Drop the client's .xlsx or .csv (or click the box). One sheet = one XML. With many sheets, « Tick all / Untick all » and « Collapse » shorten the list."],
     ["Pick the XML type(s)","Tick one or several types: warming, stickers, miscellaneous controls… The tool recognises the columns by their names."],
     ["Check the columns","Open « Adjust columns » if something was not recognised. You can also set one fixed value for all products."],
     ["Fill in what is missing","If values are missing (e.g. min/max temperature), a window asks for them. Defaults: -10 °C and 99 °C."],
-    ["Generate","Click « Validate and generate »: a ZIP with all the XML files at its root is downloaded."]],tip:"Nothing is sent anywhere: everything stays in your browser."},
+    ["Generate","Click « Generate the XML » (« Generate the XMLs » with several types): a ZIP with all the XML files at its root is downloaded."]],tip:"Nothing is sent anywhere: everything stays in your browser."},
    {t:"Complete an XML",v:"videos/completer-xml.mp4",lead:"Fix an XML export from the configurator.",steps:[
     ["Drop the XML","Products, checklists or cleaning plans exported from the configurator."],
     ["Let it work","Missing tags are added and the file is normalised (tag order, namespaces, encoding)."],
@@ -3723,12 +3791,12 @@ function helpData(){
     ["Tick the modules","One tab per module. Use « Preview » to see the first rows; empty modules are hidden."],
     ["Download","« Download Excel » gives one workbook. With one module ticked you can get a CSV; with several, one CSV per module in a ZIP."]],tip:"Deleted items are not exported and user passwords never are."}
   ]:[
-   {t:"Excel → XML",v:"videos/excel-xml.mp4",x:["Ajuster les colonnes, en détail",[["Où","Volet « Ajuster les colonnes », sous la liste des colonnes reconnues : d'abord les données communes, puis les données propres à chaque module."],["Automatique","L'outil cherche seul la colonne d'après son nom (accents, majuscules et espaces ignorés, synonymes acceptés : nom, désignation, dlc, frigo…)."],["Ignorer","Aucune colonne n'est lue pour cette balise : elle est écrite vide (ou -1 / la valeur saisie pour un nombre obligatoire). Sur Id, de nouveaux Id sont générés."],["Valeur fixe","La même valeur est écrite pour tous les produits, sans lire l'Excel."],["Nom d'une colonne","Force l'usage de cette colonne quand son nom n'est pas reconnu."],["Bon à savoir","Un réglage vaut pour tous les onglets cochés. Ignorer Name bloque la génération. Une DLC vide aussi : saisis -1 si le produit n'en a pas."]]],lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
-    ["Dépose le fichier","Dépose le .xlsx ou .csv du client (ou clique sur la zone). Un onglet = un XML."],
+   {t:"Excel → XML",v:"videos/excel-xml.mp4",x:["Ajuster les colonnes, en détail",[["Où","Volet « Ajuster les colonnes », sous la liste des colonnes reconnues : d'abord les données communes, puis les données propres à chaque module."],["Automatique","L'outil cherche seul la colonne d'après son nom (accents, majuscules et espaces ignorés, synonymes acceptés : nom, désignation, dlc, frigo…)."],["Ignorer","Aucune colonne n'est lue pour cette balise : elle est écrite vide (ou -1 / la valeur saisie pour un nombre obligatoire). Sur Id, de nouveaux Id sont générés."],["Valeur fixe","La même valeur est écrite pour tous les produits, sans lire l'Excel."],["Nom d'une colonne","Force l'usage de cette colonne quand son nom n'est pas reconnu."],["Bon à savoir","Un réglage vaut pour tous les onglets cochés. Ignorer Name bloque la génération. Une DLC vide aussi : saisis -1 si le produit n'en a pas."],["Pastilles « requis » et « à remplir »","« requis » : la balise est obligatoire pour le module. « à remplir » (orange) : obligatoire et introuvable dans l'Excel. Le bouton ⓘ à côté de chaque balise explique les choix."],["Lignes cliquables","Dans le récapitulatif par module, une ligne en erreur ou à compléter est cliquable : elle ouvre la fenêtre de saisie du module."],["DLC, DDM et DU","Pour la mise en congélation, ce sont trois durées. Elles prennent toutes l'unité du « Type de DLC » (jours, services, heures, minutes) quand il est proposé."],["Contrôles avant génération","Bloquent : Id en double, durée négative autre que -1, minimum supérieur au maximum. Alertent : durée supérieure à 3650, température hors de -60 à 150 °C, caractère « \uFFFD » (accent perdu). Les caractères de contrôle interdits en XML sont supprimés."]]],lead:"Transforme l'Excel ou le CSV du client en XML prêts à importer.",steps:[
+    ["Dépose le fichier","Dépose le .xlsx ou .csv du client (ou clique sur la zone). Un onglet = un XML. Avec beaucoup d'onglets, « Tout cocher / Tout décocher » et « Réduire » allègent la liste."],
     ["Choisis le ou les types d'XML","Coche un ou plusieurs types : mise en température, étiquettes, contrôles divers… Les colonnes sont reconnues d'après leur nom."],
     ["Vérifie les colonnes","Ouvre « Ajuster les colonnes » si quelque chose n'est pas reconnu. Tu peux aussi saisir une valeur fixe pour tous les produits."],
     ["Complète ce qui manque","S'il manque des valeurs (ex. températures mini et maxi), une fenêtre te les demande. Valeurs par défaut : -10 °C et 99 °C."],
-    ["Génère","Clique sur « Valider et générer » : un ZIP avec tous les XML à la racine se télécharge."]],tip:"Rien n'est envoyé : tout reste dans ton navigateur."},
+    ["Génère","Clique sur « Générer l'XML » (« Générer les XML » avec plusieurs types) : un ZIP avec tous les XML à la racine se télécharge."]],tip:"Rien n'est envoyé : tout reste dans ton navigateur."},
    {t:"Compléter un XML",v:"videos/completer-xml.mp4",lead:"Remet d'aplomb un export XML du configurateur.",steps:[
     ["Dépose le XML","Produits, checklists ou plans de nettoyage exportés du configurateur."],
     ["Laisse faire","Les balises manquantes sont ajoutées et le fichier est normalisé (ordre des balises, espaces de noms, encodage)."],
