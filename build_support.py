@@ -14,6 +14,7 @@ head='\n'.join(lines[:end_style+1])
 head=re.sub(r'<title>.*?</title>','<title>Outils XML ePack</title>',head,count=1)
 brand=next(l for l in lines if l.startswith('<div class="brandbar">'))
 brand=brand.replace('Outil de suivi des mises à jour Grands Comptes','Outils XML · Support')
+brand=re.sub(r'<a class="homelink".*?</a>','',brand,count=1)
 code=''
 i18n=block('I18N')
 # dictionnaire : textes propres à la page Support
@@ -191,7 +192,7 @@ function helpPaint(){
 render();
 '''
 import datetime,zoneinfo
-SB='1.5.0'
+SB='1.5.1'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
