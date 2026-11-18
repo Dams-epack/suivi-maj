@@ -1833,7 +1833,7 @@ function fileCsm(g){
   const cs=new Set(FILE_CSM.filter(e=>e[0].startsWith(k)||(e[0].length>=5&&k.startsWith(e[0]))).map(e=>e[1]));
   return cs.size===1?[...cs][0]:"";
 }
-const QM_MAIL={"Marion LE STANG":"m.lestang@epackpro.com","Nathan LAFFEZ":"n.laffez@epackpro.com","Sylvain HAMELIN":"s.hamelin@epackpro.com"};
+const QM_MAIL={"Marion LE STANG":"m.lestang@epack-hygiene.fr","Nathan LAFFEZ":"n.laffez@epack-hygiene.fr","Sylvain HAMELIN":"s.hamelin@epack-hygiene.fr"};
 const GT_SET=new Set(GROUPES_GT.map(akey));
 function csmOf(m){const g=groupOf(m)||m.group||"";const c=CSM_OF[akey(g)]||fileCsm(g);return c?{csm:c,qm:GT_SET.has(akey(g))?CSM_QM["Guillaume TAVERNIERS"]:(CSM_QM[c]||"")}:null}
 function renameMaj(id,t){
@@ -5986,7 +5986,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.21.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.21.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
