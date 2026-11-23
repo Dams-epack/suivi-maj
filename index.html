@@ -738,7 +738,10 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script>
 const STEPS=[["Fichier d'import","Import"],["Configurateur (XML)","XML"],["Moulinette Claude","Moulinette Claude"]];
 const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dépôt SharePoint"]];
-const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?STEPS2:STEPS);
+/* Module avec fichiers pour les QM (CSV du configurateur) : 3e étape, dépôt dans le dossier « Fichiers QM » du SharePoint */
+const STEPS2Q=[...STEPS2,["Fichiers QM","Fichiers QM"]];
+const hasQmFiles=m=>!!(m&&(m.mods||[]).some(M=>M.gen&&M.qm));
+const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?(M.qm?STEPS2Q:STEPS2):STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
 let delReg=null,delMod=null,userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
 /* Journal de synchronisation : état courant + 40 derniers événements, consultable depuis le bandeau */
@@ -1139,6 +1142,10 @@ Non (mail 04a) ⇒ No (email 04a)
 Oui, seconde passe (mail 04b) ⇒ Yes, second pass (email 04b)
 Copier/coller le lien d'accès au rapport d'intervention ⇒ Copy/paste the intervention report access link
 Copier/coller le lien SharePoint des ressources de la MAJ ⇒ Copy/paste the SharePoint link to the update resources
+Copier/coller le lien SharePoint du dossier « Fichiers QM » ⇒ Copy/paste the SharePoint link to the "QM files" folder
+Fichiers QM ⇒ QM files
++ Fichiers QM ⇒ + QM files
+Fichiers QM ✓ ⇒ QM files ✓
 Validation siège ⇒ HQ validation
 Message Teams : validation siège ⇒ Teams message: HQ validation
 Message à envoyer ⇒ Message to send
@@ -2458,7 +2465,7 @@ async function finishCreate(){
 function closeModal(val){const m=draft.modal;draft.modal=null;render();if(m)m.resolve(val)}
 async function ensureName(){if(!myName())await askName()}
 function createMaj(){
-  const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,gen:true,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
+  const mods=draft.parsed.map((m,i)=>({id:"m"+i+"-"+slug(m.name),name:m.name,gen:true,qm:true,regions:m.regions.map(r=>typeof r==="string"?{key:slug(r),label:r}:{key:slug(r.label+"-"+r.concept),label:r.label,concept:r.concept})}));
   const id="maj-"+Date.now();
   const title=baseTitleFor(draft.group);
   const plan=draft.plan;registerGroup(draft.group);const t0=Date.now();majs[id]={title,group:draft.group||"",site:String(draft.site||"").trim(),created:t0,startedAt:t0,createdBy:meKey(),mods,prog:{}};if(draft.type==="correctif")majs[id].type="correctif";stampTitle(majs[id]);
@@ -2731,11 +2738,12 @@ function lienRow(label,val,placeholder,aria,onSave,ro){
 function viewLiens(app,m,id){
   const rows=rapportRows(m),L=m.liens||{};
   if(blocClosed.liens===undefined)blocClosed.liens=true;
-  const n=(L.ressources?1:0)+rows.filter(r=>r.val).length;
+  const qmf=hasQmFiles(m),n=(L.ressources?1:0)+(qmf&&L.qm?1:0)+rows.filter(r=>r.val).length;
   const box=$("section","bloc liensbox");
-  box.appendChild(blocHead("liens","Accès aux données",n+" / "+(1+rows.length)+" liens"));
+  box.appendChild(blocHead("liens","Accès aux données",n+" / "+(1+(qmf?1:0)+rows.length)+" liens"));
   const body=$("div","bloc-b");body.hidden=!!blocClosed.liens;box.appendChild(body);
   body.appendChild(lienRow("Ressources",L.ressources,"https://… (lien SharePoint)","Lien des ressources de la MAJ",v=>saveLien(m,id,"ressources",null,v),"copy"));
+  if(qmf)body.appendChild(lienRow("Fichiers QM",L.qm,"https://… (dossier « Fichiers QM »)","Lien du dossier Fichiers QM",v=>saveLien(m,id,"qm",null,v),"copy"));
   rows.forEach(r=>body.appendChild(lienRow("Rapport d'intervention"+(r.label?" ("+r.label+")":""),r.val,"https://… (lien SharePoint du rapport)","Lien du rapport"+(r.label?" ("+r.label+")":""),v=>saveLien(m,id,"rapport",r.key,v),"copy")));
   app.appendChild(box);
 }
@@ -2802,15 +2810,17 @@ function openTeams(m,kind,id,onDone){
     showTeams(mm,kind,id,onDone)})();return}
   (async()=>{
     const old=m.liens||{};
-    const a=await askLink(1,1,"Validation siège","Copier/coller le lien SharePoint des ressources de la MAJ",old.ressources||"");if(a===null){if(onDone)onDone();return}
-    const mm=(id&&majs[id])||m;mm.liens=Object.assign({},mm.liens,{ressources:a});if(id)persist(id);
+    const qmf=hasQmFiles((id&&majs[id])||m);
+    const a=await askLink(1,1,"Validation siège",qmf?"Copier/coller le lien SharePoint du dossier « Fichiers QM »":"Copier/coller le lien SharePoint des ressources de la MAJ",(qmf?old.qm:old.ressources)||"");if(a===null){if(onDone)onDone();return}
+    const mm=(id&&majs[id])||m;mm.liens=Object.assign({},mm.liens,qmf?{qm:a}:{ressources:a});if(id)persist(id);
     showTeams(mm,kind,id,onDone)})();
 }
 function showTeams(m,kind,id,onDone){
   closeTeams();const deb=kind==="debut";
   const nom=String(groupOf(m)||m.group||m.baseTitle||m.title||"").replace(/\s+/g," ").trim().toUpperCase();
   const qmc=csmOf(m),qmName=!deb&&qmc&&qmc.qm||"",qmMail=QM_MAIL[qmName]||"";
-  const msg=tr(nom+" - Maj. validée par le siège"+((m.liens&&m.liens.ressources)?"\nRessources : "+m.liens.ressources:""));
+  const qmf=hasQmFiles(m),lk=(m.liens||{})[qmf?"qm":"ressources"];
+  const msg=tr(nom+" - Maj. validée par le siège"+(lk?"\n"+(qmf?"Fichiers QM : ":"Ressources : ")+lk:""));
   const L=Object.assign({ressources:"",rapport:""},m.liens);
   const langs=majLangs(m),multi=langs.length>1,R=Object.assign({},(m.liens||{}).rapports);
   const build=()=>tr([String(m.title||nom).trim(),L.ressources?"Ressources : "+L.ressources:"",...(multi?langs.map(([c,n])=>R[c]?"Rapport d'intervention ("+n+") : "+R[c]:""):[L.rapport?"Rapport d'intervention : "+L.rapport:""])].filter(Boolean).join("\n\n"));
@@ -3057,7 +3067,7 @@ function openAddMods(id){
     const names=[...extra.filter(n=>chosen.has(n)),...CATALOG.flatMap(([,a])=>a).filter(n=>chosen.has(n))];
     const rr=regs.filter(r=>selR.has(r.key));
     names.forEach(n=>{const base="m"+mm.mods.length+"-"+slug(n);let idn=base,k=1;while(mm.mods.some(M=>M.id===idn))idn=base+"-"+(++k);
-      mm.mods.push({id:idn,name:n,gen:true,regions:rr.map(r=>r.concept?{key:r.key,label:r.label,concept:r.concept}:{key:r.key,label:r.label})})});
+      mm.mods.push({id:idn,name:n,gen:true,qm:true,regions:rr.map(r=>r.concept?{key:r.key,label:r.label,concept:r.concept}:{key:r.key,label:r.label})})});
     stampTitle(mm);persist(id);close();render();toast(names.length+" module"+(names.length>1?"s ajoutés":" ajouté")+" au suivi.");
   };
   const ac=$("div","actions");ac.append(ok,no,cnt);
@@ -3266,7 +3276,7 @@ function viewMaj(app,id){
         b.dataset.fid="s-"+k+"-"+i;
         if(p.s[i]&&p.s.slice(0,i).some(x=>!x)){b.classList.add("warn");warn=true}
         b.appendChild($("span","box",p.s[i]?"✓":""));b.appendChild($("span","stepname",S[1]));b.appendChild($("span",null,"Fait"));
-        b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&stepsOf(M).length===3)openXml(m,k,id)};
+        b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&!M.gen&&stepsOf(M).length===3)openXml(m,k,id)};
         if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg);ln.appendChild(gx)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}else row.appendChild(b);
       });
       if(!m.archived){
@@ -3290,10 +3300,14 @@ function viewMaj(app,id){
     const mOpen=bk in blocClosed?!blocClosed[bk]:true;
     const h=$("div","mod-h modtog");h.setAttribute("role","button");h.tabIndex=0;h.setAttribute("aria-expanded",String(mOpen));h.title=mOpen?"Réduire ce module":"Développer ce module";
     h.appendChild($("h2",null,(mOpen?"▾ ":"▸ ")+M.name));if(M.name===MOD_TBD){const tb=$("span","gpill fix","Charger votre fichier Excel afin de définir le module");tb.title="Clique sur « Excel → XML » pour charger le fichier : le module sera renommé selon le type choisi.";h.appendChild(tb)}h.appendChild($("span","cnt",md+" / "+M.regions.length*stepsOf(M).length+" étapes"));
+    if(M.gen&&!m.archived){const qb=$("button","chip"+(M.qm?" on":""),M.qm?"Fichiers QM ✓":"+ Fichiers QM");qb.type="button";qb.setAttribute("aria-pressed",String(!!M.qm));
+      qb.title=M.qm?"Ce module a une étape « Fichiers QM » (CSV du configurateur déposés dans le dossier Fichiers QM). Clique pour la retirer.":"Ajouter l'étape « Fichiers QM » à ce module";
+      qb.onclick=e=>{e.stopPropagation();const MM=((majs[id]||m).mods||[]).find(x=>x.id===M.id);if(!MM)return;MM.qm=!MM.qm;persist(id);render()};
+      qb.onkeydown=e=>e.stopPropagation();h.appendChild(qb)}
     const togM=()=>{blocClosed[bk]=mOpen;try{localStorage.setItem("suivi-maj-bloc",JSON.stringify(blocClosed))}catch(e){}render()};
     h.onclick=togM;h.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();togM()}};
     if(allDone)sec.classList.add("done");
-    const cols=$("div","cols"+(stepsOf(M).length===1?" one":"")+(stepsOf(M).length===2?" two":""));["Région",...stepsOf(M).map(x=>x[0])].forEach(x=>cols.appendChild($("div",null,x)));
+    const cols=$("div","cols"+(stepsOf(M).length===1?" one":"")+(stepsOf(M).length===2?" two":"")+(stepsOf(M).length===3?" three":""));["Région",...stepsOf(M).map(x=>x[0])].forEach(x=>cols.appendChild($("div",null,x)));
     sec.appendChild(h);
     if(mOpen){sec.appendChild(cols);if(!body.children.length)sec.appendChild($("div","empty","Tout est fait pour ce module."));else sec.appendChild(body)}
     if(mOpen&&!m.archived){const ar=$("div","addrow");ar.style.padding="10px 12px";const ab=$("button","addb","Ajouter une langue à ce module");ab.type="button";ab.title="Ajouter une langue ou un pays oublié à ce module uniquement";ab.onclick=()=>openAddRegion(id,M.id);{const ic=$("span","addi");ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.500 5.600 12 3z"/></svg><i>+</i>';ab.prepend(ic)}ar.appendChild(ab);
@@ -5999,7 +6013,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.22.4",APP_DATE="13/11/2026";
+const APP_VERSION="v2.23.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
