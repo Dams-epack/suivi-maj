@@ -738,8 +738,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script>
 const STEPS=[["Fichier d'import","Import"],["Configurateur (XML)","XML"],["Moulinette Claude","Moulinette Claude"]];
 const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dépôt SharePoint"]];
-/* Module avec fichiers pour les QM (CSV du configurateur) : 3e étape, dépôt dans le dossier « Fichiers QM » du SharePoint */
-const STEPS2Q=[...STEPS2,["Fichiers QM","Fichiers QM"]];
+/* Module avec fichiers pour les QM (CSV du configurateur) : étape intermédiaire (entre l'import et le dépôt), dépôt dans le dossier « Fichiers QM » du SharePoint */
+const STEPS2Q=[STEPS2[0],["Fichiers QM","Fichiers QM"],STEPS2[1]];
 const hasQmFiles=m=>!!(m&&(m.mods||[]).some(M=>M.gen&&M.qm));
 const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?(M.qm?STEPS2Q:STEPS2):STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
@@ -6013,7 +6013,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.23.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.23.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
