@@ -812,8 +812,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.26.0";
-const SUPPORT_BUILD="v1.9.0";
+const APP_VERSION="v2.26.1";
+const SUPPORT_BUILD="v1.9.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2794,6 +2794,20 @@ function openGen(m,k,id,M,r,qm){
     paint();
   }
   /* CSV pour les QM (format des modèles du configurateur) : un CSV si un seul fichier, sinon un ZIP avec un dossier par onglet */
+  /* Coche l'étape « Fichiers QM » (2e étape) des régions dont le CSV vient d'être enregistré */
+  function tickQm(list,stored){
+    const cm=majs[id];if(!(cm&&k))return "";
+    const Mx=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));if(!(Mx&&Mx.qm&&Mx.gen))return "";
+    const keys=[];
+    if(stored)keys.push(k);
+    else list.forEach(x=>{const r2=regOf(Mx,x.sheet);if(r2){const kk=Mx.id+"_"+r2.key;if(!keys.includes(kk))keys.push(kk)}});
+    if(!keys.length&&list.length)keys.push(k);
+    let n=0,had=0;
+    keys.forEach(kk=>{const q=cm.prog[kk]||{s:[false,false,false],note:""};if(q.s[1]){had++;return}
+      const ns=q.s.slice();ns[1]=true;cm.prog[kk]={s:ns,note:q.note||"",issue:q.issue||""};n++;persist(id,kk)});
+    if(n)render();
+    return n>1?" Étape « Fichiers QM » cochée pour "+n+" régions.":n===1?" Étape « Fichiers QM » cochée.":had?" Étape « Fichiers QM » déjà cochée.":"";
+  }
   async function saveQm(src){
     const list=(src||okRes()).filter(x=>x.g.csv),enc=new TextEncoder();if(!list.length)return;
     let name,bytes,mime;
@@ -2806,10 +2820,10 @@ function openGen(m,k,id,M,r,qm){
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"unavailable"};
-      await d.save({filename:name,data:bytes});st.msg="Fichier enregistré : "+name+". Dépose-le dans le dossier « Fichiers QM » du SharePoint."
+      await d.save({filename:name,data:bytes});st.msg="Fichier enregistré : "+name+". Dépose-le dans le dossier « Fichiers QM » du SharePoint."+tickQm(list,!!src)
     }catch(e){
       if(e&&e.code==="declined")st.msg="Enregistrement annulé.";
-      else{try{const u=URL.createObjectURL(new Blob([bytes],{type:mime}));const a=$("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.msg="Téléchargement lancé : "+name+". Dépose-le dans le dossier « Fichiers QM » du SharePoint."}
+      else{try{const u=URL.createObjectURL(new Blob([bytes],{type:mime}));const a=$("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.msg="Téléchargement lancé : "+name+". Dépose-le dans le dossier « Fichiers QM » du SharePoint."+tickQm(list,!!src)}
         catch(e2){st.msg="Enregistrement impossible"+(e&&e.code?" ("+e.code+")":"")+"."}}
     }
     paint();
