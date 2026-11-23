@@ -2469,6 +2469,7 @@ function createMaj(){
 function viewHome(app){
   {const hb=$("button","btn ghost","← Accueil");hb.style.alignSelf="flex-start";hb.onclick=openHub;app.appendChild(hb)}
   {const cb=$("button","btn","+ Suivi personnalisé");cb.style.alignSelf="flex-start";cb.title="Créer un suivi sans mail : choix du groupement, des modules et des régions";cb.onclick=openCustom;app.appendChild(cb)}
+  if(!MAIL_IA){app.appendChild($("h1",null,"Nouveau suivi"));app.appendChild($("p","sub","L'import de mail client est désactivé temporairement. Crée le suivi avec « + Suivi personnalisé » : groupement, modules et régions."));return}
   app.appendChild($("h1",null,"Importer ou copier-coller le mail du client"));
   app.appendChild($("p","sub","Colle le mail du client ou dépose-le en fichier : je dresse la liste des modules et des régions à traiter, puis tu suis les étapes pour chacun."));
   const p=$("div","panel");
@@ -5997,7 +5998,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.22.2",APP_DATE="13/11/2026";
+const APP_VERSION="v2.22.3",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
