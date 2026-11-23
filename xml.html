@@ -812,8 +812,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.24.0";
-const SUPPORT_BUILD="v1.8.0";
+const APP_VERSION="v2.25.0";
+const SUPPORT_BUILD="v1.8.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1198,7 +1198,11 @@ Copier/coller le lien d'accès au rapport d'intervention ⇒ Copy/paste the inte
 Copier/coller le lien SharePoint des ressources de la MAJ ⇒ Copy/paste the SharePoint link to the update resources
 Copier/coller le lien SharePoint du dossier « Fichiers QM » ⇒ Copy/paste the SharePoint link to the "QM files" folder
 Fichiers QM ⇒ QM files
-Fichiers QM (CSV) ⇒ QM files (CSV)
+Excel → Fichiers QM ⇒ Excel → QM files
+Excel → CSV QM ⇒ Excel → QM CSV
+Enregistrer les CSV ⇒ Save the CSVs
+Générer les CSV ⇒ Generate the CSVs
+Type de fichier QM ⇒ QM file type
 + Fichiers QM ⇒ + QM files
 Fichiers QM ✓ ⇒ QM files ✓
 Validation siège ⇒ HQ validation
@@ -2524,7 +2528,7 @@ function normalized(t,s,mp,defs){
   if(missing.length)errs.unshift(`DLC manquante sur ${missing.length} produit(s) : génération bloquée. Complète la DLC dans l'Excel (saisis -1 si le produit n'a pas de DLC).`);
   return {aoa,errs,notes,idx,missing};
 }
-return {MODS,generate,normalized,resolve,findHeader,dirCode,setLux,gnorm,nowFn,isDef};
+return {MODS,CSVMAP,generate,normalized,resolve,findHeader,dirCode,setLux,gnorm,nowFn,isDef};
 })();
 /*GENX-END*/
 /*GENUI-START*/
@@ -2585,7 +2589,8 @@ function logXml(id,k,file,kind,bytes){
     storeXml(bid,id,file,bytes).then(()=>{const c=majs[id];if(!c)return;const x=(c.xmlLog||[]).find(z=>z.t===e.t);if(x){x.blob=bid;x.n=Math.ceil(bytes.length/XCH);x.size=bytes.length;persist(id);if(page==="tool"&&cur===id)render()}}).catch(()=>{});
   }
 }
-function openGen(m,k,id,M,r){
+function openGen(m,k,id,M,r,qm){
+  qm=!!qm&&QM_CSV; /* mode « Fichiers QM » : mêmes lectures de l'Excel, mais seuls les CSV du configurateur sont produits (ni XML, ni coche des étapes) */
   if(genDlg)closeGen();
   const isAnge=/boulangerie\s+ange/i.test(m.group||m.title||"");
   const MULTI=typeof SUPPORT!=="undefined"&&SUPPORT;
@@ -2679,7 +2684,7 @@ function openGen(m,k,id,M,r){
     ac.append(cn,ok);md.appendChild(ac);setTimeout(()=>first[0]&&first[0].focus(),30);
   }
   function run(){
-    const p={dltype:st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true",moments:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)).map(z=>z.id):[],momTime:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)&&z.time).map(z=>z.time).sort()[0]||"":""};
+    const p={dltype:qm?"0":st.dl,isddm:st.dd,excCat:st.ange?"DDM SECONDAIRE":"",excVal:"true",moments:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)).map(z=>z.id):[],momTime:st.mom?st.mom.list.filter(z=>st.mom.sel.has(z.id)&&z.time).map(z=>z.time).sort()[0]||"":""};
     st.msg="";st.ticked=false;st.open={};
     st.res=[];
     TYPES().forEach(t=>{const nf=GENX.nowFn(t);
@@ -2691,7 +2696,7 @@ function openGen(m,k,id,M,r){
         st.res.push({type:t,sheet:s.name,dir:GENX.dirCode(s.name),g});
       });
     });
-    flag();markOk();renameTbd();paint();
+    if(!qm){flag();markOk();renameTbd()}paint();
   }
   function renameTbd(){
     const cm=majs[id],Mx=cm&&(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));
@@ -2806,12 +2811,12 @@ function openGen(m,k,id,M,r){
   }
   function paint(){
     md.textContent="";
-    const h=$("h2",null,"Excel → XML");h.id="gt";
+    const h=$("h2",null,qm?"Excel → Fichiers QM":"Excel → XML");h.id="gt";
     const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
     const subP=$("p","gsubp gfile");md.append(hd,subP);
     const T=GENX.MODS;
-    {const gl=$("div","gtl",MULTI?"Type(s) d'XML (un ou plusieurs)":"Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role",MULTI?"group":"radiogroup");gr.setAttribute("aria-label","Type d'XML");
-     Object.keys(T).forEach(t=>{const on=MULTI?st.types.has(t):st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role",MULTI?"checkbox":"radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(MULTI){if(st.types.has(t))st.types.delete(t);else st.types.add(t);st.type=TYPES()[0]||"";st.res=null;paint();return}if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
+    {const gl=$("div","gtl",qm?"Type de fichier QM":MULTI?"Type(s) d'XML (un ou plusieurs)":"Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role",MULTI?"group":"radiogroup");gr.setAttribute("aria-label","Type d'XML");
+     Object.keys(T).filter(t=>!qm||GENX.CSVMAP[t]).forEach(t=>{const on=MULTI?st.types.has(t):st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role",MULTI?"checkbox":"radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(MULTI){if(st.types.has(t))st.types.delete(t);else st.types.add(t);st.type=TYPES()[0]||"";st.res=null;paint();return}if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
      md.append(gl,gr)}
     if(!TYPES().length&&st.file)md.appendChild($("p","ghint","Je n'ai pas reconnu le type d'XML de ce module : choisis-le ci-dessus."));
     const inp=$("input");inp.type="file";inp.accept=".xlsx,.xlsm,.xls,.csv";inp.hidden=true;
@@ -2828,7 +2833,7 @@ function openGen(m,k,id,M,r){
     const ch=$("button","chip","Changer de fichier");ch.type="button";ch.onclick=()=>inp.click();fl.append(ch,inp);
     /* onglets */
     const okI=st.sheets.map((s,i)=>s.count?i:-1).filter(i=>i>=0);
-    const hp=$("p",null,"Onglets à traiter (un XML par onglet) : ");
+    const hp=$("p",null,"Onglets à traiter (un "+(qm?"CSV":"XML")+" par onglet) : ");
     if(okI.length>1){const all=okI.every(i=>st.sel.has(i));const tb=$("button","chip",all?"Tout décocher":"Tout cocher");tb.type="button";
       tb.onclick=()=>{if(all)okI.forEach(i=>st.sel.delete(i));else okI.forEach(i=>st.sel.add(i));st.res=null;paint()};hp.appendChild(tb)}
     const rb=$("button","chip",st.shCol?"Développer":"Réduire");rb.type="button";rb.setAttribute("aria-expanded",st.shCol?"false":"true");
@@ -2923,7 +2928,7 @@ function openGen(m,k,id,M,r){
       groups.forEach(([h,list])=>{if(!list.length)return;gr.appendChild($("div","gmaph",h));list.forEach(addRow)});
       dt.appendChild(gr);if(Object.keys(st.map).some(t=>st.map[t].t!=="auto"))dt.open=true;md.appendChild(dt);
     }
-    if(TYPES().some(ty=>T[ty].params)){
+    if(!qm&&TYPES().some(ty=>T[ty].params)){
       const pw=$("div","gparams");
       pw.appendChild(field("Type de DLC",sel([["","À choisir"],["-1","-1 · interface"],["0","0 · jours"],["1","1 · services"],["2","2 · heures"],["3","3 · minutes"]],st.dl,v=>{st.dl=v})));
       pw.appendChild(field("IsDDM par défaut",sel([["false","false"],["true","true"]],st.dd,v=>{st.dd=v})));
@@ -2931,7 +2936,7 @@ function openGen(m,k,id,M,r){
       al.append(ax,$("b",null,"Boulangerie Ange"),$("span",null,"IsDDM = true pour la catégorie « DDM SECONDAIRE »"));
       pw.appendChild(al);md.appendChild(pw);
     }
-    const useMom=TYPES().some(ty=>T[ty].moments);
+    const useMom=!qm&&TYPES().some(ty=>T[ty].moments);
     const needMom=useMom&&!(st.mom&&st.mom.sel.size);
     if(useMom){
       const mb=$("div","gmom");mb.appendChild($("strong",null,"Moments des contrôles"));
@@ -2964,7 +2969,7 @@ function openGen(m,k,id,M,r){
       md.appendChild(mb);
     }
     const ac=$("div","actions");
-    const gb=$("button","btn",TYPES().length>1?"Générer les XML":"Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=()=>{const bl=MULTI?missingDefs():[];if(bl.length)askDefs(bl,()=>{run();if(okRes().length)save()});else run()};ac.appendChild(gb);
+    const gb=$("button","btn",qm?"Générer les CSV":TYPES().length>1?"Générer les XML":"Générer l'XML");gb.disabled=!chosen.length||needMom;gb.onclick=()=>{const bl=MULTI?missingDefs():[];if(bl.length)askDefs(bl,()=>{run();if(okRes().length)save()});else run()};ac.appendChild(gb);
     if(!chosen.length)ac.appendChild($("span","msg","Coche au moins un onglet."));else if(needMom)ac.appendChild($("span","msg","Choisis le moment des contrôles."));
     md.appendChild(ac);
     /* résultats */
@@ -3003,7 +3008,7 @@ function openGen(m,k,id,M,r){
         md.appendChild(c);
       });
       const seenM=new Set(),miss=st.res.filter(x=>x.g.missing&&x.g.missing.length&&!seenM.has(x.sheet)&&seenM.add(x.sheet));
-      if(miss.length){
+      if(miss.length&&!qm){
         const cm0=majs[id],gname=cm0?(groupOf(cm0)||cm0.group||""):"",site=cm0&&cm0.site?cm0.site:"";
         const tot=miss.reduce((a,x)=>a+x.g.missing.length,0);
         const bl=miss.map(x=>"Onglet « "+x.sheet+" » :\n"+x.g.missing.map(q=>"- ligne "+q.row+" : "+(q.name||"(sans désignation)")+(q.cat?" (catégorie : "+q.cat+")":"")).join("\n")).join("\n\n");
@@ -3025,15 +3030,20 @@ function openGen(m,k,id,M,r){
       const ok=okRes();
       if(ok.length){
         const a2=$("div","actions");
-        const sb=$("button","btn","Enregistrer (ZIP)");sb.onclick=save;a2.appendChild(sb);
-        if(ok.length===1){const cb=$("button","btn ghost","Copier le XML");cb.onclick=()=>copy(ok[0]);a2.appendChild(cb)}
-        const qmOk=QM_CSV?ok.filter(x=>x.g.csv):[];
-        if(qmOk.length){const qb=$("button","btn ghost","Fichiers QM (CSV)");qb.type="button";qb.title="CSV au format des modèles du configurateur, pour les QM (UTF-8 avec BOM, séparateur « ; »)";qb.onclick=saveQm;a2.appendChild(qb)}
+        const qmOk=qm?ok.filter(x=>x.g.csv):[];
+        if(qm){
+          if(qmOk.length){const qb=$("button","btn","Enregistrer les CSV");qb.type="button";qb.title="CSV au format des modèles du configurateur (UTF-8 avec BOM, séparateur « ; »)";qb.onclick=saveQm;a2.appendChild(qb)}
+        }else{
+          const sb=$("button","btn","Enregistrer (ZIP)");sb.onclick=save;a2.appendChild(sb);
+          if(ok.length===1){const cb=$("button","btn ghost","Copier le XML");cb.onclick=()=>copy(ok[0]);a2.appendChild(cb)}
+        }
         md.appendChild(a2);
         {const nts=[...new Set(qmOk.map(x=>x.g.csvNote).filter(Boolean))];if(nts.length)md.appendChild($("p","sub","Fichiers QM : "+nts.join(" · ")+"."));
          const nq=ok.filter(x=>!x.g.csv);if(nq.length&&qmOk.length)md.appendChild($("p","sub","Pas de CSV QM pour : "+[...new Set(nq.map(x=>GEN_LABEL[x.type]||x.type))].join(", ")+"."))}
+        if(!qm){
         if(ok.length===1){const ta=$("textarea","xmlout");ta.value=ok[0].g.xml;ta.readOnly=true;ta.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px";md.appendChild(ta)}
         md.appendChild($("p",null,"Le ZIP contient "+(new Set(ok.map(z=>z.type)).size>1?(new Set(ok.map(z=>z.sheet)).size>1?"un dossier par onglet, avec les XML ":"les XML ")+"("+[...new Set(ok.map(z=>z.g.file))].join(", ")+")":"le fichier "+GENX.MODS[ok[0].type||st.type].out+(ok.length>1?" dans un dossier par onglet":""))+". L'étape « Fichier d'import » se coche dès que l'XML est généré sans erreur."));
+        }
       }
     }
     if(st.msg){const e=$("p","msg",st.msg);e.setAttribute("role","status");md.appendChild(e)}
