@@ -2984,18 +2984,18 @@ async function syncDirs(id,force){
   const m=majs[id],u=dirFlow();if(!m)return "";
   if(!u)return effDeploy(m)?"Dossiers SharePoint non créés : l'URL du flux n'est pas renseignée dans ce navigateur (roue dentée de l'accueil > Paramètres > Dossiers SharePoint).":"";
   const d0=effDeploy(m),cod=dirCodes(m),d=d0?d0+(cod.length?" "+cod.join(" "):"")+(m.type==="correctif"?" Correctif":""):"";if(!d)return force?"Création des dossiers impossible : la date de début de déploiement n'est pas encore connue.":"";
-  if(!force&&(m.dirSent===d||(d0&&(m.dirSent===d0||m.dirSent===d0+" CORRECTIF"))))return "";if(dirBusy[id])return "";
+  const qmN=hasQmFiles(m);if(!force&&!(qmN&&!m.dirQm)&&(m.dirSent===d||(d0&&(m.dirSent===d0||m.dirSent===d0+" CORRECTIF"))))return "";if(dirBusy[id])return "";
   const g=dirName(groupOf(m)||m.group||"");if(!g)return force?"Création des dossiers impossible : le groupement n'est pas renseigné.":"";
   dirBusy[id]=true;
-  const q={groupe:g,date:d0,codes:cod.join(" "),dossier:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};
+  const q={groupe:g,date:d0,codes:cod.join(" "),dossier:d,chemin:"SUPPORT CLIENT/SGC/"+g+"/TECHNIQUE/"+d,sources:"0. SOURCES",replace:"REPLACE"};if(qmN)q.qm="Fichiers QM";
   const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
   let ok=false,err="";
   try{try{await fetch(url,{method:"GET",mode:"no-cors"});ok=true}
   catch(e){err=" ("+(e&&e.name?e.name+" : ":"")+(e&&e.message||"")+")";try{ok=await beacon(url)}catch(x){}if(!ok)try{const w=window.open(url,"_blank");if(w){try{w.opener=null}catch(x){}setTimeout(()=>{try{w.close()}catch(x){}},3000);ok=true}}catch(x){}}}
   finally{delete dirBusy[id]}
   if(!ok)return "Création des dossiers SharePoint impossible : le navigateur a bloqué la requête"+err+". Vérifie l'URL du flux dans les paramètres.";
-  m.dirSent=d;persist(id);
-  return "Demande envoyée : dossier "+d+" (avec 0. SOURCES et REPLACE) en cours de création dans le SharePoint de "+g+".";
+  m.dirSent=d;if(qmN)m.dirQm=true;persist(id);
+  return "Demande envoyée : dossier "+d+" (avec 0. SOURCES et REPLACE"+(qmN?" et Fichiers QM":"")+") en cours de création dans le SharePoint de "+g+".";
 }
 function flushDates(id){
   const m=majs[id];if(!m||!dateDraft||dateDraft.id!==id)return false;let ch=false;
@@ -6075,7 +6075,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.25.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.25.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
