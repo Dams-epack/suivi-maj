@@ -811,8 +811,9 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <div class="wrap" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const APP_VERSION="v2.23.1";
-const SUPPORT_BUILD="v1.7.1";
+const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
+const APP_VERSION="v2.24.0";
+const SUPPORT_BUILD="v1.8.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -1197,6 +1198,7 @@ Copier/coller le lien d'accès au rapport d'intervention ⇒ Copy/paste the inte
 Copier/coller le lien SharePoint des ressources de la MAJ ⇒ Copy/paste the SharePoint link to the update resources
 Copier/coller le lien SharePoint du dossier « Fichiers QM » ⇒ Copy/paste the SharePoint link to the "QM files" folder
 Fichiers QM ⇒ QM files
+Fichiers QM (CSV) ⇒ QM files (CSV)
 + Fichiers QM ⇒ + QM files
 Fichiers QM ✓ ⇒ QM files ✓
 Validation siège ⇒ HQ validation
@@ -2377,18 +2379,39 @@ function buildXml(name,rows,p,warns){
 }
 function listChanged(name,rows){const o=[];rows.forEach(r=>TRIM[name].forEach(t=>{if(r[t]){const c=cleanText(r[t]);if(c!==r[t])o.push({row:r._row,tag:t,from:r[t],to:c})}}));return o}
 function countChanged(name,rows){let n=0;TRIM[name].forEach(t=>rows.forEach(r=>{if(r[t]&&cleanText(r[t])!==r[t])n++}));return n}
+/* CSV pour les QM : même contenu que l'XML, mais au format des modèles du configurateur (UTF-8 avec BOM, séparateur « ; », CRLF) */
+const CSVMAP={
+  Warming:{file:'MISE EN TEMPERATURE.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category']]},
+  Service:{file:'TEMPERATURE DE SERVICE.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category'],['TEMPERATURE MINI','TempMin'],['TEMPERATURE MAXI','TempMax']]},
+  Production:{file:'TRACABILITE PRODUITS.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category'],['DUREE DE VIE','DateLimit']]},
+  Stickers:{file:'ETIQUETTES PRODUITS.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category'],['DUREE DE VIE','DateLimit']],note:'DUREE DE VIE : valeur seule, sans unité (le type de DLC n\'est pas dans le CSV)'},
+  Freezing:{file:'MISE EN CONGELATION.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category'],['DDM','Ddm'],['DU','Du'],['DLC','Dlc']],note:'Mêmes colonnes que DECONGELATION.csv : renomme le fichier si besoin'},
+  Frozen:{file:'REFROIDISSEMENT.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category'],['DUREE DE VIE','DateLimit']]},
+  StockIn:{file:'Réception Marchandises.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category'],['TEMP MINI','TempMin'],['TEMP MAX','TempMax'],['TEMP LIMITE','TempLimit'],['CHECKLIST VALIDEE','CheckList_AllMandatoryToValid']],note:'Le nom de la checklist n\'est pas dans le CSV (seul l\'indicateur « toutes les cases obligatoires » l\'est)'},
+  PlatsTemoins:{file:'PLATS TEMOINS.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category']],note:'La durée de conservation n\'est pas dans ce CSV'},
+  ProductionsTemp:{file:'TEMPERATURE DE PRODUCTION - PRODUITS.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category']]}
+};
+const csvCell=v=>{v=v==null?'':String(v);return /[;"\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function buildCsv(name,rows){
+  const cm=CSVMAP[name];if(!cm)return null;
+  const keep=rows.filter(r=>r.Delete!=='true');if(!keep.length)return null;
+  const tr=TRIM[name]||[];
+  const lines=[cm.cols.map(c=>c[0]).join(';')];
+  keep.forEach(r=>lines.push(cm.cols.map(([,t])=>{let v=r[t];if(v&&tr.includes(t))v=cleanText(v);return csvCell(v)}).join(';')));
+  return '\uFEFF'+lines.join('\r\n')+'\r\n';
+}
 function generate(name,aoa,p,now,off){
   const res=readRows(name,aoa,off);
   const {rows,errs,warns}=res;
-  let xml=null,cleaned=0,changes=[];const m=MODS[name];
+  let xml=null,csv=null,cleaned=0,changes=[];const m=MODS[name];
   if(!errs.length&&rows.length){
     finalize(name,rows,errs,warns,now);
     if(m.params&&rows.some(r=>r.DateLimit!=='-1'&&r._dlu===undefined)&&(p.dltype===''||p.dltype==null||![-1,0,1,2,3].includes(Number(p.dltype))))errs.push('Type de DLC à choisir : des DateLimit autres que -1 sont présentes (-1, 0, 1, 2 ou 3)');
     if(m.moments&&!(p.moments&&p.moments.length))errs.push('Moments à choisir : charge le fichier Moments.xml du client et coche le ou les moments des contrôles');
     if(name==='Service'&&rows.some(r=>r.Delete==='true'))warns.push('Service : Delete est toujours remis à false (règle de la skill)');
-    if(!errs.length){cleaned=countChanged(name,rows);changes=listChanged(name,rows);xml=buildXml(name,rows,p,warns)}
+    if(!errs.length){cleaned=countChanged(name,rows);changes=listChanged(name,rows);xml=buildXml(name,rows,p,warns);csv=buildCsv(name,rows)}
   }else if(!errs.length&&!rows.length)errs.push('Aucune ligne de données dans cet onglet');
-  return {xml,errs,warns,count:rows.length,cleaned,changes,file:m.out};
+  return {xml,errs,warns,count:rows.length,cleaned,changes,file:m.out,csv,csvFile:csv?CSVMAP[name].file:'',csvNote:csv?(CSVMAP[name].note||''):''};
 }
 let LUX=false;const setLux=v=>{LUX=!!v};
 const DIR_CODES={befr:'BE-FR',italie:'IT',lareunion:'REUNION',reunion:'REUNION',antilles:'ANTILLES',nouvellecaledonie:'NC'};
@@ -2753,6 +2776,27 @@ function openGen(m,k,id,M,r){
     if(done){closeGen();toast(st.msg);return}
     paint();
   }
+  /* CSV pour les QM (format des modèles du configurateur) : un CSV si un seul fichier, sinon un ZIP avec un dossier par onglet */
+  async function saveQm(){
+    const list=okRes().filter(x=>x.g.csv),enc=new TextEncoder();if(!list.length)return;
+    let name,bytes,mime;
+    if(list.length===1){name=list[0].g.csvFile;bytes=enc.encode(list[0].g.csv);mime="text/csv"}
+    else{
+      const nsh=new Set(list.map(x=>x.sheet)).size,dirs={},files=[];
+      list.forEach(x=>{let d="";if(nsh>1){d=dirs[x.sheet]||(dirs[x.sheet]=(()=>{let q=x.dir,n=2;while(Object.values(dirs).includes(q))q=x.dir+"_"+(n++);return q})())}files.push({name:(d?d+"/":"")+x.g.csvFile,data:enc.encode(x.g.csv)})});
+      const base=(st.file||"Excel").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").trim()||"Excel";
+      name=base+" - Fichiers QM.zip";bytes=makeZipMany(files);mime="application/zip"}
+    try{
+      const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
+      if(!d)throw {code:"unavailable"};
+      await d.save({filename:name,data:bytes});st.msg="Fichier enregistré : "+name+". Dépose-le dans le dossier « Fichiers QM » du SharePoint."
+    }catch(e){
+      if(e&&e.code==="declined")st.msg="Enregistrement annulé.";
+      else{try{const u=URL.createObjectURL(new Blob([bytes],{type:mime}));const a=$("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.msg="Téléchargement lancé : "+name+". Dépose-le dans le dossier « Fichiers QM » du SharePoint."}
+        catch(e2){st.msg="Enregistrement impossible"+(e&&e.code?" ("+e.code+")":"")+"."}}
+    }
+    paint();
+  }
   async function copy(x){
     let ok=false;
     try{await navigator.clipboard.writeText(x.g.xml);ok=true}catch(e){}
@@ -2983,7 +3027,11 @@ function openGen(m,k,id,M,r){
         const a2=$("div","actions");
         const sb=$("button","btn","Enregistrer (ZIP)");sb.onclick=save;a2.appendChild(sb);
         if(ok.length===1){const cb=$("button","btn ghost","Copier le XML");cb.onclick=()=>copy(ok[0]);a2.appendChild(cb)}
+        const qmOk=QM_CSV?ok.filter(x=>x.g.csv):[];
+        if(qmOk.length){const qb=$("button","btn ghost","Fichiers QM (CSV)");qb.type="button";qb.title="CSV au format des modèles du configurateur, pour les QM (UTF-8 avec BOM, séparateur « ; »)";qb.onclick=saveQm;a2.appendChild(qb)}
         md.appendChild(a2);
+        {const nts=[...new Set(qmOk.map(x=>x.g.csvNote).filter(Boolean))];if(nts.length)md.appendChild($("p","sub","Fichiers QM : "+nts.join(" · ")+"."));
+         const nq=ok.filter(x=>!x.g.csv);if(nq.length&&qmOk.length)md.appendChild($("p","sub","Pas de CSV QM pour : "+[...new Set(nq.map(x=>GEN_LABEL[x.type]||x.type))].join(", ")+"."))}
         if(ok.length===1){const ta=$("textarea","xmlout");ta.value=ok[0].g.xml;ta.readOnly=true;ta.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px";md.appendChild(ta)}
         md.appendChild($("p",null,"Le ZIP contient "+(new Set(ok.map(z=>z.type)).size>1?(new Set(ok.map(z=>z.sheet)).size>1?"un dossier par onglet, avec les XML ":"les XML ")+"("+[...new Set(ok.map(z=>z.g.file))].join(", ")+")":"le fichier "+GENX.MODS[ok[0].type||st.type].out+(ok.length>1?" dans un dossier par onglet":""))+". L'étape « Fichier d'import » se coche dès que l'XML est généré sans erreur."));
       }
