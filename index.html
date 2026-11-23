@@ -184,7 +184,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .step .box{width:20px;height:20px;border-radius:50%;font-size:12px;font-weight:800;border-width:2px;transition:background .15s,border-color .15s}
 .step[aria-checked="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ok) 26%,transparent),color-mix(in srgb,var(--ok) 12%,transparent));border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 40%,transparent),0 4px 16px -8px var(--ok)}
 .step[aria-checked="true"]:hover{box-shadow:0 0 0 1px var(--ok),0 6px 18px -6px var(--ok)}
-.stepcell{gap:6px}.regline{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.reg .chip.gx{align-self:center;margin:0 0 0 auto}
+.stepcell{gap:6px}.regline{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.reg .chip.gx{align-self:center;margin:0 0 0 auto}.stepcell .chip.gx{align-self:center;margin:0}
 .regdel{font:inherit;line-height:1;width:22px;height:22px;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}.regdel:hover:not(:disabled),.regdel:focus-visible{opacity:1;color:var(--bad);border-color:var(--bad);outline:none}.regdel:disabled{opacity:.2;cursor:not-allowed}
 .regdelq{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--bad)}.regdelq .btn{padding:3px 10px;font-size:.8rem}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
@@ -741,8 +741,8 @@ const STEPS2=[["Fichier d'import","Import"],["Dépôt dans le SharePoint","Dép�
 /* Module avec fichiers pour les QM (CSV du configurateur) : étape intermédiaire (entre l'import et le dépôt), dépôt dans le dossier « Fichiers QM » du SharePoint */
 const STEPS2Q=[STEPS2[0],["Fichiers QM","Fichiers QM"],STEPS2[1]];
 const QM_CSV=true; /* export « Fichiers QM » (CSV du configurateur) : circuit Grands Comptes uniquement, désactivé dans la version Support */
-const hasQmFiles=m=>!!(m&&(m.mods||[]).some(M=>M.gen&&M.qm));
-const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?(M.qm?STEPS2Q:STEPS2):STEPS);
+const hasQmFiles=m=>!!(m&&(m.mods||[]).some(M=>M.gen));
+const stepsOf=M=>/temps dans le meuble|[eé]tiquetage personnalis/i.test(M.name)?[["Préparation du fichier d'import (étiq. persos)","Préparation du fichier d'import (étiq. persos)"]]:(M.gen?STEPS2Q:STEPS);
 const LS="suivi-maj-v2", LSCUR="suivi-maj-v2-cur";
 let delReg=null,delMod=null,userApi=null, myId=null, names={}, q="", confirmClear=false, majs={}, cur=null, onlyTodo=false, col=null, sampleFn=null, draft={mail:"",title:"",type:"",group:"",parsed:null,msg:"",err:false,busy:false,fileName:""}, confirmDel=false, syncTxt="";
 /* Journal de synchronisation : état courant + 40 derniers événements, consultable depuis le bandeau */
@@ -753,8 +753,12 @@ function slog(kind,msg,id){syncKind=kind;syncTxt=msg;if(kind!=="busy"){const las
 function upgradeMaj(m){
   if(!m||m.archived||!Array.isArray(m.mods))return false;let ch=false;
   m.mods.forEach(M=>{
+    if(M.gen&&!M.qm&&stepsOf(M).length>1){ /* l'étape « Fichiers QM » est désormais systématique : le dépôt SharePoint passe en 3e position */
+      M.qm=true;ch=true;
+      (M.regions||[]).forEach(r=>{const k=M.id+"_"+r.key,p=m.prog&&m.prog[k];if(p&&Array.isArray(p.s))m.prog[k]=Object.assign({},p,{s:[!!p.s[0],false,!!p.s[1]]})});
+      return}
     if(M.gen||stepsOf(M).length===1)return;
-    M.gen=true;ch=true;
+    M.gen=true;M.qm=true;ch=true;
     M.regions.forEach(r=>{const k=M.id+"_"+r.key,p=m.prog&&m.prog[k];if(p&&Array.isArray(p.s))m.prog[k]=Object.assign({},p,{s:[!!p.s[0],false,false]})});
   });
   return ch;
@@ -3285,8 +3289,8 @@ function viewMaj(app,id){
         if(p.s[i]&&p.s.slice(0,i).some(x=>!x)){b.classList.add("warn");warn=true}
         b.appendChild($("span","box",p.s[i]?"✓":""));b.appendChild($("span","stepname",S[1]));b.appendChild($("span",null,"Fait"));
         b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&!M.gen&&stepsOf(M).length===3)openXml(m,k,id)};
-        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg);ln.appendChild(gx)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}
-        else if(QM_CSV&&M.gen&&M.qm&&i===1&&stepsOf(M).length===3){const w=$("div","stepcell");w.appendChild(b);const qx=$("button","chip gx","Excel → CSV QM");qx.type="button";qx.title="Importer l'Excel du client et générer les CSV au format du configurateur pour les QM";qx.onclick=()=>openGen(m,k,id,M,r,true);w.appendChild(qx);row.appendChild(w)}
+        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");w.appendChild(b);const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);w.appendChild(gx);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}
+        else if(QM_CSV&&M.gen&&i===1&&stepsOf(M).length===3){const w=$("div","stepcell");w.appendChild(b);const qx=$("button","chip gx","Excel → CSV QM");qx.type="button";qx.title="Importer l'Excel du client et générer les CSV au format du configurateur pour les QM";qx.onclick=()=>openGen(m,k,id,M,r,true);w.appendChild(qx);row.appendChild(w)}
         else row.appendChild(b);
       });
       if(!m.archived){
@@ -3296,7 +3300,7 @@ function viewMaj(app,id){
           const w=$("span","regdelq");w.append($("span",null,"Supprimer ?"));
           const y=$("button","btn danger regdy","Oui");y.type="button";y.onclick=()=>{M.regions=M.regions.filter(z=>z.key!==r.key);delete m.prog[k];delReg=null;stampTitle(m);persist(id);render();toast("Langue « "+norm(r.label)+" » supprimée du module « "+M.name+" ».")};
           const n=$("button","btn ghost regdn","Non");n.type="button";n.onclick=()=>{delReg=null;render()};
-          w.append(y,n);if(gxb)gxb.style.display="none";put(w);
+          w.append(y,n);row.querySelectorAll(".gx").forEach(z=>{z.style.visibility="hidden"});put(w);
         }else{
           const d=$("button","regdel","×");d.type="button";d.setAttribute("aria-label","Supprimer cette langue du module");
           d.title=only?"Un module garde au moins une langue":"Supprimer cette langue de ce module (ajoutée par erreur)";d.disabled=only;
@@ -3310,10 +3314,6 @@ function viewMaj(app,id){
     const mOpen=bk in blocClosed?!blocClosed[bk]:true;
     const h=$("div","mod-h modtog");h.setAttribute("role","button");h.tabIndex=0;h.setAttribute("aria-expanded",String(mOpen));h.title=mOpen?"Réduire ce module":"Développer ce module";
     h.appendChild($("h2",null,(mOpen?"▾ ":"▸ ")+M.name));if(M.name===MOD_TBD){const tb=$("span","gpill fix","Charger votre fichier Excel afin de définir le module");tb.title="Clique sur « Excel → XML » pour charger le fichier : le module sera renommé selon le type choisi.";h.appendChild(tb)}h.appendChild($("span","cnt",md+" / "+M.regions.length*stepsOf(M).length+" étapes"));
-    if(M.gen&&!m.archived){const qb=$("button","chip"+(M.qm?" on":""),M.qm?"Fichiers QM ✓":"+ Fichiers QM");qb.type="button";qb.setAttribute("aria-pressed",String(!!M.qm));
-      qb.title=M.qm?"Ce module a une étape « Fichiers QM » (CSV du configurateur déposés dans le dossier Fichiers QM). Clique pour la retirer.":"Ajouter l'étape « Fichiers QM » à ce module";
-      qb.onclick=e=>{e.stopPropagation();const MM=((majs[id]||m).mods||[]).find(x=>x.id===M.id);if(!MM)return;MM.qm=!MM.qm;persist(id);render()};
-      qb.onkeydown=e=>e.stopPropagation();h.appendChild(qb)}
     const togM=()=>{blocClosed[bk]=mOpen;try{localStorage.setItem("suivi-maj-bloc",JSON.stringify(blocClosed))}catch(e){}render()};
     h.onclick=togM;h.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();togM()}};
     if(allDone)sec.classList.add("done");
@@ -4301,7 +4301,7 @@ function openGen(m,k,id,M,r,qm){
   function storeQm(list,keyOf){
     if(!QM_CSV)return "";const cm=majs[id];if(!cm)return "";
     const items=(list||[]).filter(x=>x.g&&x.g.csv);if(!items.length)return "";
-    const Mq=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));if(!(Mq&&Mq.qm&&Mq.gen))return "";
+    const Mq=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));if(!(Mq&&Mq.gen))return "";
     const bak=JSON.stringify(cm.qmCsv||{}),store=JSON.parse(bak),n0=Object.keys(store).length;
     items.forEach(x=>{const kk=keyOf(x);if(!kk)return;const e=store[kk]||(store[kk]={at:Date.now(),f:[]});e.at=Date.now();const i=e.f.findIndex(f=>f.n===x.g.csvFile&&f.s===x.dir);const o={n:x.g.csvFile,s:x.dir,c:x.g.csv};if(i>=0)e.f[i]=o;else e.f.push(o)});
     if(JSON.stringify(store).length>350000)return " CSV QM non mémorisés (trop volumineux) : utilise « Excel → CSV QM » avec l'Excel du client.";
@@ -4377,7 +4377,7 @@ function openGen(m,k,id,M,r,qm){
   /* Coche l'étape « Fichiers QM » (2e étape) des régions dont le CSV vient d'être enregistré */
   function tickQm(list,stored){
     const cm=majs[id];if(!(cm&&k))return "";
-    const Mx=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));if(!(Mx&&Mx.qm&&Mx.gen))return "";
+    const Mx=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));if(!(Mx&&Mx.gen))return "";
     const keys=[];
     if(stored)keys.push(k);
     else list.forEach(x=>{const r2=regOf(Mx,x.sheet);if(r2){const kk=Mx.id+"_"+r2.key;if(!keys.includes(kk))keys.push(kk)}});
@@ -6109,7 +6109,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.26.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.27.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
