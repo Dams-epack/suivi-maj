@@ -930,6 +930,7 @@ Seconde passe ⇒ Second pass
 Retrouver une MAJ par mot-clé, groupement, module, région, collègue, date ou durée. ⇒ Find an update by keyword, group, module, region, colleague, date or duration.
 Créer un suivi de MAJ ⇒ Create an update tracker
 Importer le mail client, suivre les étapes par module et par région, générer les XML depuis l'Excel. ⇒ Import the client email, follow the steps per module and region, generate the XML files from the Excel.
+Choisir le groupement, les modules et les régions, puis suivre les étapes par module et par région. ⇒ Choose the group, modules and regions, then follow the steps per module and region.
 Créer le suivi ⇒ Create tracker
 Rouge sous 50 %, orange jusqu'à 99 %, vert à 100 %. ⇒ Red below 50%, orange up to 99%, green at 100%.
 Avancement des MAJ en cours ⇒ Progress of updates in progress
@@ -5009,8 +5010,8 @@ function viewHub(app){
   app.appendChild($("h2",null,"Outils"));
   const tIc=h=>{const i=$("span","ticon");i.setAttribute("aria-hidden","true");i.innerHTML=h;return i};
   const tl=$("div","tools");
-  const tb=$("button","tool");tb.append(tIc('<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="4" y="3" width="13" height="18" rx="2"/><path d="M8 8h5M8 12h5M8 16h3"/><g class="pl"><circle cx="18" cy="17" r="4.5" fill="var(--surface)"/><path d="M18 15v4M16 17h4"/></g></svg>'),$("strong",null,"Créer un suivi de MAJ"),$("span",null,"Importer le mail client, suivre les étapes par module et par région, générer les XML depuis l'Excel."),$("small",null,live.length+" en cours · "+arch.length+" archivées"));
-  tb.onclick=openTool;tl.appendChild(tb);
+  const tb=$("button","tool");tb.append(tIc('<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="4" y="3" width="13" height="18" rx="2"/><path d="M8 8h5M8 12h5M8 16h3"/><g class="pl"><circle cx="18" cy="17" r="4.5" fill="var(--surface)"/><path d="M18 15v4M16 17h4"/></g></svg>'),$("strong",null,"Créer un suivi de MAJ"),$("span",null,MAIL_IA?"Importer le mail client, suivre les étapes par module et par région, générer les XML depuis l'Excel.":"Choisir le groupement, les modules et les régions, puis suivre les étapes par module et par région."),$("small",null,live.length+" en cours · "+arch.length+" archivées"));
+  tb.onclick=MAIL_IA?openTool:openCustom;tl.appendChild(tb);
   const sb=$("button","tool");sb.append(tIc('<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><g class="mg"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></g><path d="M8 10.5h5"/></svg>'),$("strong",null,"Recherche de MAJ"),$("span",null,"Retrouver une MAJ par mot-clé, groupement, module, région, collègue, date ou durée."),$("small",null,(live.length+arch.length)+" MAJ indexées"));
   sb.onclick=openSearch;tl.appendChild(sb);
   {const st2=$("button","tool");st2.type="button";st2.append(tIc('<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'),$("strong",null,"Statistiques de temps"),$("span",null,"Temps de préparation moyen par personne, par type de MAJ et par module, et estimation de charge."));st2.onclick=openStats;tl.appendChild(st2)}
@@ -5998,7 +5999,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.22.3",APP_DATE="13/11/2026";
+const APP_VERSION="v2.22.4",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
