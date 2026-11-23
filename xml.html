@@ -812,8 +812,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.25.2";
-const SUPPORT_BUILD="v1.8.3";
+const APP_VERSION="v2.26.0";
+const SUPPORT_BUILD="v1.9.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2717,6 +2717,17 @@ function openGen(m,k,id,M,r,qm){
     if(ch)render();
   }
   /* coche « Fichier d'import » dès qu'un XML est généré sans erreur (le téléchargement n'est plus nécessaire) */
+  /* Mémorise les CSV QM dans la MAJ (par module/région) au moment où « Fichier d'import » est coché : on peut ensuite les enregistrer sans rouvrir l'Excel du client */
+  function storeQm(list,keyOf){
+    if(!QM_CSV)return "";const cm=majs[id];if(!cm)return "";
+    const items=(list||[]).filter(x=>x.g&&x.g.csv);if(!items.length)return "";
+    const Mq=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));if(!(Mq&&Mq.qm&&Mq.gen))return "";
+    const bak=JSON.stringify(cm.qmCsv||{}),store=JSON.parse(bak),n0=Object.keys(store).length;
+    items.forEach(x=>{const kk=keyOf(x);if(!kk)return;const e=store[kk]||(store[kk]={at:Date.now(),f:[]});e.at=Date.now();const i=e.f.findIndex(f=>f.n===x.g.csvFile&&f.s===x.dir);const o={n:x.g.csvFile,s:x.dir,c:x.g.csv};if(i>=0)e.f[i]=o;else e.f.push(o)});
+    if(JSON.stringify(store).length>350000)return " CSV QM non mémorisés (trop volumineux) : utilise « Excel → CSV QM » avec l'Excel du client.";
+    cm.qmCsv=store;persist(id);
+    return " CSV QM mémorisés pour l'étape « Fichiers QM ».";
+  }
   function markOk(){
     const cm=majs[id],Mx=Mx0(),ok=okRes();if(!(cm&&Mx&&ok.length))return;
     const keys=[];ok.forEach(x=>{const r2=regOf(Mx,x.sheet);if(r2){const kk=Mx.id+"_"+r2.key;if(!keys.includes(kk))keys.push(kk)}});
@@ -2724,7 +2735,7 @@ function openGen(m,k,id,M,r,qm){
     let n=0;
     keys.forEach(kk=>{const q=cm.prog[kk]||{s:[false,false,false],note:""};if(q.s[0]&&!q.issue)return;
       const ns=q.s.slice();ns[0]=true;cm.prog[kk]={s:ns,note:q.note||"",issue:""};n++;persist(id,kk)});
-    if(n){render();st.msg="Étape « Fichier d'import » cochée pour "+(n>1?n+" régions":"cette région")+"."}
+    {const qs=storeQm(ok,x=>{const r2=regOf(Mx,x.sheet);return r2?Mx.id+"_"+r2.key:(ok.length===1?k:"")});if(n||qs){render();st.msg=(n?"Étape « Fichier d'import » cochée pour "+(n>1?n+" régions":"cette région")+".":"")+qs}}
   }
   function tick(fn,bytes,list){
     const cm=majs[id];if(!(k&&cm))return "";
@@ -2743,8 +2754,9 @@ function openGen(m,k,id,M,r,qm){
       if(q.s[0]){had++;if(q.issue){cm.prog[kk]=Object.assign({},q,{issue:""});persist(id,kk);n=n||-1}return}
       const ns=q.s.slice();ns[0]=true;cm.prog[kk]={s:ns,note:q.note||"",issue:""};n=(n<0?0:n)+1;persist(id,kk);
     });
+    const qs=storeQm(list,x=>{const r2=Mx&&regOf(Mx,x.sheet);return r2?Mx.id+"_"+r2.key:(keys.length===1?keys[0]:"")});
     render();
-    let msg=n>1?" Étape « Fichier d'import » cochée pour "+n+" régions.":n===1?" Étape « Fichier d'import » cochée.":had?" Étape « Fichier d'import » déjà cochée.":"";
+    let msg=(n>1?" Étape « Fichier d'import » cochée pour "+n+" régions.":n===1?" Étape « Fichier d'import » cochée.":had?" Étape « Fichier d'import » déjà cochée.":"")+qs;
     if(lost.length)msg+=" Onglet(s) sans région correspondante, non coché(s) : "+lost.join(", ")+".";
     return msg;
   }
@@ -2782,14 +2794,14 @@ function openGen(m,k,id,M,r,qm){
     paint();
   }
   /* CSV pour les QM (format des modèles du configurateur) : un CSV si un seul fichier, sinon un ZIP avec un dossier par onglet */
-  async function saveQm(){
-    const list=okRes().filter(x=>x.g.csv),enc=new TextEncoder();if(!list.length)return;
+  async function saveQm(src){
+    const list=(src||okRes()).filter(x=>x.g.csv),enc=new TextEncoder();if(!list.length)return;
     let name,bytes,mime;
     if(list.length===1){name=list[0].g.csvFile;bytes=enc.encode(list[0].g.csv);mime="text/csv"}
     else{
       const nsh=new Set(list.map(x=>x.sheet)).size,dirs={},files=[];
       list.forEach(x=>{let d="";if(nsh>1){d=dirs[x.sheet]||(dirs[x.sheet]=(()=>{let q=x.dir,n=2;while(Object.values(dirs).includes(q))q=x.dir+"_"+(n++);return q})())}files.push({name:(d?d+"/":"")+x.g.csvFile,data:enc.encode(x.g.csv)})});
-      const base=(st.file||"Excel").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").trim()||"Excel";
+      const base=(src?(groupOf(majs[id])||m.group||"MAJ")+" "+r.label:(st.file||"Excel")).replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").trim()||"Excel";
       name=base+" - Fichiers QM.zip";bytes=makeZipMany(files);mime="application/zip"}
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
@@ -2814,6 +2826,14 @@ function openGen(m,k,id,M,r,qm){
     const h=$("h2",null,qm?"Excel → Fichiers QM":"Excel → XML");h.id="gt";
     const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
     const subP=$("p","gsubp gfile");md.append(hd,subP);
+    {const sv=qm&&majs[id]&&majs[id].qmCsv&&majs[id].qmCsv[k];
+     if(sv&&sv.f&&sv.f.length&&!st.res){
+      const bx=$("div","dlcmail"),dt=new Date(sv.at||Date.now());
+      bx.appendChild($("strong",null,"CSV déjà générés (à l'import des XML)"));
+      bx.appendChild($("p","sub",sv.f.map(f=>f.n).join(", ")+" · "+dt.toLocaleDateString("fr-FR")+" "+dt.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" · pas besoin de l'Excel du client."));
+      const ac=$("div","actions"),b0=$("button","btn","Enregistrer les CSV mémorisés");b0.type="button";
+      b0.onclick=()=>saveQm(sv.f.map(f=>({sheet:f.s,dir:f.s,g:{csv:f.c,csvFile:f.n}})));
+      ac.appendChild(b0);bx.appendChild(ac);md.appendChild(bx)}}
     const T=GENX.MODS;
     {const gl=$("div","gtl",qm?"Type de fichier QM":MULTI?"Type(s) d'XML (un ou plusieurs)":"Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role",MULTI?"group":"radiogroup");gr.setAttribute("aria-label","Type d'XML");
      Object.keys(T).filter(t=>!qm||GENX.CSVMAP[t]).forEach(t=>{const on=MULTI?st.types.has(t):st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role",MULTI?"checkbox":"radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(MULTI){if(st.types.has(t))st.types.delete(t);else st.types.add(t);st.type=TYPES()[0]||"";st.res=null;paint();return}if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
