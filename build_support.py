@@ -192,7 +192,7 @@ function helpPaint(){
 render();
 '''
 import datetime,zoneinfo
-SB='1.5.2'
+SB='1.5.3'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -269,5 +269,8 @@ extra_css='''<style>
 </style>
 '''
 out=head+'\n'+extra_css+brand+'\n<div class="wrap" id="app"></div>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>\n<script>\nconst APP_VERSION="%s";\nconst SUPPORT_BUILD="%s";\n'%(ver,build_label)+prelude+code+main+'\n</script>\n'
+# favicon propre à l'outil XML (chevrons de code) à la place de celui du suivi
+FAV_XML='%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20y1=%220%22%20x2=%221%22%20y2=%221%22%3E%3Cstop%20offset=%220%22%20stop-color=%22%233f7571%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%231f3d3b%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%2264%22%20height=%2264%22%20rx=%2215%22%20fill=%22url(%23g)%22/%3E%3Cpath%20d=%22M24%2020L11%2032l13%2012%22%20fill=%22none%22%20stroke=%22%239BF944%22%20stroke-width=%226%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3Cpath%20d=%22M40%2020l13%2012-13%2012%22%20fill=%22none%22%20stroke=%22%239BF944%22%20stroke-width=%226%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3Cpath%20d=%22M35.5%2016l-7%2032%22%20fill=%22none%22%20stroke=%22%23fff%22%20stroke-opacity=%22.85%22%20stroke-width=%225%22%20stroke-linecap=%22round%22/%3E%3C/svg%3E'
+out=re.sub(r'l\.href="data:image/svg\+xml,[^"]*"','l.href="data:image/svg+xml,'+FAV_XML.replace('\\','\\\\')+'"',out,count=1)
 open(sys.argv[2],'w',encoding='utf-8').write(out)
 print('OK',ver,len(out))
