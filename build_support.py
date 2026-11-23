@@ -192,7 +192,7 @@ function helpPaint(){
 render();
 '''
 import datetime,zoneinfo
-SB='1.5.3'
+SB='1.6.0'
 build_label='v'+SB
 ver=re.search(r'const APP_VERSION="(v[\d.]+)"',src).group(1)
 extra_css='''<style>
@@ -255,6 +255,7 @@ extra_css='''<style>
 .x2fi{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent,#9bf944);color:#10201f}.x2fi svg{width:22px;height:22px}
 .x2ft{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.x2ft b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.x2ft small{opacity:.75;font-size:.82rem}
 .x2lk{font:inherit;font-size:.84rem;background:transparent;border:0;color:inherit;opacity:.8;text-decoration:underline;cursor:pointer;padding:2px 4px;white-space:nowrap}.x2lk:hover{opacity:1}.x2lk:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:2px;border-radius:4px}
+.x2srch{display:flex;align-items:center;gap:10px;margin:0 0 8px}.x2srch input{flex:1;min-width:0;font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--border,#ccc);background:transparent;color:inherit}.x2srch input:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:1px}.x2rc{opacity:.75;white-space:nowrap;font-size:.8rem}.x2none{margin:8px;opacity:.75;font-size:.9rem}
 .x2tb{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px}
 .x2cnt{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.7}.x2tg{display:flex;gap:10px;flex-wrap:wrap}
 .x2list{min-height:0!important;max-height:38vh;padding:4px;gap:3px}

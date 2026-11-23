@@ -356,7 +356,7 @@ const X2E=(()=>{
 })();
 
 function openX2E(){
-  const st={showEmpty:false,prev:"",summary:false,mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
+  const st={q:"",showEmpty:false,prev:"",summary:false,mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","x2t");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const close=()=>{bg.remove();document.removeEventListener("keydown",kd)};
@@ -442,7 +442,9 @@ function openX2E(){
   }
   function paint(){
     const ol=md.querySelector(".x2list"),ls=ol?ol.scrollTop:0,ms=md.scrollTop;
+    const qa=document.activeElement&&document.activeElement.id==="x2q"?document.activeElement:null,qs=qa?[qa.selectionStart,qa.selectionEnd]:null;
     paint0();
+    if(qs){const q2=md.querySelector("#x2q");if(q2){q2.focus();try{q2.setSelectionRange(qs[0],qs[1])}catch(e){}}}
     const nl=md.querySelector(".x2list");if(nl&&ls)nl.scrollTop=ls;if(ms)md.scrollTop=ms;
   }
   function paint0(){
@@ -470,14 +472,24 @@ function openX2E(){
     const tb0=$("div","x2tb");
     tb0.appendChild($("span","x2cnt",c.length+" sélectionné"+(c.length>1?"s":"")+" sur "+nonEmpty));
     const tg=$("div","x2tg");
-    const a1=$("button","x2lk","Tout cocher");a1.type="button";a1.onclick=()=>{st.sel=new Set(st.mods.filter(m=>m.count>0).map(m=>m.name));paint()};
+    const nq=v=>String(v==null?"":v).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    const q=nq(st.q).trim(),qw=q.split(/\s+/).filter(Boolean);
+    const hit=m=>!qw.length||qw.every(w=>nq(m.sheet+" "+m.name).includes(w));
+    const vis=st.mods.filter(m=>(m.count>0||st.showEmpty)&&hit(m));
+    const a1=$("button","x2lk",qw.length?"Cocher les "+vis.filter(m=>m.count>0).length+" affichés":"Tout cocher");a1.type="button";a1.onclick=()=>{(qw.length?vis:st.mods).filter(m=>m.count>0).forEach(m=>st.sel.add(m.name));paint()};
     const a2=$("button","x2lk","Tout décocher");a2.type="button";a2.onclick=()=>{st.sel=new Set();paint()};
     tg.append(a1,a2);
     if(nonEmpty<st.mods.length){const te=$("button","x2lk",st.showEmpty?"Masquer les vides":"Voir les "+(st.mods.length-nonEmpty)+" vides");te.type="button";te.onclick=()=>{st.showEmpty=!st.showEmpty;paint()};tg.appendChild(te)}
     tb0.appendChild(tg);md.appendChild(tb0);
+    /* recherche d'un module par son nom (sans tenir compte des accents ni de la casse) */
+    {const sw=$("div","x2srch");const qi=$("input");qi.type="search";qi.id="x2q";qi.value=st.q;qi.placeholder="Rechercher un module…";qi.setAttribute("aria-label","Rechercher un module");qi.autocomplete="off";
+     qi.oninput=()=>{st.q=qi.value;paint()};
+     qi.onkeydown=e=>{if(e.key==="Escape"&&qi.value){e.stopPropagation();st.q="";paint()}};
+     sw.appendChild(qi);if(qw.length){const rc=$("small","x2rc",vis.length+" module"+(vis.length>1?"s":"")+" affiché"+(vis.length>1?"s":""));rc.setAttribute("role","status");sw.appendChild(rc)}md.appendChild(sw)}
     /* liste */
     const lst=$("div","x2list");
-    st.mods.filter(m=>m.count>0||st.showEmpty).forEach(m=>{
+    if(!vis.length)lst.appendChild($("p","x2none",qw.length?"Aucun module ne correspond à « "+st.q.trim()+" »."+(!st.showEmpty&&st.mods.some(m=>!m.count&&hit(m))?" Les modules vides sont masqués.":""):"Aucun module à afficher."));
+    vis.forEach(m=>{
       const l=$("label","x2row"+(m.count?"":" empty")+(st.sel.has(m.name)?" on":""));
       const cb=$("input");cb.type="checkbox";cb.checked=st.sel.has(m.name);cb.onchange=()=>{cb.checked?st.sel.add(m.name):st.sel.delete(m.name);paint()};
       const pv=$("button","chip x2pv"+(st.prev===m.name?" on":""),"Aperçu");pv.type="button";pv.disabled=!m.count;pv.onclick=e=>{e.preventDefault();e.stopPropagation();st.prev=st.prev===m.name?"":m.name;paint()};

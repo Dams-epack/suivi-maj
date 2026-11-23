@@ -794,6 +794,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 .x2fi{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent,#9bf944);color:#10201f}.x2fi svg{width:22px;height:22px}
 .x2ft{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.x2ft b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.x2ft small{opacity:.75;font-size:.82rem}
 .x2lk{font:inherit;font-size:.84rem;background:transparent;border:0;color:inherit;opacity:.8;text-decoration:underline;cursor:pointer;padding:2px 4px;white-space:nowrap}.x2lk:hover{opacity:1}.x2lk:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:2px;border-radius:4px}
+.x2srch{display:flex;align-items:center;gap:10px;margin:0 0 8px}.x2srch input{flex:1;min-width:0;font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--border,#ccc);background:transparent;color:inherit}.x2srch input:focus-visible{outline:2px solid var(--accent,#9bf944);outline-offset:1px}.x2rc{opacity:.75;white-space:nowrap;font-size:.8rem}.x2none{margin:8px;opacity:.75;font-size:.9rem}
 .x2tb{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px}
 .x2cnt{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.7}.x2tg{display:flex;gap:10px;flex-wrap:wrap}
 .x2list{min-height:0!important;max-height:38vh;padding:4px;gap:3px}
@@ -811,7 +812,7 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const APP_VERSION="v2.22.1";
-const SUPPORT_BUILD="v1.5.3";
+const SUPPORT_BUILD="v1.6.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -3590,7 +3591,7 @@ const X2E=(()=>{
 })();
 
 function openX2E(){
-  const st={showEmpty:false,prev:"",summary:false,mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
+  const st={q:"",showEmpty:false,prev:"",summary:false,mods:null,sel:new Set(),name:"",err:"",msg:"",bad:[],moments:0,busy:false,lastBytes:null,lastName:""};
   const bg=$("div","modal-bg");bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-labelledby","x2t");
   const md=$("div","modal xml");bg.appendChild(md);document.body.appendChild(bg);
   const close=()=>{bg.remove();document.removeEventListener("keydown",kd)};
@@ -3676,7 +3677,9 @@ function openX2E(){
   }
   function paint(){
     const ol=md.querySelector(".x2list"),ls=ol?ol.scrollTop:0,ms=md.scrollTop;
+    const qa=document.activeElement&&document.activeElement.id==="x2q"?document.activeElement:null,qs=qa?[qa.selectionStart,qa.selectionEnd]:null;
     paint0();
+    if(qs){const q2=md.querySelector("#x2q");if(q2){q2.focus();try{q2.setSelectionRange(qs[0],qs[1])}catch(e){}}}
     const nl=md.querySelector(".x2list");if(nl&&ls)nl.scrollTop=ls;if(ms)md.scrollTop=ms;
   }
   function paint0(){
@@ -3704,14 +3707,24 @@ function openX2E(){
     const tb0=$("div","x2tb");
     tb0.appendChild($("span","x2cnt",c.length+" sélectionné"+(c.length>1?"s":"")+" sur "+nonEmpty));
     const tg=$("div","x2tg");
-    const a1=$("button","x2lk","Tout cocher");a1.type="button";a1.onclick=()=>{st.sel=new Set(st.mods.filter(m=>m.count>0).map(m=>m.name));paint()};
+    const nq=v=>String(v==null?"":v).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    const q=nq(st.q).trim(),qw=q.split(/\s+/).filter(Boolean);
+    const hit=m=>!qw.length||qw.every(w=>nq(m.sheet+" "+m.name).includes(w));
+    const vis=st.mods.filter(m=>(m.count>0||st.showEmpty)&&hit(m));
+    const a1=$("button","x2lk",qw.length?"Cocher les "+vis.filter(m=>m.count>0).length+" affichés":"Tout cocher");a1.type="button";a1.onclick=()=>{(qw.length?vis:st.mods).filter(m=>m.count>0).forEach(m=>st.sel.add(m.name));paint()};
     const a2=$("button","x2lk","Tout décocher");a2.type="button";a2.onclick=()=>{st.sel=new Set();paint()};
     tg.append(a1,a2);
     if(nonEmpty<st.mods.length){const te=$("button","x2lk",st.showEmpty?"Masquer les vides":"Voir les "+(st.mods.length-nonEmpty)+" vides");te.type="button";te.onclick=()=>{st.showEmpty=!st.showEmpty;paint()};tg.appendChild(te)}
     tb0.appendChild(tg);md.appendChild(tb0);
+    /* recherche d'un module par son nom (sans tenir compte des accents ni de la casse) */
+    {const sw=$("div","x2srch");const qi=$("input");qi.type="search";qi.id="x2q";qi.value=st.q;qi.placeholder="Rechercher un module…";qi.setAttribute("aria-label","Rechercher un module");qi.autocomplete="off";
+     qi.oninput=()=>{st.q=qi.value;paint()};
+     qi.onkeydown=e=>{if(e.key==="Escape"&&qi.value){e.stopPropagation();st.q="";paint()}};
+     sw.appendChild(qi);if(qw.length){const rc=$("small","x2rc",vis.length+" module"+(vis.length>1?"s":"")+" affiché"+(vis.length>1?"s":""));rc.setAttribute("role","status");sw.appendChild(rc)}md.appendChild(sw)}
     /* liste */
     const lst=$("div","x2list");
-    st.mods.filter(m=>m.count>0||st.showEmpty).forEach(m=>{
+    if(!vis.length)lst.appendChild($("p","x2none",qw.length?"Aucun module ne correspond à « "+st.q.trim()+" »."+(!st.showEmpty&&st.mods.some(m=>!m.count&&hit(m))?" Les modules vides sont masqués.":""):"Aucun module à afficher."));
+    vis.forEach(m=>{
       const l=$("label","x2row"+(m.count?"":" empty")+(st.sel.has(m.name)?" on":""));
       const cb=$("input");cb.type="checkbox";cb.checked=st.sel.has(m.name);cb.onchange=()=>{cb.checked?st.sel.add(m.name):st.sel.delete(m.name);paint()};
       const pv=$("button","chip x2pv"+(st.prev===m.name?" on":""),"Aperçu");pv.type="button";pv.disabled=!m.count;pv.onclick=e=>{e.preventDefault();e.stopPropagation();st.prev=st.prev===m.name?"":m.name;paint()};
