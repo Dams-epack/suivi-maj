@@ -2939,6 +2939,8 @@ function toast(msg,err){
 }
 const calBusy={};
 /* Enregistrer les dates : événements Outlook + création des dossiers SharePoint (même geste) */
+/* Envoi de secours : un fetch no-cors peut lever « Failed to fetch » alors que le flux a bien reçu la requête (redirection, réponse sans CORS). Une image invisible lance la même requête GET sans lever d'erreur. */
+function beacon(url){return new Promise(res=>{try{const i=new Image();let d=false;const f=()=>{if(!d){d=true;res(true)}};i.onload=f;i.onerror=f;i.referrerPolicy="no-referrer";i.src=url;setTimeout(f,2500)}catch(e){res(false)}})}
 async function syncCalendar(id){
   const r1=await syncCalendarCore(id);let r2="";try{r2=await syncDirs(id)}catch(e){}
   if(r2)render();
@@ -2959,7 +2961,7 @@ async function syncCalendar2(id,m,u,s,d,key){
   const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
   let ok=false,err="";
   try{await fetch(url,{method:"GET",mode:"no-cors"});ok=true}
-  catch(e){err=" ("+(e&&e.name?e.name+" : ":"")+(e&&e.message||"")+")";try{const w=window.open(url,"_blank");if(w){try{w.opener=null}catch(x){}setTimeout(()=>{try{w.close()}catch(x){}},3000);ok=true}}catch(x){}}
+  catch(e){err=" ("+(e&&e.name?e.name+" : ":"")+(e&&e.message||"")+")";try{ok=await beacon(url)}catch(x){}if(!ok)try{const w=window.open(url,"_blank");if(w){try{w.opener=null}catch(x){}setTimeout(()=>{try{w.close()}catch(x){}},3000);ok=true}}catch(x){}}
   if(!ok)return "Envoi à Outlook impossible : le navigateur a bloqué la requête"+err+". Vérifie l'URL du flux dans les paramètres (roue dentée de l'accueil).";
   m.calSent=key;persist(id);
   return changed?"Événements envoyés à Outlook. Les dates ont changé : supprime les anciens événements dans ton calendrier.":"Événements « MAJ siège » et « Déploiement MAJ » envoyés à Outlook.";
@@ -2989,7 +2991,7 @@ async function syncDirs(id,force){
   const url=u+(u.includes("?")?"&":"?")+Object.entries(q).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
   let ok=false,err="";
   try{try{await fetch(url,{method:"GET",mode:"no-cors"});ok=true}
-  catch(e){err=" ("+(e&&e.name?e.name+" : ":"")+(e&&e.message||"")+")";try{const w=window.open(url,"_blank");if(w){try{w.opener=null}catch(x){}setTimeout(()=>{try{w.close()}catch(x){}},3000);ok=true}}catch(x){}}}
+  catch(e){err=" ("+(e&&e.name?e.name+" : ":"")+(e&&e.message||"")+")";try{ok=await beacon(url)}catch(x){}if(!ok)try{const w=window.open(url,"_blank");if(w){try{w.opener=null}catch(x){}setTimeout(()=>{try{w.close()}catch(x){}},3000);ok=true}}catch(x){}}}
   finally{delete dirBusy[id]}
   if(!ok)return "Création des dossiers SharePoint impossible : le navigateur a bloqué la requête"+err+". Vérifie l'URL du flux dans les paramètres.";
   m.dirSent=d;persist(id);
@@ -6073,7 +6075,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.25.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.25.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
