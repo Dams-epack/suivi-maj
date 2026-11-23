@@ -2393,6 +2393,9 @@ async function reviewMail(){
   if(asks.length){const r=await replyDialog(asks);if(r.cancel){draft.msg="Création annulée.";draft.err=true;render();return false}}
   return true;
 }
+/* Lecture des mails client par Claude (extraction du groupement, des modules et des régions).
+   false = désactivée temporairement : l'analyse locale du texte du mail reste active. Remettre true pour la réactiver. */
+const MAIL_IA=false;
 const MOD_TBD="À définir";
 async function analyse(){
   const mail=draft.mail.trim();
@@ -5994,7 +5997,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.22.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.22.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
@@ -6020,7 +6023,7 @@ render();
 (async()=>{
   try{
     const c=window.claude;if(!c){spInit();return}
-    c.use("sample").then(s=>{sampleFn=s||null}).catch(()=>{});
+    if(MAIL_IA)c.use("sample").then(s=>{sampleFn=s||null}).catch(()=>{});
     c.use("user").then(async u=>{if(u){userApi=u;try{myId=await u.id()}catch(e){}resolveNames()}}).catch(()=>{});
     const db=await c.use("db");
     if(!db){slog("warn","Sauvegarde locale uniquement (non partagée)");spInit();return}
