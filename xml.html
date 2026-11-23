@@ -812,8 +812,8 @@ button.mchip{font-family:inherit;cursor:pointer}button.mchip:hover{filter:bright
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.28.1";
-const SUPPORT_BUILD="v1.11.1";
+const APP_VERSION="v2.28.2";
+const SUPPORT_BUILD="v1.11.2";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2841,13 +2841,16 @@ function openGen(m,k,id,M,r,qm){
     const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
     const subP=$("p","gsubp gfile");md.append(hd,subP);
     {const sv=qm&&majs[id]&&majs[id].qmCsv&&majs[id].qmCsv[k];
-     if(sv&&sv.f&&sv.f.length&&!st.res){
+     if(sv&&sv.f&&sv.f.length&&!st.res&&!st.full){
       const bx=$("div","dlcmail"),dt=new Date(sv.at||Date.now());
       bx.appendChild($("strong",null,"CSV déjà générés (à l'import des XML)"));
       bx.appendChild($("p","sub",sv.f.map(f=>f.n).join(", ")+" · "+dt.toLocaleDateString("fr-FR")+" "+dt.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" · pas besoin de l'Excel du client."));
       const ac=$("div","actions"),b0=$("button","btn","Enregistrer les CSV mémorisés");b0.type="button";
       b0.onclick=()=>saveQm(sv.f.map(f=>({sheet:f.s,dir:f.s,g:{csv:f.c,csvFile:f.n}})));
-      ac.appendChild(b0);bx.appendChild(ac);md.appendChild(bx)}}
+      const b1=$("button","btn ghost","Générer depuis un autre Excel");b1.type="button";b1.title="Recharger un Excel client pour régénérer les CSV (remplace les CSV mémorisés)";b1.onclick=()=>{st.full=true;st.msg="";paint()};
+      ac.append(b0,b1);bx.appendChild(ac);md.appendChild(bx);
+      if(st.msg){const e=$("p","msg",st.msg);e.setAttribute("role","status");md.appendChild(e)}
+      return}}
     const T=GENX.MODS;
     {const gl=$("div","gtl",qm?"Type de fichier QM":MULTI?"Type(s) d'XML (un ou plusieurs)":"Type d'XML"),gr=$("div","gtiles");gr.setAttribute("role",MULTI?"group":"radiogroup");gr.setAttribute("aria-label","Type d'XML");
      Object.keys(T).filter(t=>!qm||GENX.CSVMAP[t]).forEach(t=>{const on=MULTI?st.types.has(t):st.type===t,b=$("button","gtile"+(on?" on":""));b.type="button";b.setAttribute("role",MULTI?"checkbox":"radio");b.setAttribute("aria-checked",String(on));b.append($("span","gtk",on?"✓":""),$("b",null,GEN_LABEL[t]||t),$("small",null,T[t].out));b.onclick=()=>{if(MULTI){if(st.types.has(t))st.types.delete(t);else st.types.add(t);st.type=TYPES()[0]||"";st.res=null;paint();return}if(st.type===t)return;st.type=t;st.map={};st.res=null;paint()};gr.appendChild(b)});
