@@ -836,8 +836,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.31.2";
-const SUPPORT_BUILD="v1.14.2";
+const APP_VERSION="v2.32.0";
+const SUPPORT_BUILD="v1.15.0";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2114,6 +2114,7 @@ function processText(text,eol,profile,o,reference){
       if(excCatNorm!==null){
         const cm=categoryRe.exec(body);
         if(cm&&cm[1].trim().toLowerCase()===excCatNorm){eff=o.excVal;inc(`${ft} (exception catégorie)`)}
+        else{const nm=nameRe.exec(body);if(nm&&/consommer\s+de\s+pr[eé]f/i.test(nm[1])){eff=o.excVal;inc(`${ft} (« à consommer de préf. avant le »)`)}}
       }
       if(present.has(ft.toLowerCase())){
         let n=0;
@@ -2373,7 +2374,7 @@ function buildXml(name,rows,p,warns){
       if(r.DateLimit==='-1')r.DLType='-1';
       else if(r._dlu!==undefined){r.DLType=String(r._dlu);if(sel!==r._dlu)dlOver.push(`L${r._row} : ${DL_LABEL[r._dlu]}`)}
       else r.DLType=sel===null?'-1':String(sel);
-      const hit=excCat&&(r.Category||'').trim().toLowerCase()===excCat;if(hit)excN++;
+      const hit=excCat&&((r.Category||'').trim().toLowerCase()===excCat||DDM_NAME_RE.test(r.Name||''));if(hit)excN++;
       r.IsDDM=hit?(p.excVal||'true'):(p.isddm||'false');
     }
     if(name==='ProductionsTemp'){if(!r.CheckList_AllMandatoryToValid)r.CheckList_AllMandatoryToValid='false';r.DLType='-1'}
@@ -2402,12 +2403,13 @@ function buildXml(name,rows,p,warns){
   }
   out.push(`</ArrayOf${m.el}>`);
   if(dlOver.length)warns.unshift(`ATTENTION : ${dlOver.length} ligne(s) avec un type de DLC différent de celui sélectionné (${p.dltype===''||p.dltype==null?'aucun':DL_LABEL[Number(p.dltype)]||p.dltype}). Le type du fichier client est appliqué : ${dlOver.slice(0,8).join(' ; ')}${dlOver.length>8?' …':''}`);
-  if(excCat)warns.push(excN?`Boulangerie Ange : ${excN} produit(s) en « ${p.excCat} », IsDDM = ${p.excVal||'true'}`:`Boulangerie Ange coché mais aucune ligne n'a la catégorie « ${p.excCat} » : IsDDM = ${p.isddm||'false'} partout. Vérifie les intitulés de catégorie du fichier.`);
+  if(excCat)warns.push(excN?`Boulangerie Ange : ${excN} produit(s) en « ${p.excCat} » ou « à consommer de préf. avant le », IsDDM = ${p.excVal||'true'}`:`Boulangerie Ange coché mais aucune ligne n'a la catégorie « ${p.excCat} » : IsDDM = ${p.isddm||'false'} partout. Vérifie les intitulés de catégorie du fichier.`);
   return out.join(eol)+(m.bare?'':eol);
 }
 function listChanged(name,rows){const o=[];rows.forEach(r=>TRIM[name].forEach(t=>{if(r[t]){const c=cleanText(r[t]);if(c!==r[t])o.push({row:r._row,tag:t,from:r[t],to:c})}}));return o}
 function countChanged(name,rows){let n=0;TRIM[name].forEach(t=>rows.forEach(r=>{if(r[t]&&cleanText(r[t])!==r[t])n++}));return n}
 /* CSV pour les QM : même contenu que l'XML, mais au format des modèles du configurateur (UTF-8 avec BOM, séparateur « ; », CRLF) */
+const DDM_NAME_RE=/consommer\s+de\s+pr[eé]f/i;
 const CSVMAP={
   Warming:{file:'MISE EN TEMPERATURE.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category']]},
   Service:{file:'TEMPERATURE DE SERVICE.csv',cols:[['LIBELLE','Name'],['CATEGORIE','Category'],['TEMPERATURE MINI','TempMin'],['TEMPERATURE MAXI','TempMax']]},
@@ -3004,7 +3006,7 @@ function openGen(m,k,id,M,r,qm){
       pw.appendChild(field("Type de DLC",sel([["","À choisir"],["-1","-1 · interface"],["0","0 · jours"],["1","1 · services"],["2","2 · heures"],["3","3 · minutes"]],st.dl,v=>{st.dl=v})));
       pw.appendChild(field("IsDDM par défaut",sel([["false","false"],["true","true"]],st.dd,v=>{st.dd=v})));
       const al=$("label","gsheet");const ax=$("input");ax.type="checkbox";ax.checked=st.ange;ax.onchange=()=>{st.ange=ax.checked};
-      al.append(ax,$("b",null,"Boulangerie Ange"),$("span",null,"IsDDM = true pour la catégorie « DDM SECONDAIRE »"));
+      al.append(ax,$("b",null,"Boulangerie Ange"),$("span",null,"IsDDM = true pour la catégorie « DDM SECONDAIRE » et les produits « à consommer de préf. avant le »"));
       pw.appendChild(al);md.appendChild(pw);
     }
     const useMom=!qm&&TYPES().some(ty=>T[ty].moments);
