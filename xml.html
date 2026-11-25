@@ -836,8 +836,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.29.2";
-const SUPPORT_BUILD="v1.12.2";
+const APP_VERSION="v2.30.1";
+const SUPPORT_BUILD="v1.13.1";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2823,7 +2823,8 @@ function openGen(m,k,id,M,r,qm){
     const cm=majs[id];if(!(cm&&k))return "";
     const Mx=(cm.mods||[]).find(z=>(z.regions||[]).some(r2=>z.id+"_"+r2.key===k));if(!(Mx&&Mx.gen))return "";
     const keys=[];
-    if(stored)keys.push(k);
+    if(stored)list.forEach(x=>{if(x.sheet&&!keys.includes(x.sheet))keys.push(x.sheet)});
+    if(stored&&!keys.length)keys.push(k);
     else list.forEach(x=>{const r2=regOf(Mx,x.sheet);if(r2){const kk=Mx.id+"_"+r2.key;if(!keys.includes(kk))keys.push(kk)}});
     if(!keys.length&&list.length)keys.push(k);
     let n=0,had=0;
@@ -2832,15 +2833,23 @@ function openGen(m,k,id,M,r,qm){
     if(n)render();
     return n>1?" Étape « Fichiers QM » cochée pour "+n+" régions.":n===1?" Étape « Fichiers QM » cochée.":had?" Étape « Fichiers QM » déjà cochée.":"";
   }
-  async function saveQm(src){
-    const list=(src||okRes()).filter(x=>x.g.csv),enc=new TextEncoder();if(!list.length)return;
-    let name,bytes,mime;
-    if(list.length===1){name=list[0].g.csvFile;bytes=enc.encode(list[0].g.csv);mime="text/csv"}
-    else{
-      const nsh=new Set(list.map(x=>x.sheet)).size,dirs={},files=[];
-      list.forEach(x=>{let d="";if(nsh>1){d=dirs[x.sheet]||(dirs[x.sheet]=(()=>{let q=x.dir,n=2;while(Object.values(dirs).includes(q))q=x.dir+"_"+(n++);return q})())}files.push({name:(d?d+"/":"")+x.g.csvFile,data:enc.encode(x.g.csv)})});
-      const base=(src?(groupOf(majs[id])||m.group||"MAJ")+" "+r.label:(st.file||"Excel")).replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").trim()||"Excel";
-      name=base+" - Fichiers QM.zip";bytes=makeZipMany(files);mime="application/zip"}
+  async function saveQm(src0){
+    const src=Array.isArray(src0)?src0:null,list=(src||okRes()).filter(x=>x.g.csv),enc=new TextEncoder();if(!list.length)return;
+    /* Toujours un ZIP, avec la même hiérarchie que le ZIP des XML : un dossier par région quand il y en a plusieurs, fichiers à plat sinon */
+    let name,bytes,mime="application/zip";
+    {const files=[],nt=new Set(list.map(x=>x.g.csvFile)).size;
+     if(nt>1){
+       const nsh=new Set(list.map(x=>x.sheet)).size,dirs={};
+       list.forEach(x=>{let d=nsh>1?(dirs[x.sheet]||(dirs[x.sheet]=(()=>{let q=x.dir,n=2;while(Object.values(dirs).includes(q))q=x.dir+"_"+(n++);return q})())):"";files.push({name:(d?d+"/":"")+x.g.csvFile,data:enc.encode(x.g.csv)})});
+       const base=(src?(groupOf(majs[id])||m.group||"MAJ")+" "+r.label:(st.file||"Excel")).replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").trim()||"Excel";
+       name=base+" - Fichiers QM.zip";
+     }else{
+       const used=new Set();
+       list.forEach(x=>{let d=x.dir,n=2;while(used.has(d))d=x.dir+"_"+(n++);used.add(d);files.push({name:(list.length>1?d+"/":"")+x.g.csvFile,data:enc.encode(x.g.csv)})});
+       const part=(list.length>1?"REGIONS":list[0].dir).replace(/[^A-Za-z0-9_-]+/g,"-"),ob=list[0].g.csvFile.replace(/\.csv$/i,"");
+       name=zipGroup(id)?zipName(id,ob):(list.length>1?part+"_":"")+ob+".zip";
+     }
+     bytes=makeZipMany(files)}
     try{
       const d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
       if(!d)throw {code:"unavailable"};
@@ -2864,13 +2873,14 @@ function openGen(m,k,id,M,r,qm){
     const h=$("h2",null,qm?"Excel → Fichiers QM":"Excel → XML");h.id="gt";
     const hd=$("div","xhead sticky");const x=$("button","xclose","×");x.type="button";x.setAttribute("aria-label","Fermer");x.onclick=closeGen;hd.append(h,x);
     const subP=$("p","gsubp gfile");md.append(hd,subP);
-    {const sv=qm&&majs[id]&&majs[id].qmCsv&&majs[id].qmCsv[k];
-     if(sv&&sv.f&&sv.f.length&&!st.res&&!st.full){
+    {const qa=qm&&majs[id]&&majs[id].qmCsv?majs[id].qmCsv:null,ks=qa?Object.keys(qa).filter(kk=>kk===k||kk.startsWith(M.id+"_")):[],
+      sv=ks.length?{at:Math.max(...ks.map(kk=>qa[kk].at||0)),f:ks.flatMap(kk=>(qa[kk].f||[]).map(f=>Object.assign({},f,{kk})))}:null;
+     if(sv&&sv.f.length&&!st.res&&!st.full){
       const bx=$("div","dlcmail"),dt=new Date(sv.at||Date.now());
       bx.appendChild($("strong",null,"CSV déjà générés (à l'import des XML)"));
-      bx.appendChild($("p","sub",sv.f.map(f=>f.n).join(", ")+" · "+dt.toLocaleDateString("fr-FR")+" "+dt.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" · pas besoin de l'Excel du client."));
+      bx.appendChild($("p","sub",[...new Set(sv.f.map(f=>f.n))].join(", ")+(ks.length>1?" · "+ks.length+" régions":"")+" · "+dt.toLocaleDateString("fr-FR")+" "+dt.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" · pas besoin de l'Excel du client."));
       const ac=$("div","actions"),b0=$("button","btn","Enregistrer les CSV mémorisés");b0.type="button";
-      b0.onclick=()=>saveQm(sv.f.map(f=>({sheet:f.s,dir:f.s,g:{csv:f.c,csvFile:f.n}})));
+      b0.onclick=()=>saveQm(sv.f.map(f=>({sheet:f.kk,dir:f.s,g:{csv:f.c,csvFile:f.n}})));
       const b1=$("button","btn ghost","Générer depuis un autre Excel");b1.type="button";b1.title="Recharger un Excel client pour régénérer les CSV (remplace les CSV mémorisés)";b1.onclick=()=>{st.full=true;st.msg="";paint()};
       ac.append(b0,b1);bx.appendChild(ac);md.appendChild(bx);
       if(st.msg){const e=$("p","msg",st.msg);e.setAttribute("role","status");md.appendChild(e)}
