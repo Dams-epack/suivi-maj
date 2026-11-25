@@ -3294,7 +3294,7 @@ function viewMaj(app,id){
   tools.append(fa,ft);
   const setAll=v=>{m.mods.forEach(M=>M.regions.forEach(r=>{const k=M.id+"_"+r.key;m.prog[k]={s:[v,v,v],note:(m.prog[k]&&m.prog[k].note)||""}}));confirmClear=false;render();persist(id,"*")};
   const spacer=$("span");spacer.style.flex="1";tools.appendChild(spacer);
-  const ca=$("button","btn","Tout cocher");ca.onclick=()=>{if(noDates){toast(NOD_MSG);return}setAll(true)};if(noDates)ca.disabled=true;tools.appendChild(ca);
+  const ca=$("button","btn","Tout cocher");ca.onclick=()=>{if(noDates){toast(NOD_MSG,true);return}setAll(true)};if(noDates)ca.disabled=true;tools.appendChild(ca);
   if(!confirmClear){const cl=$("button","btn ghost","Tout décocher");cl.onclick=()=>{confirmClear=true;render()};tools.appendChild(cl)}
   else{
     tools.appendChild($("span","msg err","Tout décocher ?"));
@@ -3325,9 +3325,9 @@ function viewMaj(app,id){
         if(p.s[i]&&p.s.slice(0,i).some(x=>!x)){b.classList.add("warn");warn=true}
         b.appendChild($("span","box",p.s[i]?"✓":""));b.appendChild($("span","stepname",S[1]));b.appendChild($("span",null,"Fait"));
         if(noDates){b.classList.add("locked");b.title=NOD_MSG}
-        b.onclick=()=>{if(noDates){toast(NOD_MSG);return}const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&!M.gen&&stepsOf(M).length===3)openXml(m,k,id)};
-        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>{if(noDates){toast(NOD_MSG);return}openGen(m,k,id,M,r)};if(noDates){gx.disabled=true;gx.title=NOD_MSG}w.append(gx,b);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}
-        else if(QM_CSV&&M.gen&&i===1&&stepsOf(M).length===3){const w=$("div","stepcell");const qx=$("button","chip gx","Excel → CSV QM");qx.type="button";qx.title="Importer l'Excel du client et générer les CSV au format du configurateur pour les QM";qx.onclick=()=>{if(noDates){toast(NOD_MSG);return}openGen(m,k,id,M,r,true)};if(noDates){qx.disabled=true;qx.title=NOD_MSG}w.append(qx,b);row.appendChild(w)}
+        b.onclick=()=>{if(noDates){toast(NOD_MSG,true);return}const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&!M.gen&&stepsOf(M).length===3)openXml(m,k,id)};
+        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>{if(noDates){toast(NOD_MSG,true);return}openGen(m,k,id,M,r)};if(noDates){gx.disabled=true;gx.title=NOD_MSG}w.append(gx,b);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}
+        else if(QM_CSV&&M.gen&&i===1&&stepsOf(M).length===3){const w=$("div","stepcell");const qx=$("button","chip gx","Excel → CSV QM");qx.type="button";qx.title="Importer l'Excel du client et générer les CSV au format du configurateur pour les QM";qx.onclick=()=>{if(noDates){toast(NOD_MSG,true);return}openGen(m,k,id,M,r,true)};if(noDates){qx.disabled=true;qx.title=NOD_MSG}w.append(qx,b);row.appendChild(w)}
         else if(M.gen&&i>=1){const w=$("div","stepcell"),sp=$("span","chip gx","Excel → CSV QM");sp.style.visibility="hidden";sp.setAttribute("aria-hidden","true");w.append(sp,b);row.appendChild(w)}
         else row.appendChild(b);
       });
@@ -6160,7 +6160,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.31.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.31.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
