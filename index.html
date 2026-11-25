@@ -5277,7 +5277,7 @@ function todayItems(){
       const D=parseD(m.dateDeploiement),S=parseD(m.dateSiege),dD=D?Math.round((D-t0)/DAY):null,dS=S?Math.round((S-t0)/DAY):null;
       let r=null;
       if(!k.prise&&D&&dD>=0&&dD<=tdWin)r=["prise","déploiement "+rel(dD),dD];
-      else if(!k.siege&&S&&dS<=tdWin&&dS>=-30)r=["siege","mise à jour siège "+rel(dS),dS];
+      else if(!k.siege&&S&&dS<=0&&dS>=-30)r=["siege","mise à jour siège "+rel(dS),dS];
       else if(!k.debut&&D&&dD<=0&&dD>=-30)r=["debut","déploiement "+rel(dD),dD];
       else if(k.debut&&!k.fin&&!k.pass2&&D&&dD<0&&dD>=-30)r=["fin","déploiement "+rel(dD),dD];
       if(r)out.mail.push({id,m,sev:-r[2],txt:"Mail « "+lbl(r[0])+" » pas encore envoyé : "+r[1]});
@@ -6163,7 +6163,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.32.0",APP_DATE="13/11/2026";
+const APP_VERSION="v2.32.1",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
