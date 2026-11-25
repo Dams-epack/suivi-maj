@@ -836,8 +836,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.29.1";
-const SUPPORT_BUILD="v1.12.1";
+const APP_VERSION="v2.29.2";
+const SUPPORT_BUILD="v1.12.2";
 
 const SUPPORT=true;
 let majs={},cur=null;
@@ -2580,7 +2580,7 @@ function makeZipMany(files){
   return out;
 }
 /* Type d'XML proposé selon le nom du module (modifiable dans la fenêtre) */
-const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/mise en cong[eé]lation/i,"Freezing"],[/refroidissement|d[eé]cong[eé]lation/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/temp[eé]rature de production/i,"ProductionsTemp"],[/tra[cç]abilit[eé]/i,"Production"],[/contr[oô]les?\s+divers/i,"ControleDivers"],[/plats?\s+t[eé]moins?/i,"PlatsTemoins"]];
+const GEN_GUESS=[[/mise en temp[eé]rature/i,"Warming"],[/[eé]tiquettes? produits?/i,"Stickers"],[/cong[eé]lation/i,"Freezing"],[/refroidissement/i,"Frozen"],[/temp[eé]rature de service/i,"Service"],[/r[eé]ception/i,"StockIn"],[/temp[eé]rature de production/i,"ProductionsTemp"],[/tra[cç]abilit[eé]/i,"Production"],[/contr[oô]les?\s+divers/i,"ControleDivers"],[/plats?\s+t[eé]moins?/i,"PlatsTemoins"]];
 const GEN_LABEL={Warming:"Mise en température",Service:"Température de service",Production:"Traçabilité",Stickers:"Étiquettes produits",Freezing:"Mise en congélation",Frozen:"Refroidissement",StockIn:"Réception",ControleDivers:"Contrôles divers",PlatsTemoins:"Plats témoins",ProductionsTemp:"Température de production"};
 const guessType=name=>{for(const [re,t] of GEN_GUESS)if(re.test(name))return t;return ""};
 let genDlg=null;
