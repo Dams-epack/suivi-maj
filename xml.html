@@ -184,7 +184,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .step .box{width:20px;height:20px;border-radius:50%;font-size:12px;font-weight:800;border-width:2px;transition:background .15s,border-color .15s}
 .step[aria-checked="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ok) 26%,transparent),color-mix(in srgb,var(--ok) 12%,transparent));border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 40%,transparent),0 4px 16px -8px var(--ok)}
 .step[aria-checked="true"]:hover{box-shadow:0 0 0 1px var(--ok),0 6px 18px -6px var(--ok)}
-.stepcell{gap:6px}.regline{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.reg .chip.gx{align-self:center;margin:0 0 0 auto}.stepcell .chip.gx{align-self:center;margin:0}
+.stepcell{gap:6px}.regline{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.reg .chip.gx{align-self:center;margin:0 0 0 auto}.stepcell .chip.gx{align-self:center;margin:0}.step.locked{opacity:.5;cursor:not-allowed}.chip.gx:disabled{opacity:.45;cursor:not-allowed}.nodates{margin:6px 0 10px}
 .regdel{font:inherit;line-height:1;width:22px;height:22px;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}.regdel:hover:not(:disabled),.regdel:focus-visible{opacity:1;color:var(--bad);border-color:var(--bad);outline:none}.regdel:disabled{opacity:.2;cursor:not-allowed}
 .regdelq{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--bad)}.regdelq .btn{padding:3px 10px;font-size:.8rem}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
@@ -836,8 +836,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </script>
 <script>
 const QM_CSV=false; /* pas d'export Fichiers QM dans la version Support */
-const APP_VERSION="v2.30.1";
-const SUPPORT_BUILD="v1.13.1";
+const APP_VERSION="v2.31.0";
+const SUPPORT_BUILD="v1.14.0";
 
 const SUPPORT=true;
 let majs={},cur=null;

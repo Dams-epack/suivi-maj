@@ -184,7 +184,7 @@ section.mod{background:var(--surface);border:1px solid var(--line);border-radius
 .step .box{width:20px;height:20px;border-radius:50%;font-size:12px;font-weight:800;border-width:2px;transition:background .15s,border-color .15s}
 .step[aria-checked="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ok) 26%,transparent),color-mix(in srgb,var(--ok) 12%,transparent));border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 40%,transparent),0 4px 16px -8px var(--ok)}
 .step[aria-checked="true"]:hover{box-shadow:0 0 0 1px var(--ok),0 6px 18px -6px var(--ok)}
-.stepcell{gap:6px}.regline{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.reg .chip.gx{align-self:center;margin:0 0 0 auto}.stepcell .chip.gx{align-self:center;margin:0}
+.stepcell{gap:6px}.regline{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.reg .chip.gx{align-self:center;margin:0 0 0 auto}.stepcell .chip.gx{align-self:center;margin:0}.step.locked{opacity:.5;cursor:not-allowed}.chip.gx:disabled{opacity:.45;cursor:not-allowed}.nodates{margin:6px 0 10px}
 .regdel{font:inherit;line-height:1;width:22px;height:22px;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}.regdel:hover:not(:disabled),.regdel:focus-visible{opacity:1;color:var(--bad);border-color:var(--bad);outline:none}.regdel:disabled{opacity:.2;cursor:not-allowed}
 .regdelq{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--bad)}.regdelq .btn{padding:3px 10px;font-size:.8rem}
 .chip.gx{align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--cta) 70%,transparent);background:color-mix(in srgb,var(--cta) 10%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s,transform .12s}
@@ -3280,10 +3280,12 @@ function viewMaj(app,id){
     const v=$("button","btn ok ico sv");v.innerHTML='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><g class="fl"><path d="M8 21v-7h8v7"/></g></svg><span>Enregistrer</span>';v.onclick=()=>{flushDates(id);persist(id);const mm=majs[id];if(mm&&calFlow()&&mm.type!=="correctif"&&mm.dateSiege&&mm.dateDeploiement&&mm.calSent!==mm.dateSiege+"|"+mm.dateDeploiement)toast("Fiche enregistrée. Les dates ne sont pas encore envoyées à Outlook : utilise le bouton à côté des dates.");else toast("Fiche enregistrée.");page="upcoming";backTo=null;setCur(null)};
     va.appendChild(v);foot=va;
   }
+  const noDates=datesMissing(m),NOD_MSG="Renseigne d'abord les dates (date de la demande, MAJ siège, déploiement) puis enregistre-les : la préparation des fichiers se débloque ensuite.";
   const bloc1=$("section","bloc");
   bloc1.appendChild(blocHead("files","Préparation des fichiers",s.done+" / "+s.total+" étapes"));
   const body1=$("div","bloc-b");body1.hidden=!!blocClosed.files;bloc1.appendChild(body1);
   body1.appendChild(hero);
+  if(noDates){const nb=$("p","msg err nodates","🔒 "+NOD_MSG);nb.setAttribute("role","status");body1.appendChild(nb)}
   app.appendChild(bloc1);
   viewLiens(app,m,id);viewXmlLog(app,m);viewHist(app,m,id);
   const tools=$("div","actions");
@@ -3292,7 +3294,7 @@ function viewMaj(app,id){
   tools.append(fa,ft);
   const setAll=v=>{m.mods.forEach(M=>M.regions.forEach(r=>{const k=M.id+"_"+r.key;m.prog[k]={s:[v,v,v],note:(m.prog[k]&&m.prog[k].note)||""}}));confirmClear=false;render();persist(id,"*")};
   const spacer=$("span");spacer.style.flex="1";tools.appendChild(spacer);
-  const ca=$("button","btn","Tout cocher");ca.onclick=()=>setAll(true);tools.appendChild(ca);
+  const ca=$("button","btn","Tout cocher");ca.onclick=()=>{if(noDates){toast(NOD_MSG);return}setAll(true)};if(noDates)ca.disabled=true;tools.appendChild(ca);
   if(!confirmClear){const cl=$("button","btn ghost","Tout décocher");cl.onclick=()=>{confirmClear=true;render()};tools.appendChild(cl)}
   else{
     tools.appendChild($("span","msg err","Tout décocher ?"));
@@ -3322,9 +3324,10 @@ function viewMaj(app,id){
         b.dataset.fid="s-"+k+"-"+i;
         if(p.s[i]&&p.s.slice(0,i).some(x=>!x)){b.classList.add("warn");warn=true}
         b.appendChild($("span","box",p.s[i]?"✓":""));b.appendChild($("span","stepname",S[1]));b.appendChild($("span",null,"Fait"));
-        b.onclick=()=>{const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&!M.gen&&stepsOf(M).length===3)openXml(m,k,id)};
-        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>openGen(m,k,id,M,r);w.append(gx,b);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}
-        else if(QM_CSV&&M.gen&&i===1&&stepsOf(M).length===3){const w=$("div","stepcell");const qx=$("button","chip gx","Excel → CSV QM");qx.type="button";qx.title="Importer l'Excel du client et générer les CSV au format du configurateur pour les QM";qx.onclick=()=>openGen(m,k,id,M,r,true);w.append(qx,b);row.appendChild(w)}
+        if(noDates){b.classList.add("locked");b.title=NOD_MSG}
+        b.onclick=()=>{if(noDates){toast(NOD_MSG);return}const q=m.prog[k]||{s:[false,false,false],note:""};const ns=q.s.slice();ns[i]=!ns[i];m.prog[k]={s:ns,note:q.note||"",issue:(i===0&&ns[0])?"":(q.issue||"")};render();persist(id,k);if(i===1&&ns[1]&&!q.s[1]&&!M.gen&&stepsOf(M).length===3)openXml(m,k,id)};
+        if(i===0&&stepsOf(M).length>1){const w=$("div","stepcell");const gx=$("button","chip gx","Excel → XML");gx.type="button";gx.title="Importer l'Excel du client et générer l'XML";gx.onclick=()=>{if(noDates){toast(NOD_MSG);return}openGen(m,k,id,M,r)};if(noDates){gx.disabled=true;gx.title=NOD_MSG}w.append(gx,b);{const ln=$("div","regline"),sg=reg.querySelector("strong");reg.insertBefore(ln,reg.firstChild);if(sg)ln.appendChild(sg)}if(p.issue){const bd=$("span","pill-bad","⚠ "+p.issue);bd.title="Problème détecté à la dernière génération XML. Il disparaît quand la case « Fichier d'import » est cochée.";w.appendChild(bd)}row.appendChild(w)}
+        else if(QM_CSV&&M.gen&&i===1&&stepsOf(M).length===3){const w=$("div","stepcell");const qx=$("button","chip gx","Excel → CSV QM");qx.type="button";qx.title="Importer l'Excel du client et générer les CSV au format du configurateur pour les QM";qx.onclick=()=>{if(noDates){toast(NOD_MSG);return}openGen(m,k,id,M,r,true)};if(noDates){qx.disabled=true;qx.title=NOD_MSG}w.append(qx,b);row.appendChild(w)}
         else if(M.gen&&i>=1){const w=$("div","stepcell"),sp=$("span","chip gx","Excel → CSV QM");sp.style.visibility="hidden";sp.setAttribute("aria-hidden","true");w.append(sp,b);row.appendChild(w)}
         else row.appendChild(b);
       });
@@ -6157,7 +6160,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.30.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.31.0",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
