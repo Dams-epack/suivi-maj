@@ -469,7 +469,7 @@ textarea.tmta:focus{outline:none;border-color:var(--cta);box-shadow:0 0 0 3px rg
 .fgrid[hidden]{display:none}
 .kpi.acc,.card.acc,.panel.acc,.sitem.acc{border-top:4px solid var(--cta)}
 .kpi.acc.low{border-top-color:var(--bad)}.kpi.acc.mid{border-top-color:var(--mid)}
-.panel.acc.late{border-top-color:var(--bad)}.panel.acc.wait{border-top-color:var(--mid)}
+.panel.acc.late{border-top-color:var(--bad)}.panel.acc.okc{border-top-color:var(--ok)}.panel.acc.wait{border-top-color:var(--mid)}
 .nrow.wait{border-left-color:var(--mid)}.ndate.wait b,.ndate.wait small{color:var(--mid)}
 .kpi.link{cursor:pointer}.kpi.link:hover{border-color:var(--accent)}.kpi.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.kpi.link em{font-style:normal;color:var(--accent);font-size:.8rem;margin-top:4px}
 .sitem .bar{margin:4px 0;height:10px}
@@ -5300,8 +5300,9 @@ function todayRow(r,badge,cls){
 /* Panneau de l'accueil : un compteur par catégorie + lien vers la vue complète */
 function viewTodayPanel(app){
   const T=todayItems(),n=todayCount(T);
-  const sec=$("section","panel acc rem"+(T.late.length||T.mail.length?" late":""));
-  const hd=$("div","hubtop");hd.append($("h2",null,"À traiter aujourd'hui"),$("span","badge "+(n?"late":"done"),String(n)));
+  const tone=T.late.length?"late":(T.mail.length||T.blocked.length)?"wait":"okc";
+  const sec=$("section","panel acc rem "+tone);
+  const hd=$("div","hubtop");hd.append($("h2",null,"À traiter aujourd'hui"),$("span","badge "+(tone==="late"?"late":tone==="wait"?"live":"done"),String(n)));
   const all=$("button","chip","Tout voir →");all.type="button";all.onclick=openToday;hd.appendChild(all);sec.appendChild(hd);
   if(!n){sec.appendChild($("p","empty","Rien à traiter : aucun mail en attente, aucune MAJ bloquée ni à archiver."));app.appendChild(sec);return}
   const ch=$("div","tdchips");
@@ -5408,6 +5409,10 @@ function selfTests(){
   /* Générateur XML */
   t("Générateur XML","Étiquettes valides : XML généré",()=>{const r=gen("Stickers",["Id","Name","DateLimit"],[["111","Pain",3],["222","Lait",5]]);ok(r.g.xml,"pas de XML : "+r.errs.join(" | "));ok(/Pain/.test(r.g.xml)&&/Lait/.test(r.g.xml))});
   t("Générateur XML","Boulangerie Ange : « à consommer de préf. avant le » → IsDDM true",()=>{const r=gen("Stickers",["Id","Name","Category","DateLimit"],[["1","Pain à consommer de préf. avant le","X",3],["2","Baguette","DDM SECONDAIRE",3],["3","Croissant","X",3]],{excCat:"DDM SECONDAIRE"});ok(r.g.xml,"pas de XML : "+r.errs.join("|"));const v=[...r.g.xml.matchAll(/<IsDDM>(\w+)<\/IsDDM>/g)].map(m=>m[1]);eq(v.join(","),"true,true,false")});
+  t("Suivi des MAJ","Bloc « À traiter » : couleur = pire élément",()=>{const cl=M=>sandbox(M,()=>{const d=document.createElement("div");viewTodayPanel(d);return d.firstChild.className});
+    ok(/\bokc\b/.test(cl({})),"vide → vert");
+    ok(/\bwait\b/.test(cl({a:mk("ALPHA - Maj",{dateSiege:dstr(0),dateDeploiement:dstr(3),datesPerso:true,mails:{prise:1}})})),"mail à envoyer → orange");
+    ok(/\blate\b/.test(cl({b:mk("BRAVO - Maj",{dateSiege:dstr(-9),dateDeploiement:dstr(-5),datesPerso:true,mails:{prise:1,siege:1}})})),"retard → rouge")});
   t("Générateur XML","Id en double : génération bloquée",()=>{const r=gen("Stickers",["Id","Name","DateLimit"],[["111","Pain",3],["111","Lait",5]]);ok(!r.g.xml);ok(r.errs.some(e=>/Id en double/.test(e)),r.errs.join("|"))});
   t("Générateur XML","DLC -5 bloquée, -1 acceptée",()=>{const a=gen("Production",["Name","DateLimit"],[["A",-5]]);ok(!a.g.xml&&a.errs.some(e=>/négative/.test(e)),"-5 non bloquée");const b=gen("Production",["Name","DateLimit"],[["A",-1]]);ok(b.g.xml,"-1 refusée : "+b.errs.join("|"))});
   t("Générateur XML","Minimum supérieur au maximum bloqué",()=>{const a=gen("Service",["Name","TempMin","TempMax"],[["A",5,2]]);ok(!a.g.xml&&a.errs.some(e=>/Minimum supérieur/.test(e)));const b=gen("Service",["Name","TempMin","TempMax"],[["A",0,4]]);ok(b.g.xml)});
@@ -6163,7 +6168,7 @@ function spInit(){
   setInterval(()=>{if(document.visibilityState==="visible")spLoad()},60000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")spLoad()});
 }
-const APP_VERSION="v2.32.1",APP_DATE="13/11/2026";
+const APP_VERSION="v2.32.2",APP_DATE="13/11/2026";
 let lastVK;
 function render(){
   {const av=document.getElementById("appver");if(av)av.textContent=APP_VERSION;av.title="Suivi de préparation des MAJ · "+APP_VERSION}
